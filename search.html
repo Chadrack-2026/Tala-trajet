@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rechercher un trajet — TALA Trajet</title>
+  <title>Résultats de recherche — TALA Trajet</title>
   
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
@@ -29,79 +29,21 @@
 <!-- MAIN -->
 <main style="padding-bottom: 80px;">
   
-  <!-- HERO RECHERCHE -->
-  <section class="hero-showcase" style="padding: 60px 20px 40px;">
+  <!-- HERO RÉSULTATS -->
+  <section class="hero-showcase" style="padding: 50px 20px 30px;">
     <div class="hero-content">
-      <span class="badge-hero">Réservation en ligne</span>
-      <h1 class="hero-title">Trouvez votre prochain <span>trajet</span></h1>
-      <p class="hero-sub">Comparez les horaires et les tarifs des meilleures agences de transport en RDC.</p>
+      <span class="badge-hero" id="resultsCount">Recherche en cours...</span>
+      <h1 class="hero-title" style="font-size: 2rem; margin-top: 10px;">Résultats de votre <span>recherche</span></h1>
+      <p class="hero-sub" id="searchCriteriaSummary">Veuillez patienter pendant que nous trouvons les meilleurs bus.</p>
     </div>
   </section>
 
-  <div class="container">
+  <div class="container" style="margin-top: 20px;">
     
-    <!-- BARRE DE RECHERCHE PRINCIPALE (MODIFIÉE AVEC CHAMPS DE TEXTE LIBRES) -->
-    <div class="card" style="padding: 28px 24px; border-radius: 16px; margin-top: -30px; position: relative; z-index: 10;">
-      <form id="searchForm" onsubmit="handleSearch(event)" class="search-form">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
-          
-          <div style="text-align: left;">
-            <label for="departureCity" style="display: block; margin-bottom: 8px; font-size: 0.85rem; color: #e7edf3; font-weight: 500;">Ville de départ</label>
-            <input type="text" id="departureCity" name="departure" placeholder="Ex: Kinshasa, Matadi..." required style="width: 100%; padding: 12px; border-radius: 8px; background: #0c0f13; border: 1px solid #2a313b; color: #ffffff; font-family: 'Poppins', sans-serif;">
-          </div>
-
-          <div style="text-align: left;">
-            <label for="arrivalCity" style="display: block; margin-bottom: 8px; font-size: 0.85rem; color: #e7edf3; font-weight: 500;">Ville d'arrivée</label>
-            <input type="text" id="arrivalCity" name="arrival" placeholder="Ex: Boma, Moanda..." required style="width: 100%; padding: 12px; border-radius: 8px; background: #0c0f13; border: 1px solid #2a313b; color: #ffffff; font-family: 'Poppins', sans-serif;">
-          </div>
-
-          <div style="text-align: left;">
-            <label for="travelDate" style="display: block; margin-bottom: 8px; font-size: 0.85rem; color: #e7edf3; font-weight: 500;">Date de voyage</label>
-            <input type="date" id="travelDate" name="date" required style="width: 100%; padding: 12px; border-radius: 8px; background: #0c0f13; border: 1px solid #2a313b; color: #ffffff; font-family: 'Poppins', sans-serif;">
-          </div>
-
-        </div>
-
-        <button type="submit" class="btn-primary-lg" style="margin-top: 20px; width: 100%; border: none; cursor: pointer; text-align: center;">🔍 Voir les bus disponibles</button>
-      </form>
+    <!-- LISTE DES RÉSULTATS -->
+    <div id="resultsList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;">
+      <!-- Les cartes de trajets s'injecteront dynamiquement ici -->
     </div>
-
-    <!-- TRAJETS POPULAIRES (APERÇU) -->
-    <section style="margin-top: 50px;">
-      <div class="section-header" style="text-align: left; max-width: 100%; margin-bottom: 24px;">
-        <h2>Trajets <span>populaires</span></h2>
-        <p>Sélectionnez un itinéraire fréquent ou lancez une recherche personnalisée ci-dessus.</p>
-      </div>
-
-      <div class="routes-grid">
-        <div class="route-card">
-          <div class="route-header">
-            <h4>Matadi ➔ Kinshasa</h4>
-            <span class="route-tag">Quotidien</span>
-          </div>
-          <p class="route-info">À partir de 25 000 CDF • Plusieurs départs par jour</p>
-          <a href="results.html?departure=Matadi&arrival=Kinshasa" class="route-link">Voir les horaires →</a>
-        </div>
-
-        <div class="route-card">
-          <div class="route-header">
-            <h4>Kinshasa ➔ Boma</h4>
-            <span class="route-tag">Direct</span>
-          </div>
-          <p class="route-info">À partir de 30 000 CDF • Bus climatisés</p>
-          <a href="results.html?departure=Kinshasa&arrival=Boma" class="route-link">Voir les horaires →</a>
-        </div>
-
-        <div class="route-card">
-          <div class="route-header">
-            <h4>Kinshasa ➔ Moanda</h4>
-            <span class="route-tag">Express</span>
-          </div>
-          <p class="route-info">À partir de 35 000 CDF • Voyage de nuit/jour</p>
-          <a href="results.html?departure=Kinshasa&arrival=Moanda" class="route-link">Voir les horaires →</a>
-        </div>
-      </div>
-    </section>
 
   </div>
 
@@ -144,51 +86,171 @@
     });
   }
 
-  // Initialisation au chargement de la page
+  // Récupération des paramètres de l'URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const departureCity = urlParams.get('departure') || '';
+  const arrivalCity = urlParams.get('arrival') || '';
+  const travelDate = urlParams.get('date') || '';
+  const passengers = parseInt(urlParams.get('passengers') || '1', 10);
+
   document.addEventListener('DOMContentLoaded', async () => {
-    // 1. Définir la date minimale à aujourd'hui
-    const dateInput = document.getElementById('travelDate');
-    if (dateInput) {
-      const today = new Date().toISOString().split('T')[0];
-      dateInput.min = today;
-      dateInput.value = today; // Met la date du jour par défaut
+    // Affichage récapitulatif des critères
+    const summaryEl = document.getElementById('searchCriteriaSummary');
+    if (summaryEl) {
+      let summaryText = '';
+      if (departureCity && arrivalCity) {
+        summaryText = `Trajets de <strong>${departureCity}</strong> vers <strong>${arrivalCity}</strong>`;
+      }
+      if (travelDate) {
+        summaryText += ` pour le <strong>${travelDate}</strong>`;
+      }
+      summaryEl.innerHTML = summaryText || "Tous les trajets disponibles";
     }
 
-    // 2. Vérifier la session utilisateur Supabase pour personnaliser le bouton "Mon Compte"
+    // Gestion de la session utilisateur pour le header
     const { data: { session } } = await supabaseClient.auth.getSession();
     const accountLink = document.getElementById('userAccountLink');
-
     if (session && session.user) {
       const userName = session.user.user_metadata?.full_name || "Mon Compte";
       accountLink.textContent = `👤 ${userName.split(' ')[0]}`;
-      accountLink.href = "account.html"; 
+      accountLink.href = "account.html";
     } else {
       accountLink.textContent = "Se connecter";
       accountLink.href = "auth.html";
     }
+
+    // Lancer la recherche des trajets
+    await loadResults();
   });
 
-  // Traitement et Redirection vers results.html
-  function handleSearch(e) {
-    e.preventDefault();
-    
-    const dep = document.getElementById('departureCity').value.trim();
-    const arr = document.getElementById('arrivalCity').value.trim();
-    const date = document.getElementById('travelDate').value;
+  // Fonction de chargement et filtrage des trajets
+  async function loadResults() {
+    const container = document.getElementById("resultsList");
+    const countEl = document.getElementById("resultsCount");
+    if (!container) return;
 
-    if (dep.toLowerCase() === arr.toLowerCase()) {
-      alert("La ville de départ et la ville d'arrivée doivent être différentes.");
-      return;
+    container.innerHTML = `
+      <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #b0bcc9;">
+        <p style="font-size: 1.2rem; margin-bottom: 8px;">⏳ Recherche des départs disponibles...</p>
+        <p style="font-size: 0.85rem;">Veuillez patienter un instant.</p>
+      </div>
+    `;
+
+    try {
+      // Requête Supabase pour récupérer tous les trajets avec les infos de l'agence
+      let query = supabaseClient.from("trips").select(`
+        id,
+        ville_depart,
+        ville_arrivee,
+        date_depart,
+        prix,
+        places_disponibles,
+        agency:agencies!agency_id ( nom )
+      `);
+
+      const { data, error } = await query;
+
+      if (error) {
+        container.innerHTML = `
+          <div style="grid-column: 1 / -1; background: rgba(231, 76, 60, 0.1); border: 1px solid #e74c3c; padding: 20px; border-radius: 12px; text-align: center;">
+            <p style="color: #e74c3c; font-weight: 600; margin: 0;">Erreur lors de la récupération des données : ${error.message}</p>
+          </div>
+        `;
+        return;
+      }
+
+      // Filtrage intelligent et flexible en JavaScript (insensible à la casse, aux accents et aux espaces)
+      const filtered = (data || []).filter(trajet => {
+        const places = trajet.places_disponibles || 0;
+        if (places < passengers) return false;
+
+        // Comparaison souple ville de départ
+        if (departureCity) {
+          const trajetDep = (trajet.ville_depart || "").toLowerCase().trim();
+          const searchDep = departureCity.toLowerCase().trim();
+          if (!trajetDep.includes(searchDep)) return false;
+        }
+
+        // Comparaison souple ville d'arrivée
+        if (arrivalCity) {
+          const trajetArr = (trajet.ville_arrivee || "").toLowerCase().trim();
+          const searchArr = arrivalCity.toLowerCase().trim();
+          if (!trajetArr.includes(searchArr)) return false;
+        }
+
+        // Vérification de la date si demandée
+        if (travelDate && trajet.date_depart) {
+          if (!trajet.date_depart.startsWith(travelDate)) return false;
+        }
+
+        return true;
+      });
+
+      if (!filtered || filtered.length === 0) {
+        if (countEl) countEl.textContent = "Aucun résultat";
+        container.innerHTML = `
+          <div style="grid-column: 1 / -1; background: #171b22; border: 1px solid #2a313b; border-radius: 16px; padding: 50px 20px; text-align: center;">
+            <div style="font-size: 2.5rem; margin-bottom: 12px;">🚌</div>
+            <h3 style="color: #ffffff; margin-bottom: 8px;">Aucun trajet trouvé</h3>
+            <p style="color: #b0bcc9; font-size: 0.9rem; max-width: 450px; margin: 0 auto 20px;">
+              Aucune agence ne propose de départ correspondant à vos critères de recherche actuels.
+            </p>
+            <a href="search.html" class="btn-primary-lg" style="font-size: 0.9rem; padding: 12px 24px; display: inline-block; text-decoration: none;">Modifier ma recherche</a>
+          </div>
+        `;
+        return;
+      }
+
+      // Tri par prix croissant
+      filtered.sort((a, b) => a.prix - b.prix);
+
+      if (countEl) countEl.textContent = `${filtered.length} trajet(s) disponible(s)`;
+      container.innerHTML = "";
+
+      filtered.forEach(trajet => {
+        const agenceNom = trajet.agency?.nom || "Agence Partenaire";
+        const prixFormate = trajet.prix ? Number(trajet.prix).toLocaleString('fr-FR') : "N/A";
+        const dateFormatted = trajet.date_depart ? new Date(trajet.date_depart).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" }) : 'N/A';
+        
+        container.innerHTML += `
+          <div class="card" style="background: #171b22; border: 1px solid #2a313b; border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between;">
+            <div class="card-body" style="padding: 24px;">
+              
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <span class="route-tag" style="background: rgba(0,210,255,0.1); color: #00d2ff; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 600;">${agenceNom}</span>
+                <strong style="color: #00d2ff; font-size: 1.3rem; font-weight: 700;">${prixFormate} CDF</strong>
+              </div>
+
+              <h3 style="color: #ffffff; font-size: 1.25rem; margin-bottom: 12px;">
+                ${trajet.ville_depart} ➔ ${trajet.ville_arrivee}
+              </h3>
+              
+              <div style="background: #0c0f13; border: 1px solid #2a313b; padding: 12px 14px; border-radius: 10px; margin-bottom: 20px; display: grid; grid-template-columns: 1fr; gap: 8px; font-size: 0.85rem;">
+                <div style="color: #e7edf3;">📅 Départ : <strong>${dateFormatted}</strong></div>
+                <div style="color: #e7edf3;">💺 Places restantes : <strong>${trajet.places_disponibles ?? 'N/A'}</strong></div>
+              </div>
+
+              <button onclick="selectTrip('${trajet.id}')" class="btn-primary-lg" style="width: 100%; border: none; cursor: pointer; text-align: center; font-size: 0.95rem; padding: 14px;">
+                Réserver ce trajet →
+              </button>
+
+            </div>
+          </div>
+        `;
+      });
+
+    } catch (err) {
+      container.innerHTML = `
+        <div style="grid-column: 1 / -1; background: rgba(231, 76, 60, 0.1); border: 1px solid #e74c3c; padding: 20px; border-radius: 12px; text-align: center;">
+          <p style="color: #e74c3c; margin: 0;">Une erreur inattendue est survenue lors de la recherche.</p>
+        </div>
+      `;
     }
+  }
 
-    // Construction des paramètres de recherche et redirection vers results.html
-    const searchParams = new URLSearchParams({
-      departure: dep,
-      arrival: arr,
-      date: date
-    });
-
-    window.location.href = `results.html?${searchParams.toString()}`;
+  // Action lors du clic sur Réserver
+  function selectTrip(tripId) {
+    window.location.href = `checkout.html?trip_id=${tripId}`;
   }
 </script>
 
