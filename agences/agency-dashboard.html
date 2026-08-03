@@ -334,9 +334,10 @@
 </main>
 
 <script>
+  // Initialisation Supabase avec les bons identifiants actifs
   const { createClient } = window.supabase;
-  const supabaseUrl = "https://iyiuysgwbreaqkepilqn.supabase.co";
-  const supabaseKey = "sb_publishable_uPwAsJaGU4m_ejyajmEv2A_dLgqIM3h";
+  const supabaseUrl = "https://kfkifkstatbadtzosxai.supabase.co"; 
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma2lma3N0YXRiYWR0em9zeGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3MTYzMTAsImV4cCI6MjEwMTI5MjMxMH0.xPzFtl_OET2asSc5iH3liRHnPyuUYAfbbjZISwfnaA8";
   const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
   let currentAgency = null;
@@ -351,7 +352,8 @@
     }
 
     currentAgency = JSON.parse(storedAgency);
-    document.getElementById("agencyNameDisplay").textContent = currentAgency.nom;
+    const nameDisplay = document.getElementById("agencyNameDisplay");
+    if (nameDisplay) nameDisplay.textContent = currentAgency.nom;
 
     loadDashboardData();
   });
@@ -380,24 +382,31 @@
     const tbody = document.getElementById("busesTableBody");
     const select = document.getElementById("busSelect");
     
-    tbody.innerHTML = "";
-    select.innerHTML = '<option value="">Sélectionner un bus</option>';
+    if (tbody) tbody.innerHTML = "";
+    if (select) select.innerHTML = '<option value="">Sélectionner un bus</option>';
 
     if (busesList.length > 0) {
-      document.getElementById("statBuses").textContent = busesList.length;
+      const statBuses = document.getElementById("statBuses");
+      if (statBuses) statBuses.textContent = busesList.length;
+
       busesList.forEach(b => {
-        tbody.innerHTML += `
-          <tr>
-            <td><strong>${b.immatriculation}</strong></td>
-            <td>${b.capacite} places</td>
-            <td><button class="btn-print" onclick="deleteBus(${b.id})" style="color:var(--red); border-color:var(--red);">Supprimer</button></td>
-          </tr>
-        `;
-        select.innerHTML += `<option value="${b.id}" data-capacity="${b.capacite}">${b.immatriculation} (${b.capacite} places)</option>`;
+        if (tbody) {
+          tbody.innerHTML += `
+            <tr>
+              <td><strong>${b.immatriculation}</strong></td>
+              <td>${b.capacite} places</td>
+              <td><button class="btn-print" onclick="deleteBus(${b.id})" style="color:var(--red); border-color:var(--red);">Supprimer</button></td>
+            </tr>
+          `;
+        }
+        if (select) {
+          select.innerHTML += `<option value="${b.id}" data-capacity="${b.capacite}">${b.immatriculation} (${b.capacite} places)</option>`;
+        }
       });
     } else {
-      document.getElementById("statBuses").textContent = "0";
-      tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: var(--text-muted);">Aucun bus enregistré.</td></tr>';
+      const statBuses = document.getElementById("statBuses");
+      if (statBuses) statBuses.textContent = "0";
+      if (tbody) tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: var(--text-muted);">Aucun bus enregistré.</td></tr>';
     }
   }
 
@@ -430,9 +439,10 @@
 
   /* --- GESTION DES TRAJETS --- */
   async function loadTrips() {
+    // Utilisation de la relation explicite pour éviter les erreurs de jointure
     const { data: trips, error } = await supabaseClient
       .from("trips")
-      .select("*, buses(immatriculation)")
+      .select("*, buses!bus_id(immatriculation)")
       .eq("agence_id", currentAgency.id)
       .order("date_depart", { ascending: true });
 
@@ -442,17 +452,21 @@
     }
 
     const tbody = document.getElementById("tripsTableBody");
+    if (!tbody) return;
     tbody.innerHTML = "";
 
     if (trips && trips.length > 0) {
       trips.forEach(t => {
         const dateStr = new Date(t.date_depart).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" });
+        const busImmat = t.buses && t.buses.immatriculation ? t.buses.immatriculation : 'N/A';
+        const prixFormat = t.prix ? t.prix.toLocaleString() : '0';
+
         tbody.innerHTML += `
           <tr>
             <td><strong>${t.ville_depart} ➔ ${t.ville_arrivee}</strong></td>
             <td>${dateStr}</td>
-            <td>${t.buses ? t.buses.immatriculation : 'N/A'}</td>
-            <td>${t.prix.toLocaleString()} FC</td>
+            <td>${busImmat}</td>
+            <td>${prixFormat} FC</td>
             <td><button class="btn-print" onclick="printManifest(${t.id})">🖨️ Imprimer la liste</button></td>
           </tr>
         `;
@@ -512,13 +526,18 @@
       if (r.statut_reservation === "EMBARQUE") boardedCount++;
     });
 
-    document.getElementById("statRevenue").textContent = totalRevenue.toLocaleString() + " FC";
-    document.getElementById("statBookings").textContent = allReservations.length;
-    document.getElementById("statBoarded").textContent = boardedCount;
+    const statRevenue = document.getElementById("statRevenue");
+    const statBookings = document.getElementById("statBookings");
+    const statBoarded = document.getElementById("statBoarded");
+
+    if (statRevenue) statRevenue.textContent = totalRevenue.toLocaleString() + " FC";
+    if (statBookings) statBookings.textContent = allReservations.length;
+    if (statBoarded) statBoarded.textContent = boardedCount;
   }
 
   function renderReservations(list) {
     const tbody = document.getElementById("reservationsTableBody");
+    if (!tbody) return;
     tbody.innerHTML = "";
 
     if (list.length > 0) {
@@ -549,7 +568,9 @@
   }
 
   function filterReservations() {
-    const query = document.getElementById("searchInput").value.toLowerCase();
+    const searchInput = document.getElementById("searchInput");
+    if (!searchInput) return;
+    const query = searchInput.value.toLowerCase();
     const filtered = allReservations.filter(r => 
       (r.client_name && r.client_name.toLowerCase().includes(query)) || 
       (r.ticket_number && r.ticket_number.toLowerCase().includes(query))
@@ -615,6 +636,7 @@
     window.location.href = "agency-login.html";
   }
 </script>
+
 
 </body>
 </html>
