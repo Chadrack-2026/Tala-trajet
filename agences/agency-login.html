@@ -1,1 +1,197 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connexion Agence — TALA Trajet Pro</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+  <style>
+    .auth-card {
+      max-width: 480px;
+      margin: 40px auto 80px;
+      background: #171b22;
+      border: 1px solid #2a313b;
+      border-radius: 20px;
+      padding: 35px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .form-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      color: #b0bcc9;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 12px 16px;
+      background: #0c0f13;
+      border: 1px solid #2a313b;
+      border-radius: 10px;
+      color: #ffffff;
+      font-family: inherit;
+      font-size: 0.95rem;
+      box-sizing: border-box;
+    }
+    .form-group input:focus {
+      outline: none;
+      border-color: #00d2ff;
+    }
+    
+    /* En-tête du mot de passe avec lien oublié */
+    .password-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .forgot-link {
+      font-size: 0.8rem;
+      color: #00d2ff;
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+    .forgot-link:hover {
+      text-decoration: underline;
+      opacity: 0.8;
+    }
+
+    .alert-box {
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      margin-bottom: 20px;
+      display: none;
+      background: rgba(231, 76, 60, 0.15);
+      color: #e74c3c;
+      border: 1px solid #e74c3c;
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="brand">TALA<span>Trajet</span> <small style="font-size:0.6em; color:#00d2ff;">| Pro</small></div>
+  <nav class="main-nav" id="navMenu">
+    <a href="../index.html">Accueil Général</a>
+    <a href="../contact.html">Support</a>
+  </nav>
+</header>
+
+<main>
+  <!-- HERO -->
+  <section class="hero-showcase" style="padding: 40px 20px 30px;">
+    <div class="hero-content">
+      <span class="badge-hero">Espace Partenaires</span>
+      <h1 class="hero-title">Connexion <span>Agence</span></h1>
+      <p class="hero-sub">Accédez à votre espace de gestion des bus et des réservations.</p>
+    </div>
+  </section>
+
+  <div class="container">
+    <div class="auth-card">
+      
+      <form id="agencyLoginForm" onsubmit="handleAgencyLogin(event)">
+        <h2 style="color: #ffffff; font-size: 1.3rem; margin-bottom: 20px; text-align: center;">
+          Identifiez-vous
+        </h2>
+
+        <div id="alertMessage" class="alert-box"></div>
+
+        <div class="form-group">
+          <label for="agencyEmail">Adresse e-mail professionnelle</label>
+          <input type="email" id="agencyEmail" required placeholder="contact@agence.com">
+        </div>
+
+        <div class="form-group">
+          <div class="password-header">
+            <label for="agencyPassword" style="margin-bottom: 0;">Mot de passe</label>
+            
+          </div>
+          <input type="password" id="agencyPassword" required placeholder="••••••••">
+        </div>
+        <a href="forgot-password.html" class="forgot-link">Mot de passe oublié ?</a>
+
+        <button type="submit" id="submitBtn" class="btn-primary-lg" style="width: 100%; border: none; cursor: pointer; padding: 14px; margin-top: 10px;">
+          Se connecter à l'espace Agence 🔐
+        </button>
+
+        <p style="text-align: center; font-size: 0.8rem; color: #b0bcc9; margin-top: 20px;">
+          Vous n'avez pas encore de compte agence ?<br>
+          <span style="color: #6b7c93;">L'inscription se fait uniquement sur invitation de l'administrateur TALA Trajet.</span>
+        </p>
+      </form>
+
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="container footer-bottom">
+    <p>© 2026 TALA Trajet Pro — Plateforme de gestion des transports.</p>
+  </div>
+</footer>
+
+<script>
+  const { createClient } = window.supabase;
+  const supabaseUrl = "https://iyiuysgwbreaqkepilqn.supabase.co";
+  const supabaseKey = "sb_publishable_uPwAsJaGU4m_ejyajmEv2A_dLgqIM3h";
+  const supabaseClient = createClient(supabaseUrl, supabaseKey);
+
+  async function handleAgencyLogin(e) {
+    e.preventDefault();
+    const btn = document.getElementById("submitBtn");
+    const alertBox = document.getElementById("alertMessage");
+
+    alertBox.style.display = "none";
+    btn.disabled = true;
+    btn.textContent = "Vérification en cours...";
+
+    const email = document.getElementById("agencyEmail").value.trim();
+    const password = document.getElementById("agencyPassword").value;
+
+    try {
+      // 1. Connexion Supabase Auth
+      const { data: authData, error: authError } = await supabaseClient.auth.signInWithPassword({
+        email: email,
+        password: password
+      });
+
+      if (authError) throw authError;
+
+      // 2. Vérification du rôle Agence dans la table 'agencies'
+      const { data: agency, error: agencyError } = await supabaseClient
+        .from("agencies")
+        .select("*")
+        .eq("user_id", authData.user.id)
+        .single();
+
+      if (agencyError || !agency) {
+        await supabaseClient.auth.signOut();
+        throw new Error("Ce compte n'est pas enregistré comme un compte agence autorisé.");
+      }
+
+      // 3. Stockage de la session et redirection
+      localStorage.setItem("currentAgency", JSON.stringify(agency));
+      window.location.href = "agency-dashboard.html";
+
+    } catch (err) {
+      alertBox.textContent = err.message || "Identifiants incorrects.";
+      alertBox.style.display = "block";
+      btn.disabled = false;
+      btn.textContent = "Se connecter à l'espace Agence 🔐";
+    }
+  }
+</script>
+
+</body>
+</html>
