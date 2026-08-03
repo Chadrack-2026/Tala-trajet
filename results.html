@@ -132,13 +132,12 @@
     `;
 
     try {
-      // CORRIGÉ ICI : on précise explicitement "!agency_id" pour éviter l'ambiguïté de relation
+      // CORRIGÉ : Suppression de heure_depart qui n'existe pas dans la table trips
       let query = supabaseClient.from("trips").select(`
         id,
         ville_depart,
         ville_arrivee,
         date_depart,
-        heure_depart,
         prix,
         places_disponibles,
         places_totales,
@@ -191,6 +190,9 @@
         const agenceNom = trajet.agency?.nom || "Agence Partenaire";
         const prixFormate = trajet.prix ? Number(trajet.prix).toLocaleString('fr-FR') : "N/A";
         
+        // Formater proprement la date/heure de départ si elle contient un timestamp
+        const dateFormatted = trajet.date_depart ? new Date(trajet.date_depart).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" }) : 'N/A';
+        
         container.innerHTML += `
           <div class="card">
             <div class="card-body" style="padding: 24px;">
@@ -204,10 +206,9 @@
                 ${trajet.ville_depart} ➔ ${trajet.ville_arrivee}
               </h3>
               
-              <div style="background: #0c0f13; border: 1px solid #2a313b; padding: 12px 14px; border-radius: 10px; margin-bottom: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.85rem;">
-                <div style="color: #e7edf3;">📅 Date : <strong>${trajet.date_depart || 'N/A'}</strong></div>
-                <div style="color: #e7edf3;">🕒 Départ : <strong>${trajet.heure_depart || 'N/A'}</strong></div>
-                <div style="color: #e7edf3; grid-column: span 2;">💺 Places restantes : <strong>${trajet.places_disponibles} / ${trajet.places_totales}</strong></div>
+              <div style="background: #0c0f13; border: 1px solid #2a313b; padding: 12px 14px; border-radius: 10px; margin-bottom: 20px; display: grid; grid-template-columns: 1fr; gap: 8px; font-size: 0.85rem;">
+                <div style="color: #e7edf3;">📅 Départ : <strong>${dateFormatted}</strong></div>
+                <div style="color: #e7edf3;">💺 Places restantes : <strong>${trajet.places_disponibles} / ${trajet.places_totales}</strong></div>
               </div>
 
               <button onclick="selectTrip('${trajet.id}')" class="btn-primary-lg" style="width: 100%; border: none; cursor: pointer; text-align: center; font-size: 0.95rem; padding: 14px;">
@@ -236,6 +237,7 @@
   // Execution
   loadResults();
 </script>
+
 
 
 </body>
