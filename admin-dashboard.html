@@ -265,7 +265,7 @@
             </tr>
           </thead>
           <tbody id="payoutsTableBody">
-            <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Aucune demande en attente.</td></tr>
+            <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Chargement...</td></tr>
           </tbody>
         </table>
       </div>
@@ -307,6 +307,7 @@
   document.addEventListener("DOMContentLoaded", () => {
     loadAdminStats();
     loadAgencies();
+    loadPayouts();
   });
 
   /* --- CHARGEMENT DES STATS GLOBALES --- */
@@ -314,14 +315,14 @@
     const { count: agenciesCount } = await supabaseClient.from("agencies").select("*", { count: 'exact', head: true });
     document.getElementById("totalAgencies").textContent = agenciesCount || 0;
 
-    const { data: reservations } = await supabaseClient.from("reservations").select("montant_total");
+    const { data: reservations } = await supabaseClient.from("reservations").select("total_price, montant_total");
     if (reservations) {
       document.getElementById("totalTickets").textContent = reservations.length;
-      const totalVolume = reservations.reduce((sum, r) => sum + (r.montant_total || 0), 0);
+      const totalVolume = reservations.reduce((sum, r) => sum + (r.total_price || r.montant_total || 0), 0);
       const netCommission = totalVolume * COMMISSION_RATE;
 
-      document.getElementById("totalVolume").textContent = totalVolume.toLocaleString() + " FC";
-      document.getElementById("netCommission").textContent = netCommission.toLocaleString() + " FC";
+      document.getElementById("totalVolume").textContent = totalVolume.toLocaleString('fr-FR') + " FC";
+      document.getElementById("netCommission").textContent = netCommission.toLocaleString('fr-FR') + " FC";
     }
   }
 
@@ -342,18 +343,74 @@
     if (error) {
       alert("Erreur génération : " + error.message);
     } else {
-      const inviteUrl = window.location.origin + '/agences/agency-register.html?token=' + token;
+      const inviteUrl = window.location.origin + '/agency-register.html?token=' + token;
       document.getElementById("generatedUrl").value = inviteUrl;
       document.getElementById("inviteResult").style.display = "block";
       document.getElementById("inviteForm").reset();
     }
   }
 
-  function copyLink() {
+  async function copyLink() {
     const copyText = document.getElementById("generatedUrl");
-    copyText.select();
-    document.execCommand("copy");
-    alert("Lien d'invitation copié dans le presse-papier !");
+    try {
+      await navigator.clipboard.writeText(copyText.value);
+      alert("Lien d'invitation copié dans le presse-papier !");
+    } catch (err) {
+      copyText.select();
+      document.execCommand("copy");
+      alert("Lien d'invitation copié !");
+    }
+  }
+
+  /* --- CHARGEMENT DES DEMANDES DE RETRAIT --- */
+  async function loadPayouts() {
+    const { data: payouts, error } = await supabaseClient
+      .from("payouts")
+      .select("*, agency:agencies(nom)")
+      .eq("statut", "PENDING")
+      .order("created_at", { ascending: false });
+
+    const tbody = document.getElementById("payoutsTableBody");
+    tbody.innerHTML = "";
+
+    if (!error && payouts && payouts.length > 0) {
+      payouts.forEach(p => {
+        const agencyName = p.agency?.nom || p.nom_agence || "Agence";
+        const amount = Number(p.montant || 0).toLocaleString('fr-FR') + " FC";
+        const mode = p.mode_paiement || "Mobile Money";
+
+        tbody.innerHTML += `
+          <tr>
+            <td><strong>${agencyName}</strong></td>
+            <td style="color:var(--green); font-weight:600;">${amount}</td>
+            <td>${mode}</td>
+            <td>
+              <button class="btn-action" onclick="approvePayout(${p.id})" style="color:var(--green); border-color:var(--green);">
+                Payer ✓
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+    } else {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Aucune demande en attente.</td></tr>';
+    }
+  }
+
+  async function approvePayout(payoutId) {
+    if (confirm("Confirmer le règlement de ce reversement à l'agence ?")) {
+      const { error } = await supabaseClient
+        .from("payouts")
+        .update({ statut: "PAID" })
+        .eq("id", payoutId);
+
+      if (!error) {
+        alert("Reversement marqué comme payé avec succès !");
+        loadPayouts();
+      } else {
+        alert("Erreur lors de la mise à jour : " + error.message);
+      }
+    }
   }
 
   /* --- CHARGEMENT DES AGENCES --- */
@@ -368,13 +425,13 @@
 
     if (agencies && agencies.length > 0) {
       agencies.forEach(a => {
-        const dateStr = new Date(a.created_at).toLocaleDateString("fr-FR");
+        const dateStr = a.created_at ? new Date(a.created_at).toLocaleDateString("fr-FR") : "N/A";
         const isActive = a.statut !== 'SUSPENDED';
 
         tbody.innerHTML += `
           <tr>
             <td><strong>${a.nom}</strong></td>
-            <td>${a.email || 'N/A'}</td>
+            <td>${a.email || a.telephone || 'N/A'}</td>
             <td>${dateStr}</td>
             <td><span class="badge ${isActive ? 'badge-success' : 'badge-danger'}">${isActive ? 'ACTIF' : 'SUSPENDU'}</span></td>
             <td>
@@ -400,8 +457,9 @@
     }
   }
 
-  function logout() {
-    window.location.href = "agency-login.html";
+  async function logout() {
+    await supabaseClient.auth.signOut();
+    window.location.href = "auth.html";
   }
 </script>
 
