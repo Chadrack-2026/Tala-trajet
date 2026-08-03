@@ -199,8 +199,9 @@
 
 <script>
   const { createClient } = window.supabase;
-  const supabaseUrl = "https://iyiuysgwbreaqkepilqn.supabase.co";
-  const supabaseKey = "sb_publishable_uPwAsJaGU4m_ejyajmEv2A_dLgqIM3h";
+  // Correction : Utilisation des bons identifiants Supabase actifs
+  const supabaseUrl = "https://kfkifkstatbadtzosxai.supabase.co";
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma2lma3N0YXRiYWR0em9zeGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3MTYzMTAsImV4cCI6MjEwMTI5MjMxMH0.xPzFtl_OET2asSc5iH3liRHnPyuUYAfbbjZISwfnaA8";
   const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
   let validInvitationToken = null;
@@ -219,12 +220,12 @@
       return;
     }
 
-    // Validation du token d'invitation dans Supabase
+    // Validation du token d'invitation dans Supabase (compatibilité 'status' ou 'statut')
     const { data: invitation, error } = await supabaseClient
       .from("agency_invitations")
       .select("*")
       .eq("token", token)
-      .eq("status", "PENDING")
+      .or("status.eq.PENDING,statut.eq.PENDING")
       .single();
 
     loadingState.style.display = "none";
@@ -235,8 +236,11 @@
       validInvitationToken = token;
       registerForm.style.display = "block";
       document.getElementById("invitationBadge").textContent = `Invitation valide : ${token}`;
-      if (invitation.email) {
-        document.getElementById("agencyEmail").value = invitation.email;
+      if (invitation.email || invitation.email_agence) {
+        document.getElementById("agencyEmail").value = invitation.email || invitation.email_agence;
+      }
+      if (invitation.nom_agence || invitation.nom) {
+        document.getElementById("agencyName").value = invitation.nom_agence || invitation.nom;
       }
     }
   });
@@ -304,10 +308,10 @@
 
       if (agencyError) throw agencyError;
 
-      // 3. Marquer l'invitation comme utilisée
+      // 3. Marquer l'invitation comme utilisée (mise à jour flexible status/statut)
       await supabaseClient
         .from("agency_invitations")
-        .update({ status: "USED" })
+        .update({ status: "USED", statut: "USED" })
         .eq("token", validInvitationToken);
 
       // Stockage de la session locale agence
