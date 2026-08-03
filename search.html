@@ -40,36 +40,24 @@
 
   <div class="container">
     
-    <!-- BARRE DE RECHERCHE PRINCIPALE -->
+    <!-- BARRE DE RECHERCHE PRINCIPALE (MODIFIÉE AVEC CHAMPS DE TEXTE LIBRES) -->
     <div class="card" style="padding: 28px 24px; border-radius: 16px; margin-top: -30px; position: relative; z-index: 10;">
       <form id="searchForm" onsubmit="handleSearch(event)" class="search-form">
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
           
           <div style="text-align: left;">
             <label for="departureCity" style="display: block; margin-bottom: 8px; font-size: 0.85rem; color: #e7edf3; font-weight: 500;">Ville de départ</label>
-            <select id="departureCity" name="departure" required>
-              <option value="">Sélectionnez une ville</option>
-              <option value="Kinshasa">Kinshasa</option>
-              <option value="Matadi">Matadi</option>
-              <option value="Boma">Boma</option>
-              <option value="Moanda">Moanda</option>
-            </select>
+            <input type="text" id="departureCity" name="departure" placeholder="Ex: Kinshasa, Matadi..." required style="width: 100%; padding: 12px; border-radius: 8px; background: #0c0f13; border: 1px solid #2a313b; color: #ffffff; font-family: 'Poppins', sans-serif;">
           </div>
 
           <div style="text-align: left;">
             <label for="arrivalCity" style="display: block; margin-bottom: 8px; font-size: 0.85rem; color: #e7edf3; font-weight: 500;">Ville d'arrivée</label>
-            <select id="arrivalCity" name="arrival" required>
-              <option value="">Sélectionnez une ville</option>
-              <option value="Matadi">Matadi</option>
-              <option value="Kinshasa">Kinshasa</option>
-              <option value="Boma">Boma</option>
-              <option value="Moanda">Moanda</option>
-            </select>
+            <input type="text" id="arrivalCity" name="arrival" placeholder="Ex: Boma, Moanda..." required style="width: 100%; padding: 12px; border-radius: 8px; background: #0c0f13; border: 1px solid #2a313b; color: #ffffff; font-family: 'Poppins', sans-serif;">
           </div>
 
           <div style="text-align: left;">
             <label for="travelDate" style="display: block; margin-bottom: 8px; font-size: 0.85rem; color: #e7edf3; font-weight: 500;">Date de voyage</label>
-            <input type="date" id="travelDate" name="date" required>
+            <input type="date" id="travelDate" name="date" required style="width: 100%; padding: 12px; border-radius: 8px; background: #0c0f13; border: 1px solid #2a313b; color: #ffffff; font-family: 'Poppins', sans-serif;">
           </div>
 
         </div>
@@ -173,7 +161,7 @@
     if (session && session.user) {
       const userName = session.user.user_metadata?.full_name || "Mon Compte";
       accountLink.textContent = `👤 ${userName.split(' ')[0]}`;
-      accountLink.href = "account.html"; // Redirige vers son tableau de bord client s'il est connecté
+      accountLink.href = "account.html"; 
     } else {
       accountLink.textContent = "Se connecter";
       accountLink.href = "auth.html";
@@ -184,11 +172,11 @@
   function handleSearch(e) {
     e.preventDefault();
     
-    const dep = document.getElementById('departureCity').value;
-    const arr = document.getElementById('arrivalCity').value;
+    const dep = document.getElementById('departureCity').value.trim();
+    const arr = document.getElementById('arrivalCity').value.trim();
     const date = document.getElementById('travelDate').value;
 
-    if (dep === arr) {
+    if (dep.toLowerCase() === arr.toLowerCase()) {
       alert("La ville de départ et la ville d'arrivée doivent être différentes.");
       return;
     }
