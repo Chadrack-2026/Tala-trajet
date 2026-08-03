@@ -199,7 +199,6 @@
 
 <script>
   const { createClient } = window.supabase;
-  // Correction : Utilisation des bons identifiants Supabase actifs
   const supabaseUrl = "https://kfkifkstatbadtzosxai.supabase.co";
   const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma2lma3N0YXRiYWR0em9zeGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3MTYzMTAsImV4cCI6MjEwMTI5MjMxMH0.xPzFtl_OET2asSc5iH3liRHnPyuUYAfbbjZISwfnaA8";
   const supabaseClient = createClient(supabaseUrl, supabaseKey);
@@ -220,12 +219,12 @@
       return;
     }
 
-    // Validation du token d'invitation dans Supabase (compatibilité 'status' ou 'statut')
+    // Validation du token d'invitation avec la colonne exacte "statut"
     const { data: invitation, error } = await supabaseClient
       .from("agency_invitations")
       .select("*")
       .eq("token", token)
-      .or("status.eq.PENDING,statut.eq.PENDING")
+      .eq("statut", "PENDING")
       .single();
 
     loadingState.style.display = "none";
@@ -308,10 +307,10 @@
 
       if (agencyError) throw agencyError;
 
-      // 3. Marquer l'invitation comme utilisée (mise à jour flexible status/statut)
+      // 3. Marquer l'invitation comme utilisée en ciblant la colonne "statut"
       await supabaseClient
         .from("agency_invitations")
-        .update({ status: "USED", statut: "USED" })
+        .update({ statut: "USED" })
         .eq("token", validInvitationToken);
 
       // Stockage de la session locale agence
