@@ -289,23 +289,23 @@
 
       if (authError) throw authError;
 
-            // 2. Insertion dans la table `agencies` (en utilisant "statut" au lieu de "status")
+                  // 2. Insertion dans la table `agencies` (sans user_id)
       const { data: agencyRecord, error: agencyError } = await supabaseClient
         .from("agencies")
         .insert([
           {
-            user_id: authData.user.id,
             nom: name,
             telephone: phone,
             ville_siege: city,
             email: email,
-            statut: "ACTIVE" // <-- Remplacé "status" par "statut"
+            statut: "ACTIVE"
           }
         ])
         .select()
         .single();
 
       if (agencyError) throw agencyError;
+
 
       // 3. Marquer l'invitation comme utilisée en ciblant la colonne "statut"
       await supabaseClient
