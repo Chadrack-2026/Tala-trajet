@@ -8,7 +8,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   
+  <!-- Supabase JS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <!-- Librairies PDF et QR Code -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   
@@ -35,15 +38,20 @@
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
-    .badge.CONFIRME, .badge.PAID, .badge.paye {
+    .badge.CONFIRME, .badge.PAID, .badge.paye, .badge.confirmé {
       background: rgba(46, 204, 113, 0.15);
       color: #2ecc71;
       border: 1px solid #2ecc71;
     }
-    .badge.EN_ATTENTE, .badge.PENDING {
+    .badge.EN_ATTENTE, .badge.PENDING, .badge.en_attente {
       background: rgba(241, 196, 15, 0.15);
       color: #f1c40f;
       border: 1px solid #f1c40f;
+    }
+    .badge.ANNULE, .badge.CANCELLED, .badge.annulé {
+      background: rgba(231, 76, 60, 0.15);
+      color: #e74c3c;
+      border: 1px solid #e74c3c;
     }
     .history-card {
       background: #171b22;
@@ -90,6 +98,16 @@
       color: #00d2ff;
       border-bottom-color: #00d2ff;
     }
+    .seat-chip {
+      display: inline-block;
+      background: rgba(0, 210, 255, 0.1);
+      color: #00d2ff;
+      border: 1px solid rgba(0, 210, 255, 0.3);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      margin-right: 4px;
+    }
   </style>
 </head>
 <body>
@@ -102,7 +120,7 @@
     <a href="search.html">Rechercher</a>
     <a href="about.html">À propos</a>
     <a href="contact.html">Contact</a>
-    <a href="account.html" class="active nav-auth-btn">Mon Compte</a>
+    <a href="account.html" class="active nav-auth-btn" id="userAccountLink">Mon Compte</a>
   </nav>
   <button class="menu-btn" id="menuToggle" aria-label="Ouvrir le menu">☰</button>
 </header>
@@ -135,7 +153,7 @@
           </div>
 
           <div style="margin-top: 20px; border-top: 1px solid #2a313b; padding-top: 16px;">
-            <button id="logoutBtn" onclick="handleLogout()" class="btn-secondary-lg" style="width: 100%; font-size: 0.85rem; padding: 10px; display: none;">
+            <button id="logoutBtn" onclick="handleLogout()" class="btn-secondary-lg" style="width: 100%; font-size: 0.85rem; padding: 10px; display: none; cursor: pointer;">
               Déconnexion / Réinitialiser
             </button>
           </div>
@@ -190,6 +208,7 @@
 </footer>
 
 <script>
+  // Menu Mobile Toggle
   const menuToggle = document.getElementById('menuToggle');
   const navMenu = document.getElementById('navMenu');
   if (menuToggle && navMenu) {
@@ -199,6 +218,7 @@
     });
   }
 
+  // Initialisation Supabase Client
   const { createClient } = window.supabase;
   const supabaseUrl = "https://iyiuysgwbreaqkepilqn.supabase.co";
   const supabaseKey = "sb_publishable_uPwAsJaGU4m_ejyajmEv2A_dLgqIM3h";
@@ -211,13 +231,19 @@
     const accountInfo = document.getElementById("accountInfo");
     const logoutBtn = document.getElementById("logoutBtn");
 
+    // 1. Récupérer l'utilisateur Supabase ou le cache LocalStorage
     const { data: { user } } = await supabaseClient.auth.getUser();
     const lastReservation = JSON.parse(localStorage.getItem("reservationInfo"));
     
-    let clientPhone = user?.phone || user?.user_metadata?.phone || lastReservation?.client_phone || lastReservation?.telephone;
-    let clientName = user?.user_metadata?.full_name || lastReservation?.client_name || lastReservation?.nom;
+    let clientPhone = user?.phone || user?.user_metadata?.phone || lastReservation?.client_phone || lastReservation?.phone || lastReservation?.telephone;
+    let clientName = user?.user_metadata?.full_name || lastReservation?.client_name || lastReservation?.full_name || lastReservation?.nom;
     let clientEmail = user?.email || lastReservation?.email;
 
+    if (user && user.user_metadata?.full_name) {
+      document.getElementById('userAccountLink').textContent = `👤 ${user.user_metadata.full_name.split(' ')[0]}`;
+    }
+
+    // Affichage des informations du profil
     if (clientPhone || clientName || clientEmail) {
       accountInfo.innerHTML = `
         <div class="info-row"><span>Nom :</span><span>${clientName || "Non renseigné"}</span></div>
@@ -236,19 +262,28 @@
       return;
     }
 
+    // 2. Charger l'historique depuis Supabase
+    let fetchedFromDb = false;
+
     if (clientPhone) {
       const { data, error } = await supabaseClient
         .from("reservations")
-        .select("*")
+        .select(`
+          *,
+          trip:trips ( ville_depart, ville_arrivee, date_depart, heure_depart ),
+          agency:agencies ( nom )
+        `)
         .eq("client_phone", clientPhone)
         .order("id", { ascending: false });
 
       if (!error && data && data.length > 0) {
         allReservations = data;
-      } else if (lastReservation) {
-        allReservations = [lastReservation];
+        fetchedFromDb = true;
       }
-    } else if (lastReservation) {
+    }
+
+    // Fallback LocalStorage si la base de données ne retourne rien
+    if (!fetchedFromDb && lastReservation) {
       allReservations = [lastReservation];
     }
 
@@ -268,8 +303,9 @@
 
     const today = new Date().toISOString().split('T')[0];
 
+    // Séparation selon la date de départ
     const filtered = allReservations.filter(r => {
-      const resDate = r.date || r.date_depart || today;
+      const resDate = r.trip?.date_depart || r.date || r.date_depart || today;
       return currentTab === 'upcoming' ? resDate >= today : resDate < today;
     });
 
@@ -280,8 +316,26 @@
 
     filtered.forEach(r => {
       const ticketNum = r.ticket_number || r.id || "TL-N/A";
-      const status = r.statut_reservation || r.statut || "CONFIRME";
-      const passagersCount = r.passengers_list?.length || r.passengers || 1;
+      const status = (r.statut_reservation || r.statut || "CONFIRME").toUpperCase();
+      
+      const vDepart = r.trip?.ville_depart || r.ville_depart || "Départ";
+      const vArrivee = r.trip?.ville_arrivee || r.ville_arrivee || "Arrivée";
+      const dateDep = r.trip?.date_depart || r.date || r.date_depart || "N/A";
+      const heureDep = r.trip?.heure_depart || r.heure_depart || "";
+      const agenceNom = r.agency?.nom || r.agence || "Agence Partenaire";
+
+      // Calcul & Formatage des sièges
+      const seatsRaw = r.seats || r.passengers_list || [1];
+      let seatsArray = [];
+      if (Array.isArray(seatsRaw)) {
+        seatsArray = seatsRaw;
+      } else if (typeof seatsRaw === "string") {
+        try { seatsArray = JSON.parse(seatsRaw); } catch { seatsArray = [seatsRaw]; }
+      } else {
+        seatsArray = [1];
+      }
+
+      const seatsHtml = seatsArray.map(s => `<span class="seat-chip">n°${s}</span>`).join("");
 
       container.innerHTML += `
         <div class="history-card">
@@ -289,22 +343,23 @@
             <div>
               <span style="font-size: 0.75rem; color: #b0bcc9; font-family: monospace;">N° ${ticketNum}</span>
               <h4 style="color: #ffffff; margin: 2px 0 0; font-size: 1.05rem;">
-                ${r.ville_depart || 'Départ'} ➔ ${r.ville_arrivee || 'Arrivée'}
+                ${vDepart} ➔ ${vArrivee}
               </h4>
+              <span style="font-size: 0.8rem; color: #00d2ff;">🏢 ${agenceNom}</span>
             </div>
             <span class="badge ${status}">${status}</span>
           </div>
 
           <div style="display: flex; gap: 16px; font-size: 0.85rem; color: #b0bcc9; margin-bottom: 14px; flex-wrap: wrap;">
-            <span>📅 Date : <strong style="color:#fff;">${r.date || r.date_depart || 'N/A'}</strong></span>
-            <span>💺 Passager(s) : <strong style="color:#fff;">${passagersCount}</strong></span>
+            <span>📅 Date : <strong style="color:#fff;">${dateDep} ${heureDep ? 'à ' + heureDep : ''}</strong></span>
+            <span>💺 Siège(s) : ${seatsHtml}</span>
           </div>
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-            <button onclick="viewTicket('${ticketNum}')" class="btn-primary-lg" style="font-size: 0.8rem; padding: 8px; text-align: center;">
+            <button onclick="viewTicket('${ticketNum}')" class="btn-primary-lg" style="font-size: 0.8rem; padding: 8px; text-align: center; border: none; cursor: pointer;">
               Afficher le billet 🎫
             </button>
-            <button onclick="downloadQuickPDF('${ticketNum}')" class="btn-secondary-lg" style="font-size: 0.8rem; padding: 8px; text-align: center;">
+            <button onclick="downloadQuickPDF('${ticketNum}')" class="btn-secondary-lg" style="font-size: 0.8rem; padding: 8px; text-align: center; cursor: pointer;">
               Télécharger PDF 📥
             </button>
           </div>
@@ -317,27 +372,96 @@
     window.location.href = `confirmation.html?ticket=${ticketNum}`;
   }
 
+  // Helper pour générer un QR Code pour le PDF
+  function generateQRDataURL(text) {
+    return new Promise((resolve) => {
+      const tempDiv = document.createElement("div");
+      new QRCode(tempDiv, {
+        text: text,
+        width: 120,
+        height: 120,
+        correctLevel: QRCode.CorrectLevel.H
+      });
+      setTimeout(() => {
+        const canvas = tempDiv.querySelector("canvas");
+        resolve(canvas ? canvas.toDataURL("image/png") : null);
+      }, 200);
+    });
+  }
+
   async function downloadQuickPDF(ticketNum) {
     const item = allReservations.find(r => (r.ticket_number || r.id) == ticketNum);
     if (!item) return alert("Données du billet introuvables");
 
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
+    const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
 
+    const vDepart = item.trip?.ville_depart || item.ville_depart || "Départ";
+    const vArrivee = item.trip?.ville_arrivee || item.ville_arrivee || "Arrivée";
+    const dateDep = item.trip?.date_depart || item.date || item.date_depart || "N/A";
+    const heureDep = item.trip?.heure_depart || item.heure_depart || "08:00";
+    const clientName = item.client_name || item.full_name || "Client TALA";
+    const clientPhone = item.client_phone || item.phone || "N/A";
+    const agenceNom = item.agency?.nom || item.agence || "Agence Partenaire";
+    const price = item.total_price || item.prix || 0;
+
+    // En-tête du PDF
     doc.setFillColor(15, 23, 42);
-    doc.rect(0, 0, 210, 30, "F");
-    doc.setFontSize(18);
+    doc.rect(0, 0, 210, 35, "F");
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(20);
     doc.setTextColor(0, 210, 255);
-    doc.text("TALA Trajet — Billet de Voyage", 15, 20);
+    doc.text("TALA Trajet", 15, 20);
+
+    doc.setFontSize(10);
+    doc.setTextColor(200, 200, 200);
+    doc.text("Billet Express de Transport", 15, 28);
 
     doc.setFontSize(11);
-    doc.setTextColor(0, 0, 0);
-    doc.text(`N° Billet : ${ticketNum}`, 20, 45);
-    doc.text(`Trajet : ${item.ville_depart || 'N/A'} -> ${item.ville_arrivee || 'N/A'}`, 20, 55);
-    doc.text(`Passager : ${item.client_name || 'N/A'}`, 20, 65);
-    doc.text(`Téléphone : ${item.client_phone || 'N/A'}`, 20, 75);
-    doc.text(`Date : ${item.date || item.date_depart || 'N/A'}`, 20, 85);
+    doc.setTextColor(255, 255, 255);
+    doc.text(`N° ${ticketNum}`, 145, 22);
 
+    // Bloc Trajet
+    doc.setFillColor(240, 244, 248);
+    doc.rect(15, 45, 180, 18, "F");
+    doc.setTextColor(15, 23, 42);
+    doc.setFontSize(13);
+    doc.text(`Trajet : ${vDepart} -> ${vArrivee}`, 20, 57);
+
+    // Lignes de détails
+    doc.setFontSize(10);
+    let y = 75;
+    const addLine = (label, val) => {
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(80, 80, 80);
+      doc.text(label, 20, y);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(15, 23, 42);
+      doc.text(String(val), 70, y);
+      doc.setDrawColor(230, 230, 230);
+      doc.line(20, y + 2, 190, y + 2);
+      y += 10;
+    };
+
+    addLine("Passager :", clientName);
+    addLine("Téléphone :", clientPhone);
+    addLine("Agence :", agenceNom);
+    addLine("Date de départ :", `${dateDep} à ${heureDep}`);
+    addLine("Montant Total :", price ? `${Number(price).toLocaleString('fr-FR')} FC` : "Payé");
+    addLine("Statut Billet :", "CONFIRMÉ");
+
+    // Génération du QR Code dans le PDF
+    const qrDataUrl = await generateQRDataURL(`https://talatrajet.com/verify?ticket=${ticketNum}`);
+    if (qrDataUrl) {
+      doc.addImage(qrDataUrl, "PNG", 80, y + 8, 50, 50);
+    }
+
+    doc.setFontSize(8);
+    doc.setTextColor(130, 130, 130);
+    doc.text("Présentez ce QR Code à l'embarquement.", 105, y + 65, { align: "center" });
+
+    // Sauvegarde
     doc.save(`Billet_${ticketNum}.pdf`);
   }
 
