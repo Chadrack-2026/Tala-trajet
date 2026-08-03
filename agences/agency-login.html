@@ -184,7 +184,7 @@
 
       // 3. Gestion selon le rôle (Super Admin vs Agence)
       if (roleData.role === 'super_admin') {
-        window.location.href = "admin-dashboard.html";
+        window.location.href = "../admin-dashboard.html";
       } 
       else if (roleData.role === 'agency_admin') {
         const { data: agencyData, error: agencyError } = await supabaseClient
