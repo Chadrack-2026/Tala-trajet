@@ -44,6 +44,7 @@
       font-size: 1.4rem;
       color: var(--primary-blue);
     }
+    .brand span { color: #ffffff; }
 
     .container {
       max-width: 700px;
@@ -186,12 +187,12 @@
 
 <header class="site-header">
   <div class="brand">TALA<span>Trajet</span></div>
-  <a href="index.html" style="color: #b0bcc9; text-decoration: none; font-size: 0.9rem;">← Retour</a>
+  <a href="javascript:history.back()" style="color: #b0bcc9; text-decoration: none; font-size: 0.9rem;">← Retour</a>
 </header>
 
 <main class="container">
   <section id="tripDetails" class="card">
-    <p style="text-align: center; color: #b0bcc9;">Chargement des détails du voyage...</p>
+    <p style="text-align: center; color: #b0bcc9;">⏳ Chargement des détails du voyage...</p>
   </section>
 
   <h3 style="color: #ffffff; font-size: 1.1rem; margin-top: 25px;">Choisissez vos sièges</h3>
@@ -218,14 +219,15 @@
       <span id="totalPrice" class="price">0 FC</span>
     </div>
 
-    <button type="submit" id="submitBtn">Payer et confirmer la réservation </button>
+    <button type="submit" id="submitBtn">Payer et confirmer la réservation</button>
   </form>
 </main>
 
 <script>
+// Key Supabase réelles de TALA Trajet
 const { createClient } = window.supabase;
-const supabaseUrl = "https://iyiuysgwbreaqkepilqn.supabase.co";
-const supabaseKey = "sb_publishable_uPwAsJaGU4m_ejyajmEv2A_dLgqIM3h";
+const supabaseUrl = "https://kfkifkstatbadtzosxai.supabase.co"; 
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma2lma3N0YXRiYWR0em9zeGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3MTYzMTAsImV4cCI6MjEwMTI5MjMxMH0.xPzFtl_OET2asSc5iH3liRHnPyuUYAfbbjZISwfnaA8";
 const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
 const params = new URLSearchParams(window.location.search);
@@ -233,18 +235,31 @@ const trajetId = params.get("trajet_id");
 
 let selectedSeats = [];
 let trajet = null;
+let currentUserId = null;
 
 /* =========================
-   CHARGEMENT DU TRAJET
+   CHARGEMENT DU TRAJET & USER
 ========================= */
 async function loadTrip() {
   if (!trajetId) {
     alert("Aucun trajet sélectionné.");
-    window.location.href = "index.html";
+    window.location.href = "search.html";
     return;
   }
 
-  // Requête harmonisée avec les tables 'trips', 'buses' et 'agencies'
+  // Pré-remplissage si l'utilisateur est connecté
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (session && session.user) {
+    currentUserId = session.user.id;
+    if (session.user.user_metadata?.full_name) {
+      document.getElementById("name").value = session.user.user_metadata.full_name;
+    }
+    if (session.user.email) {
+      document.getElementById("email").value = session.user.email;
+    }
+  }
+
+  // Récupération du trajet avec l'agence affiliée
   const { data, error } = await supabaseClient
     .from("trips")
     .select(`
@@ -252,49 +267,51 @@ async function loadTrip() {
       ville_depart,
       ville_arrivee,
       date_depart,
+      heure_depart,
       prix,
-      agencies ( id, nom ),
-      buses ( id, immatriculation, capacite )
+      places_disponibles,
+      places_totales,
+      agency:agencies ( id, nom )
     `)
     .eq("id", trajetId)
     .maybeSingle();
 
   if (error || !data) {
-    alert("Trajet introuvable");
+    alert("Impossible de charger les détails du trajet.");
+    window.location.href = "results.html";
     return;
   }
 
   trajet = data;
 
-  // Récupération des réservations existantes pour ce trajet
+  // Récupération des sièges déjà réservés sur ce trajet
   const { data: reservedData } = await supabaseClient
     .from("reservations")
-    .select("passengers_list")
+    .select("seats")
     .eq("trajet_id", trajetId);
 
   let occupiedSeats = [];
   if (reservedData) {
     reservedData.forEach(r => {
-      if (r.passengers_list) {
+      if (r.seats) {
         try {
-          const list = typeof r.passengers_list === 'string' ? JSON.parse(r.passengers_list) : r.passengers_list;
-          occupiedSeats = occupiedSeats.concat(list);
+          const list = Array.isArray(r.seats) ? r.seats : JSON.parse(r.seats);
+          occupiedSeats = occupiedSeats.concat(list.map(Number));
         } catch (e) {
-          console.error("Erreur de lecture des sièges:", e);
+          console.error("Erreur parsing sièges:", e);
         }
       }
     });
   }
 
-  const capacity = trajet.buses ? trajet.buses.capacite : 50;
-  const remainingSeats = capacity - occupiedSeats.length;
-  const dateFormatted = new Date(trajet.date_depart).toLocaleString('fr-FR', { dateStyle: 'full', timeStyle: 'short' });
+  const capacity = trajet.places_totales || 50;
+  const remainingSeats = trajet.places_disponibles || (capacity - occupiedSeats.length);
 
   document.getElementById("tripDetails").innerHTML = `
-    <h3 style="margin-top:0; color:#00d2ff;">${trajet.ville_depart} ➔ ${trajet.ville_arrivee}</h3>
-    <p style="margin: 5px 0; color:#b0bcc9;"><strong>Compagnie :</strong> ${trajet.agencies ? trajet.agencies.nom : 'Agence Partenaire'}</p>
-    <p style="margin: 5px 0; color:#b0bcc9;">📅 <strong>Départ :</strong> ${dateFormatted}</p>
-    <p style="margin: 5px 0; color:#b0bcc9;">💰 <strong>Prix :</strong> ${trajet.prix.toLocaleString()} FC / place</p>
+    <h3 style="margin-top:0; color:#00d2ff; font-size:1.3rem;">${trajet.ville_depart} ➔ ${trajet.ville_arrivee}</h3>
+    <p style="margin: 5px 0; color:#b0bcc9;">🏢 <strong>Compagnie :</strong> ${trajet.agency ? trajet.agency.nom : 'Agence Partenaire'}</p>
+    <p style="margin: 5px 0; color:#b0bcc9;">📅 <strong>Départ :</strong> ${trajet.date_depart} à ${trajet.heure_depart || 'N/A'}</p>
+    <p style="margin: 5px 0; color:#b0bcc9;">💰 <strong>Prix :</strong> ${Number(trajet.prix).toLocaleString('fr-FR')} FC / place</p>
     <p style="margin: 5px 0; color:#2ecc71;">🪑 <strong>Places restantes :</strong> ${remainingSeats} sur ${capacity}</p>
   `;
 
@@ -302,7 +319,7 @@ async function loadTrip() {
 }
 
 /* =========================
-   GESTION DES SIÈGES
+   GESTION DU PLAN DE SIÈGES
 ========================= */
 function generateSeats(totalSeats, occupiedSeats) {
   const container = document.getElementById("seatsContainer");
@@ -323,7 +340,7 @@ function generateSeats(totalSeats, occupiedSeats) {
 
     container.appendChild(seat);
 
-    // Allée centrale tous les 2 sièges
+    // Allée centrale après chaque paire de 2 sièges (colonnes 1-2 | allée | 3-4)
     if (i % 2 === 0 && i % 4 !== 0) {
       const aisle = document.createElement("div");
       aisle.classList.add("aisle");
@@ -345,11 +362,11 @@ function toggleSeat(seatNumber, seatDiv) {
 
   document.getElementById("seatCount").textContent = selectedSeats.length;
   document.getElementById("totalPrice").textContent =
-    (selectedSeats.length * trajet.prix).toLocaleString() + " FC";
+    (selectedSeats.length * Number(trajet.prix)).toLocaleString('fr-FR') + " FC";
 }
 
 /* =========================
-   SOUMISSION DU FORMULAIRE
+   SOUMISSION & ENREGISTREMENT
 ========================= */
 document.getElementById("bookingForm").addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -364,24 +381,23 @@ document.getElementById("bookingForm").addEventListener("submit", async (e) => {
   btn.textContent = "Réservation en cours...";
 
   const formData = new FormData(e.target);
+  const ticketNumber = `TALA-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
+  const totalAmount = selectedSeats.length * Number(trajet.prix);
 
-  // 1️⃣ Génération du numéro de ticket
-  const ticketNumber = `TALA-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
-
-  // 2️⃣ Enregistrement dans Supabase
+  // 1️⃣ Enregistrement de la réservation
   const reservationData = {
     trajet_id: trajetId,
-    bus_id: trajet.buses ? trajet.buses.id : null,
-    agence_id: trajet.agencies ? trajet.agencies.id : null,
-    client_name: formData.get("name"),
+    user_id: currentUserId,
+    agency_id: trajet.agency ? trajet.agency.id : null,
+    full_name: formData.get("name"),
     email: formData.get("email"),
-    client_phone: formData.get("phone"),
-    passengers: selectedSeats.length,
-    passengers_list: JSON.stringify(selectedSeats),
-    statut_reservation: "EN_ATTENTE",
-    statut_paiement: "PENDING",
+    phone: formData.get("phone"),
+    seats: selectedSeats,
+    seats_count: selectedSeats.length,
+    total_price: totalAmount,
     ticket_number: ticketNumber,
-    montant_total: selectedSeats.length * trajet.prix
+    payment_status: "PENDING",
+    booking_status: "CONFIRMED"
   };
 
   const { data: reservation, error } = await supabaseClient
@@ -393,19 +409,22 @@ document.getElementById("bookingForm").addEventListener("submit", async (e) => {
   if (error) {
     alert("Erreur lors de la réservation : " + error.message);
     btn.disabled = false;
-    btn.textContent = "Payer et confirmer la réservation 🚀";
+    btn.textContent = "Payer et confirmer la réservation";
     return;
   }
 
-  // 3️⃣ Redirection ou étape de paiement
-  alert(`Réservation enregistrée avec succès ! Billet N° ${ticketNumber}. Veuillez procéder au paiement.`);
-  btn.textContent = "Paiement en cours...";
+  // 2️⃣ Mettre à jour les places disponibles du trajet
+  const newPlacesCount = Math.max(0, (trajet.places_disponibles || selectedSeats.length) - selectedSeats.length);
+  await supabaseClient
+    .from("trips")
+    .update({ places_disponibles: newPlacesCount })
+    .eq("id", trajetId);
 
-  // Redirection éventuelle vers une page de confirmation
-  // window.location.href = `confirmation.html?ticket=${ticketNumber}`;
+  // 3️⃣ Redirection vers la page de confirmation / paiement
+  window.location.href = `confirmation.html?ticket=${ticketNumber}`;
 });
 
-// Initialisation
+// Lancement
 loadTrip();
 </script>
   
