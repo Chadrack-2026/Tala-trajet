@@ -133,19 +133,21 @@
 
     try {
       // CORRIGÉ : Suppression de places_totales qui n'existe pas dans la table trips
-      let query = supabaseClient.from("trips").select(`
+            let query = supabaseClient.from("trips").select(`
         id,
         ville_depart,
         ville_arrivee,
         date_depart,
         prix,
         places_disponibles,
+        statut,
         agency:agencies!agency_id ( nom )
-      `);
+      `).eq("statut", "PROGRAMME");
 
       if (departureCity) query = query.ilike("ville_depart", `%${departureCity}%`);
       if (arrivalCity) query = query.ilike("ville_arrivee", `%${arrivalCity}%`);
-      if (travelDate) query = query.eq("date_depart", travelDate);
+      if (travelDate) query = query.ilike("date_depart", `${travelDate}%`);
+
 
       const { data, error } = await query;
 
