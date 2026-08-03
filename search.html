@@ -7,6 +7,9 @@
   
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+
+  <!-- Inclusion SDK Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -18,7 +21,7 @@
     <a href="search.html" class="active">Rechercher</a>
     <a href="about.html">À propos</a>
     <a href="contact.html">Contact</a>
-    <a href="auth.html" class="nav-auth-btn">Mon Compte</a>
+    <a href="auth.html" id="userAccountLink" class="nav-auth-btn">Mon Compte</a>
   </nav>
   <button class="menu-btn" id="menuToggle" aria-label="Ouvrir le menu">☰</button>
 </header>
@@ -137,6 +140,12 @@
 </footer>
 
 <script>
+  // Initialisation Supabase
+  const { createClient } = window.supabase;
+  const supabaseUrl = "https://kfkifkstatbadtzosxai.supabase.co"; 
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma2lma3N0YXRiYWR0em9zeGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3MTYzMTAsImV4cCI6MjEwMTI5MjMxMH0.xPzFtl_OET2asSc5iH3liRHnPyuUYAfbbjZISwfnaA8";
+  const supabaseClient = createClient(supabaseUrl, supabaseKey);
+
   // Menu Mobile Toggle
   const menuToggle = document.getElementById('menuToggle');
   const navMenu = document.getElementById('navMenu');
@@ -147,11 +156,29 @@
     });
   }
 
-  // Initialisation de la date minimale à aujourd'hui
-  const dateInput = document.getElementById('travelDate');
-  if (dateInput) {
-    dateInput.min = new Date().toISOString().split('T')[0];
-  }
+  // Initialisation au chargement de la page
+  document.addEventListener('DOMContentLoaded', async () => {
+    // 1. Définir la date minimale à aujourd'hui
+    const dateInput = document.getElementById('travelDate');
+    if (dateInput) {
+      const today = new Date().toISOString().split('T')[0];
+      dateInput.min = today;
+      dateInput.value = today; // Met la date du jour par défaut
+    }
+
+    // 2. Vérifier la session utilisateur Supabase pour personnaliser le bouton "Mon Compte"
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    const accountLink = document.getElementById('userAccountLink');
+
+    if (session && session.user) {
+      const userName = session.user.user_metadata?.full_name || "Mon Compte";
+      accountLink.textContent = `👤 ${userName.split(' ')[0]}`;
+      accountLink.href = "account.html"; // Redirige vers son tableau de bord client s'il est connecté
+    } else {
+      accountLink.textContent = "Se connecter";
+      accountLink.href = "auth.html";
+    }
+  });
 
   // Traitement et Redirection vers results.html
   function handleSearch(e) {
