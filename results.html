@@ -96,20 +96,22 @@
 
   // Affichage du résumé
   const searchSummaryEl = document.getElementById("searchSummary");
-  if (departureCity || arrivalCity) {
-    const depText = departureCity || "Toutes villes";
-    const arrText = arrivalCity || "Toutes destinations";
-    const dateText = travelDate ? ` • ${travelDate}` : "";
-    searchSummaryEl.textContent = `${depText} ➔ ${arrText}${dateText} (${passengers} passager${passengers > 1 ? 's' : ''})`;
-  } else {
-    searchSummaryEl.textContent = "Tous les trajets disponibles";
+  if (searchSummaryEl) {
+    if (departureCity || arrivalCity) {
+      const depText = departureCity || "Toutes villes";
+      const arrText = arrivalCity || "Toutes destinations";
+      const dateText = travelDate ? ` • ${travelDate}` : "";
+      searchSummaryEl.textContent = `${depText} ➔ ${arrText}${dateText} (${passengers} passager${passengers > 1 ? 's' : ''})`;
+    } else {
+      searchSummaryEl.textContent = "Tous les trajets disponibles";
+    }
   }
 
   // Vérifier si l'utilisateur est connecté pour le menu
   document.addEventListener('DOMContentLoaded', async () => {
     const { data: { session } } = await supabaseClient.auth.getSession();
     const accountLink = document.getElementById('userAccountLink');
-    if (session && session.user) {
+    if (session && session.user && accountLink) {
       const userName = session.user.user_metadata?.full_name || "Mon Compte";
       accountLink.textContent = `👤 ${userName.split(' ')[0]}`;
       accountLink.href = "account.html";
@@ -120,6 +122,7 @@
   async function loadResults() {
     const container = document.getElementById("resultsList");
     const countEl = document.getElementById("resultsCount");
+    if (!container) return;
 
     container.innerHTML = `
       <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #b0bcc9;">
@@ -129,7 +132,7 @@
     `;
 
     try {
-      // Requête adaptée à la table "trips" et à la jointure "agencies"
+      // CORRIGÉ ICI : on précise explicitement "!agency_id" pour éviter l'ambiguïté de relation
       let query = supabaseClient.from("trips").select(`
         id,
         ville_depart,
@@ -139,7 +142,7 @@
         prix,
         places_disponibles,
         places_totales,
-        agency:agencies ( nom )
+        agency:agencies!agency_id ( nom )
       `);
 
       if (departureCity) query = query.ilike("ville_depart", `%${departureCity}%`);
@@ -164,7 +167,7 @@
       });
 
       if (!filtered || filtered.length === 0) {
-        countEl.textContent = "";
+        if (countEl) countEl.textContent = "";
         container.innerHTML = `
           <div style="grid-column: 1 / -1; background: #171b22; border: 1px solid #2a313b; border-radius: 16px; padding: 50px 20px; text-align: center;">
             <div style="font-size: 2.5rem; margin-bottom: 12px;">🚌</div>
@@ -181,7 +184,7 @@
       // Tri par prix croissant
       filtered.sort((a, b) => a.prix - b.prix);
 
-      countEl.textContent = `${filtered.length} trajet(s) disponible(s)`;
+      if (countEl) countEl.textContent = `${filtered.length} trajet(s) disponible(s)`;
       container.innerHTML = "";
 
       filtered.forEach(trajet => {
@@ -233,6 +236,7 @@
   // Execution
   loadResults();
 </script>
+
 
 </body>
 </html>
