@@ -19,7 +19,7 @@
     <a href="search.html">Rechercher</a>
     <a href="about.html">À propos</a>
     <a href="contact.html">Contact</a>
-    <a href="auth.html" class="nav-auth-btn">Mon Compte</a>
+    <a href="auth.html" id="userAccountLink" class="nav-auth-btn">Mon Compte</a>
   </nav>
   <button class="menu-btn" id="menuToggle" aria-label="Ouvrir le menu">☰</button>
 </header>
@@ -81,13 +81,13 @@
     });
   }
 
-  // Initialisation Supabase
+  // Initialisation Supabase avec VOS vrais identifiants
   const { createClient } = window.supabase;
-  const supabaseUrl = "https://iyiuysgwbreaqkepilqn.supabase.co";
-  const supabaseKey = "sb_publishable_uPwAsJaGU4m_ejyajmEv2A_dLgqIM3h";
+  const supabaseUrl = "https://kfkifkstatbadtzosxai.supabase.co"; 
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma2lma3N0YXRiYWR0em9zeGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3MTYzMTAsImV4cCI6MjEwMTI5MjMxMH0.xPzFtl_OET2asSc5iH3liRHnPyuUYAfbbjZISwfnaA8";
   const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
-  // Parsing des paramètres URL (Supporte departure/arrival et from/to)
+  // Parsing des paramètres URL
   const params = new URLSearchParams(window.location.search);
   const departureCity = params.get("departure") || params.get("from") || "";
   const arrivalCity = params.get("arrival") || params.get("to") || "";
@@ -105,6 +105,17 @@
     searchSummaryEl.textContent = "Tous les trajets disponibles";
   }
 
+  // Vérifier si l'utilisateur est connecté pour le menu
+  document.addEventListener('DOMContentLoaded', async () => {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    const accountLink = document.getElementById('userAccountLink');
+    if (session && session.user) {
+      const userName = session.user.user_metadata?.full_name || "Mon Compte";
+      accountLink.textContent = `👤 ${userName.split(' ')[0]}`;
+      accountLink.href = "account.html";
+    }
+  });
+
   // Requête Supabase et rendu des résultats
   async function loadResults() {
     const container = document.getElementById("resultsList");
@@ -118,19 +129,17 @@
     `;
 
     try {
-      let query = supabaseClient.from("trajets").select(`
+      // Requête adaptée à la table "trips" et à la jointure "agencies"
+      let query = supabaseClient.from("trips").select(`
         id,
         ville_depart,
         ville_arrivee,
         date_depart,
         heure_depart,
         prix,
-        bus:bus (
-          id,
-          numero_bus,
-          capacite,
-          agence:agences ( nom )
-        )
+        places_disponibles,
+        places_totales,
+        agency:agencies ( nom )
       `);
 
       if (departureCity) query = query.ilike("ville_depart", `%${departureCity}%`);
@@ -148,10 +157,10 @@
         return;
       }
 
-      // Filtrage selon la capacité
+      // Filtrage selon les places disponibles
       const filtered = (data || []).filter(trajet => {
-        const cap = trajet.bus?.capacite || 0;
-        return cap >= passengers;
+        const places = trajet.places_disponibles || 0;
+        return places >= passengers;
       });
 
       if (!filtered || filtered.length === 0) {
@@ -176,15 +185,15 @@
       container.innerHTML = "";
 
       filtered.forEach(trajet => {
-        const agenceNom = trajet.bus?.agence?.nom || "Agence Partenaire";
-        const prixFormate = trajet.prix ? trajet.prix.toLocaleString('fr-FR') : "N/A";
+        const agenceNom = trajet.agency?.nom || "Agence Partenaire";
+        const prixFormate = trajet.prix ? Number(trajet.prix).toLocaleString('fr-FR') : "N/A";
         
         container.innerHTML += `
           <div class="card">
             <div class="card-body" style="padding: 24px;">
               
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                <span class="route-tag">${agenceNom}</span>
+                <span class="route-tag" style="background: rgba(0,210,255,0.1); color: #00d2ff; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 600;">${agenceNom}</span>
                 <strong style="color: #00d2ff; font-size: 1.3rem; font-weight: 700;">${prixFormate} FC</strong>
               </div>
 
@@ -195,7 +204,7 @@
               <div style="background: #0c0f13; border: 1px solid #2a313b; padding: 12px 14px; border-radius: 10px; margin-bottom: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.85rem;">
                 <div style="color: #e7edf3;">📅 Date : <strong>${trajet.date_depart || 'N/A'}</strong></div>
                 <div style="color: #e7edf3;">🕒 Départ : <strong>${trajet.heure_depart || 'N/A'}</strong></div>
-                <div style="color: #e7edf3; grid-column: span 2;">💺 Capacité bus : <strong>${trajet.bus?.capacite || 'N/A'} places</strong></div>
+                <div style="color: #e7edf3; grid-column: span 2;">💺 Places restantes : <strong>${trajet.places_disponibles} / ${trajet.places_totales}</strong></div>
               </div>
 
               <button onclick="selectTrip('${trajet.id}')" class="btn-primary-lg" style="width: 100%; border: none; cursor: pointer; text-align: center; font-size: 0.95rem; padding: 14px;">
