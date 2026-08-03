@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Validation Billet — TALA Trajet</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --bg-dark: #0c0f13;
+      --card-dark: #171b22;
+      --green: #2ecc71;
+      --red: #e74c3c;
+      --blue: #00d2ff;
+      --border: #2a313b;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: var(--bg-dark);
+      color: #ffffff;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      box-sizing: border-box;
+      text-align: center;
+    }
+
+    .status-card {
+      width: 100%;
+      max-width: 420px;
+      background: var(--card-dark);
+      border-radius: 24px;
+      padding: 30px 20px;
+      border: 3px solid var(--border);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+      box-sizing: border-box;
+    }
+
+    /* Statut Valide (Vert) */
+    .status-card.valid {
+      border-color: var(--green);
+      background: rgba(46, 204, 113, 0.08);
+    }
+
+    /* Statut Invalide / Erreur (Rouge) */
+    .status-card.invalid {
+      border-color: var(--red);
+      background: rgba(231, 76, 60, 0.08);
+    }
+
+    .icon-box {
+      font-size: 4rem;
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      margin: 10px 0;
+      font-weight: 700;
+    }
+
+    .valid h1 { color: var(--green); }
+    .invalid h1 { color: var(--red); }
+
+    .ticket-badge {
+      display: inline-block;
+      background: #1c2129;
+      border: 1px solid var(--border);
+      padding: 6px 16px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      color: var(--blue);
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+
+    .details-list {
+      text-align: left;
+      background: rgba(0,0,0,0.3);
+      padding: 16px;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      line-height: 1.8;
+      color: #b0bcc9;
+      margin-top: 15px;
+    }
+
+    .details-list strong {
+      color: #ffffff;
+    }
+
+    .loader {
+      border: 4px solid #2a313b;
+      border-top: 4px solid var(--blue);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+<div id="card" class="status-card">
+  <div id="loader" class="loader"></div>
+  <p id="loadingText" style="color: #b0bcc9;">Vérification du billet...</p>
+
+  <div id="content" style="display: none;">
+    <div id="icon" class="icon-box">⌛</div>
+    <div id="ticketBadge" class="ticket-badge">---</div>
+    <h1 id="statusTitle">Analyse en cours</h1>
+    <p id="statusMessage" style="color: #b0bcc9; font-size: 0.95rem;"></p>
+
+    <div id="detailsBox" class="details-list" style="display: none;"></div>
+  </div>
+</div>
+
+<script>
+  const { createClient } = window.supabase;
+  const supabaseUrl = "https://iyiuysgwbreaqkepilqn.supabase.co";
+  const supabaseKey = "sb_publishable_uPwAsJaGU4m_ejyajmEv2A_dLgqIM3h";
+  const supabaseClient = createClient(supabaseUrl, supabaseKey);
+
+  document.addEventListener("DOMContentLoaded", async () => {
+    const params = new URLSearchParams(window.location.search);
+    const ticketNumber = params.get("ticket");
+
+    if (!ticketNumber) {
+      renderResult(false, "🚫 CODE INVALIDE", "Aucun numéro de billet n'a été fourni dans le lien.", null);
+      return;
+    }
+
+    document.getElementById("ticketBadge").textContent = ticketNumber;
+
+    try {
+      // 1. Recherche de la réservation dans Supabase avec les données du trajet
+      const { data: reservation, error } = await supabaseClient
+        .from("reservations")
+        .select("*, trips(ville_depart, ville_arrivee, date_depart)")
+        .eq("ticket_number", ticketNumber.trim())
+        .maybeSingle();
+
+      if (error || !reservation) {
+        renderResult(false, "❌ BILLET INTROUVABLE", "Ce billet ne correspond à aucune réservation dans le système.", null);
+        return;
+      }
+
+      // 2. Vérification si le billet a déjà été utilisé
+      if (reservation.statut_reservation === "EMBARQUE") {
+        renderResult(false, "⚠️ DÉJÀ EMBARQUÉ", "Ce billet a DÉJÀ été scanné et validé précédemment !", reservation);
+        return;
+      }
+
+      // 3. Validation de l'embarquement : Mise à jour du statut dans Supabase
+      const { error: updateError } = await supabaseClient
+        .from("reservations")
+        .update({ statut_reservation: "EMBARQUE" })
+        .eq("id", reservation.id);
+
+      if (updateError) {
+        renderResult(false, "⚠️ ERREUR SERVEUR", "Impossible d'enregistrer l'embarquement : " + updateError.message, null);
+        return;
+      }
+
+      // 4. Succès : Billet validé
+      renderResult(true, "✅ EMBARQUEMENT AUTORISÉ", "Le billet est valide et a été marqué comme EMBARQUÉ.", reservation);
+
+    } catch (err) {
+      renderResult(false, "⚠️ ERREUR RÉSEAU", "Connexion au serveur impossible. Vérifiez votre réseau mobile.", null);
+    }
+  });
+
+  function renderResult(isValid, title, message, data) {
+    document.getElementById("loader").style.display = "none";
+    document.getElementById("loadingText").style.display = "none";
+
+    const card = document.getElementById("card");
+    const content = document.getElementById("content");
+    const icon = document.getElementById("icon");
+    const statusTitle = document.getElementById("statusTitle");
+    const statusMessage = document.getElementById("statusMessage");
+    const detailsBox = document.getElementById("detailsBox");
+
+    content.style.display = "block";
+    card.className = "status-card " + (isValid ? "valid" : "invalid");
+    icon.textContent = isValid ? "✅" : "❌";
+    statusTitle.textContent = title;
+    statusMessage.textContent = message;
+
+    if (data) {
+      detailsBox.style.display = "block";
+      
+      let seatsStr = "N/A";
+      if (data.passengers_list) {
+        try {
+          const parsed = typeof data.passengers_list === "string" ? JSON.parse(data.passengers_list) : data.passengers_list;
+          seatsStr = parsed.join(", ");
+        } catch(e) {}
+      }
+
+      const dateStr = data.trips ? new Date(data.trips.date_depart).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" }) : "-";
+
+      detailsBox.innerHTML = `
+        <strong>Passager :</strong> ${data.client_name}<br>
+        <strong>Trajet :</strong> ${data.trips ? data.trips.ville_depart : ''} ➔ ${data.trips ? data.trips.ville_arrivee : ''}<br>
+        <strong>Départ :</strong> ${dateStr}<br>
+        <strong>Siège(s) réservé(s) :</strong> N° ${seatsStr}<br>
+        <strong>Statut paiement :</strong> <span style="color:${data.statut_paiement === 'PAID' ? '#2ecc71' : '#00d2ff'};">${data.statut_paiement}</span>
+      `;
+    }
+  }
+</script>
+
+</body>
+</html>

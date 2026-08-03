@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Résultats de votre recherche — TALA Trajet</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="brand">TALA<span>Trajet</span></div>
+  <nav class="main-nav" id="navMenu">
+    <a href="index.html">Accueil</a>
+    <a href="search.html">Rechercher</a>
+    <a href="about.html">À propos</a>
+    <a href="contact.html">Contact</a>
+    <a href="auth.html" class="nav-auth-btn">Mon Compte</a>
+  </nav>
+  <button class="menu-btn" id="menuToggle" aria-label="Ouvrir le menu">☰</button>
+</header>
+
+<!-- MAIN -->
+<main style="padding-bottom: 80px;">
+  
+  <!-- HERO RÉSULTATS -->
+  <section class="hero-showcase" style="padding: 50px 20px 30px;">
+    <div class="hero-content">
+      <span class="badge-hero" id="searchSummary">Chargement des critères...</span>
+      <h1 class="hero-title">Trajets <span>disponibles</span></h1>
+      <p class="hero-sub">Comparez les tarifs et choisissez votre horaire de départ.</p>
+      <a href="search.html" class="btn-secondary-lg" style="padding: 8px 20px; font-size: 0.85rem; margin-top: -10px;">Modifier la recherche ✎</a>
+    </div>
+  </section>
+
+  <!-- CONTENEUR DES RÉSULTATS -->
+  <div class="container" style="margin-top: 20px;">
+    
+    <div id="resultsCount" style="color: #b0bcc9; font-size: 0.95rem; margin-bottom: 20px; font-weight: 500;"></div>
+
+    <div id="resultsList" class="cards">
+      <!-- Les cartes de trajets seront injectées ici par JavaScript -->
+    </div>
+
+  </div>
+
+</main>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container footer-inner">
+    <div class="footer-brand">
+      <div class="brand">TALA<span>Trajet</span></div>
+      <p>La plateforme intelligente de réservation de billets de transport en République Démocratique du Congo.</p>
+    </div>
+    
+    <div class="footer-links">
+      <a href="about.html">À propos</a>
+      <a href="contact.html">Contact</a>
+      <a href="terms.html">Conditions d'utilisation</a>
+      <a href="privacy.html">Politique de confidentialité</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2026 TALA Trajet — Tous droits réservés.</p>
+  </div>
+</footer>
+
+<script>
+  // Menu Mobile Toggle
+  const menuToggle = document.getElementById('menuToggle');
+  const navMenu = document.getElementById('navMenu');
+  if (menuToggle && navMenu) {
+    menuToggle.addEventListener('click', () => {
+      navMenu.classList.toggle('open');
+      menuToggle.textContent = navMenu.classList.contains('open') ? '✕' : '☰';
+    });
+  }
+
+  // Initialisation Supabase
+  const { createClient } = window.supabase;
+  const supabaseUrl = "https://iyiuysgwbreaqkepilqn.supabase.co";
+  const supabaseKey = "sb_publishable_uPwAsJaGU4m_ejyajmEv2A_dLgqIM3h";
+  const supabaseClient = createClient(supabaseUrl, supabaseKey);
+
+  // Parsing des paramètres URL (Supporte departure/arrival et from/to)
+  const params = new URLSearchParams(window.location.search);
+  const departureCity = params.get("departure") || params.get("from") || "";
+  const arrivalCity = params.get("arrival") || params.get("to") || "";
+  const travelDate = params.get("date") || "";
+  const passengers = parseInt(params.get("passengers")) || 1;
+
+  // Affichage du résumé
+  const searchSummaryEl = document.getElementById("searchSummary");
+  if (departureCity || arrivalCity) {
+    const depText = departureCity || "Toutes villes";
+    const arrText = arrivalCity || "Toutes destinations";
+    const dateText = travelDate ? ` • ${travelDate}` : "";
+    searchSummaryEl.textContent = `${depText} ➔ ${arrText}${dateText} (${passengers} passager${passengers > 1 ? 's' : ''})`;
+  } else {
+    searchSummaryEl.textContent = "Tous les trajets disponibles";
+  }
+
+  // Requête Supabase et rendu des résultats
+  async function loadResults() {
+    const container = document.getElementById("resultsList");
+    const countEl = document.getElementById("resultsCount");
+
+    container.innerHTML = `
+      <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #b0bcc9;">
+        <p style="font-size: 1.2rem; margin-bottom: 8px;">⏳ Recherche des départs disponibles...</p>
+        <p style="font-size: 0.85rem;">Veuillez patienter un instant.</p>
+      </div>
+    `;
+
+    try {
+      let query = supabaseClient.from("trajets").select(`
+        id,
+        ville_depart,
+        ville_arrivee,
+        date_depart,
+        heure_depart,
+        prix,
+        bus:bus (
+          id,
+          numero_bus,
+          capacite,
+          agence:agences ( nom )
+        )
+      `);
+
+      if (departureCity) query = query.ilike("ville_depart", `%${departureCity}%`);
+      if (arrivalCity) query = query.ilike("ville_arrivee", `%${arrivalCity}%`);
+      if (travelDate) query = query.eq("date_depart", travelDate);
+
+      const { data, error } = await query;
+
+      if (error) {
+        container.innerHTML = `
+          <div style="grid-column: 1 / -1; background: rgba(231, 76, 60, 0.1); border: 1px solid #e74c3c; padding: 20px; border-radius: 12px; text-align: center;">
+            <p style="color: #e74c3c; font-weight: 600; margin: 0;">Erreur lors de la récupération des données : ${error.message}</p>
+          </div>
+        `;
+        return;
+      }
+
+      // Filtrage selon la capacité
+      const filtered = (data || []).filter(trajet => {
+        const cap = trajet.bus?.capacite || 0;
+        return cap >= passengers;
+      });
+
+      if (!filtered || filtered.length === 0) {
+        countEl.textContent = "";
+        container.innerHTML = `
+          <div style="grid-column: 1 / -1; background: #171b22; border: 1px solid #2a313b; border-radius: 16px; padding: 50px 20px; text-align: center;">
+            <div style="font-size: 2.5rem; margin-bottom: 12px;">🚌</div>
+            <h3 style="color: #ffffff; margin-bottom: 8px;">Aucun trajet trouvé</h3>
+            <p style="color: #b0bcc9; font-size: 0.9rem; max-width: 450px; margin: 0 auto 20px;">
+              Aucune compagnie ne propose de départ correspondant exactement à vos critères pour le moment.
+            </p>
+            <a href="search.html" class="btn-primary-lg" style="font-size: 0.9rem; padding: 12px 24px;">Essayer d'autres dates</a>
+          </div>
+        `;
+        return;
+      }
+
+      // Tri par prix croissant
+      filtered.sort((a, b) => a.prix - b.prix);
+
+      countEl.textContent = `${filtered.length} trajet(s) disponible(s)`;
+      container.innerHTML = "";
+
+      filtered.forEach(trajet => {
+        const agenceNom = trajet.bus?.agence?.nom || "Agence Partenaire";
+        const prixFormate = trajet.prix ? trajet.prix.toLocaleString('fr-FR') : "N/A";
+        
+        container.innerHTML += `
+          <div class="card">
+            <div class="card-body" style="padding: 24px;">
+              
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <span class="route-tag">${agenceNom}</span>
+                <strong style="color: #00d2ff; font-size: 1.3rem; font-weight: 700;">${prixFormate} FC</strong>
+              </div>
+
+              <h3 style="color: #ffffff; font-size: 1.25rem; margin-bottom: 12px;">
+                ${trajet.ville_depart} ➔ ${trajet.ville_arrivee}
+              </h3>
+              
+              <div style="background: #0c0f13; border: 1px solid #2a313b; padding: 12px 14px; border-radius: 10px; margin-bottom: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.85rem;">
+                <div style="color: #e7edf3;">📅 Date : <strong>${trajet.date_depart || 'N/A'}</strong></div>
+                <div style="color: #e7edf3;">🕒 Départ : <strong>${trajet.heure_depart || 'N/A'}</strong></div>
+                <div style="color: #e7edf3; grid-column: span 2;">💺 Capacité bus : <strong>${trajet.bus?.capacite || 'N/A'} places</strong></div>
+              </div>
+
+              <button onclick="selectTrip('${trajet.id}')" class="btn-primary-lg" style="width: 100%; border: none; cursor: pointer; text-align: center; font-size: 0.95rem; padding: 14px;">
+                Réserver ce trajet →
+              </button>
+
+            </div>
+          </div>
+        `;
+      });
+
+    } catch (err) {
+      container.innerHTML = `
+        <div style="grid-column: 1 / -1; background: rgba(231, 76, 60, 0.1); border: 1px solid #e74c3c; padding: 20px; border-radius: 12px; text-align: center;">
+          <p style="color: #e74c3c; margin: 0;">Une erreur inattendue est survenue lors de la recherche.</p>
+        </div>
+      `;
+    }
+  }
+
+  // Redirection vers le processus de réservation
+  function selectTrip(id) {
+    window.location.href = `booking.html?trajet_id=${id}&passengers=${passengers}`;
+  }
+
+  // Execution
+  loadResults();
+</script>
+
+</body>
+</html>

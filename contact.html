@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact — TALA Trajet</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="brand">TALA<span>Trajet</span></div>
+  <nav class="main-nav" id="navMenu">
+    <a href="index.html">Accueil</a>
+    <a href="about.html">À propos</a>
+    <a href="contact.html" class="active">Contact</a>
+    <a href="auth.html" class="nav-auth-btn">Se connecter / S'inscrire</a>
+  </nav>
+  <button class="menu-btn" id="menuToggle" aria-label="Ouvrir le menu">☰</button>
+</header>
+
+<!-- MAIN -->
+<main>
+  
+  <!-- HERO CONTACT -->
+  <section class="hero-showcase">
+    <div class="hero-content">
+      <span class="badge-hero">Besoin d'aide ?</span>
+      <h1 class="hero-title">Contactez l'équipe <span>TALA Trajet</span></h1>
+      <p class="hero-sub">
+        Une question sur votre billet, un trajet ou une agence partenaire ? Notre équipe est à votre disposition pour vous assister.
+      </p>
+    </div>
+  </section>
+
+  <!-- FORMULAIRE ET INFOS -->
+  <section class="features-section" style="padding-top: 20px;">
+    <div class="container" style="max-width: 900px;">
+      
+      <div class="routes-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); margin-bottom: 40px;">
+        <!-- Carte Info 1 -->
+        <div class="feature-card">
+          <div class="feature-icon">📞</div>
+          <h3>Téléphone & WhatsApp</h3>
+          <p style="margin-bottom: 8px;">Assistance rapide 7j/7</p>
+          <a href="tel:+243812345678" style="color: #00d2ff; font-weight: 600;">+243 812 345 678</a>
+        </div>
+
+        <!-- Carte Info 2 -->
+        <div class="feature-card">
+          <div class="feature-icon">✉️</div>
+          <h3>Adresse E-mail</h3>
+          <p style="margin-bottom: 8px;">Pour vos demandes officielles</p>
+          <a href="mailto:support@talatrajet.cd" style="color: #00d2ff; font-weight: 600;">talatrajet@gmail.com</a>
+        </div>
+
+        <!-- Carte Info 3 -->
+        <div class="feature-card">
+          <div class="feature-icon">📍</div>
+          <h3>Bureau Principal</h3>
+          <p>Kinshasa & Matadi<br><span style="color: #b0bcc9;">République Démocratique du Congo</span></p>
+        </div>
+      </div>
+
+      <!-- Formulaire de contact -->
+      <div class="card" style="padding: 30px 24px; border-radius: 16px;">
+        <div class="section-header" style="margin-bottom: 30px;">
+          <h2 style="font-size: 1.6rem;">Envoyez-nous un message</h2>
+          <p>Remplissez ce formulaire et nous vous répondrons dans les plus brefs délais.</p>
+        </div>
+
+        <form onsubmit="handleContactSubmit(event)" class="search-form">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;">
+            <div style="text-align: left;">
+              <label for="contactName" style="display: block; margin-bottom: 8px; font-size: 0.85rem; color: #e7edf3;">Nom complet</label>
+              <input type="text" id="contactName" placeholder="Votre nom et prénom" required>
+            </div>
+
+            <div style="text-align: left;">
+              <label for="contactPhone" style="display: block; margin-bottom: 8px; font-size: 0.85rem; color: #e7edf3;">Téléphone / WhatsApp</label>
+              <input type="tel" id="contactPhone" placeholder="+243..." required>
+            </div>
+          </div>
+
+          <div style="text-align: left; margin-top: 16px;">
+            <label for="contactSubject" style="display: block; margin-bottom: 8px; font-size: 0.85rem; color: #e7edf3;">Sujet de votre demande</label>
+            <select id="contactSubject" required>
+              <option value="">Sélectionnez un sujet</option>
+              <option value="reservation">Problème avec une réservation</option>
+              <option value="payment">Question sur un paiement Mobile Money</option>
+              <option value="partnership">Devenir une agence partenaire</option>
+              <option value="other">Autre demande</option>
+            </select>
+          </div>
+
+          <div style="text-align: left; margin-top: 16px;">
+            <label for="contactMessage" style="display: block; margin-bottom: 8px; font-size: 0.85rem; color: #e7edf3;">Message</label>
+            <textarea id="contactMessage" rows="5" placeholder="Expliquez-nous votre demande en détail..." required></textarea>
+          </div>
+
+          <button type="submit" class="btn-primary-lg" style="margin-top: 20px; border: none; cursor: pointer; width: 100%;">Envoyer le message →</button>
+        </form>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container footer-inner">
+    <div class="footer-brand">
+      <div class="brand">TALA<span>Trajet</span></div>
+      <p>La plateforme intelligente de réservation de billets de transport en République Démocratique du Congo.</p>
+    </div>
+    
+    <div class="footer-links">
+      <a href="about.html">À propos</a>
+      <a href="contact.html">Contact</a>
+      <a href="terms.html">Conditions d'utilisation</a>
+      <a href="privacy.html">Politique de confidentialité</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2026 TALA Trajet — Tous droits réservés.</p>
+  </div>
+</footer>
+
+<script>
+  // Menu Mobile Toggle
+  const menuToggle = document.getElementById('menuToggle');
+  const navMenu = document.getElementById('navMenu');
+  if (menuToggle && navMenu) {
+    menuToggle.addEventListener('click', () => {
+      navMenu.classList.toggle('open');
+      menuToggle.textContent = navMenu.classList.contains('open') ? '✕' : '☰';
+    });
+  }
+
+  // Soumission du formulaire
+  function handleContactSubmit(e) {
+    e.preventDefault();
+    alert("Merci ! Votre message a été envoyé avec succès. Notre équipe va vous recontacter.");
+    e.target.reset();
+  }
+</script>
+
+</body>
+</html>

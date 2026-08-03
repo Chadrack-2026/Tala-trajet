@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TALA Trajet — Réservation</title>
+
+  <!-- Police -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --primary-blue: #00d2ff;
+      --accent-green: #2ecc71;
+      --seat-selected: #2ecc71;
+      --seat-occupied: #e74c3c;
+      --bg-dark: #0c0f13;
+      --card-dark: #171b22;
+      --text-light: #e7edf3;
+      --input-bg: #1c2129;
+      --input-border: #2a313b;
+      --placeholder: #9aa0a6;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-light);
+      margin: 0;
+    }
+
+    header.site-header {
+      background: var(--card-dark);
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--input-border);
+    }
+    .brand {
+      font-weight: 700;
+      font-size: 1.4rem;
+      color: var(--primary-blue);
+    }
+
+    .container {
+      max-width: 700px;
+      margin: 24px auto;
+      padding: 0 24px;
+    }
+
+    .card {
+      background: var(--card-dark);
+      border: 1px solid var(--input-border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+
+    /* Plan de bus */
+    .bus-wrapper {
+      background: var(--card-dark);
+      padding: 30px;
+      border-radius: 20px;
+      border: 1px solid var(--input-border);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.6);
+      margin: 20px 0;
+    }
+
+    .legend {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 25px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-light);
+    }
+    .legend-item { display: flex; align-items: center; gap: 8px; }
+    .dot { width: 15px; height: 15px; border-radius: 4px; }
+    .dot.occupied { background: var(--seat-occupied); }
+    .dot.selected { background: var(--seat-selected); }
+    .dot.free { background: #2a313b; border: 1px solid #444; }
+
+    .seats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr) 35px repeat(2, 1fr);
+      gap: 12px;
+      align-items: center;
+    }
+
+    .seat {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #2a313b;
+      border: 1px solid #444;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      font-size: 14px;
+      color: var(--text-light);
+    }
+    .seat:hover {
+      transform: scale(1.05);
+      border-color: var(--primary-blue);
+    }
+    .seat.selected {
+      background-color: var(--seat-selected);
+      color: white;
+      border-color: var(--seat-selected);
+    }
+    .seat.unavailable {
+      background-color: var(--seat-occupied);
+      color: white;
+      cursor: not-allowed;
+      border: none;
+    }
+    .aisle { grid-column: 3; }
+
+    /* Barre total */
+    .total-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px;
+      background: #0c0f13;
+      border: 1px solid var(--input-border);
+      border-radius: 12px;
+      margin-top: 15px;
+      font-weight: 700;
+      color: var(--text-light);
+    }
+    .price { color: var(--primary-blue); font-size: 1.2rem; }
+
+    /* Bouton */
+    button {
+      width: 100%;
+      padding: 15px;
+      background: var(--primary-blue);
+      color: #0c0f13;
+      border: none;
+      border-radius: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 15px;
+      transition: all 0.3s ease;
+      font-size: 1rem;
+    }
+    button:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+    }
+
+    /* Inputs du formulaire */
+    .form input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 14px 16px;
+      margin-bottom: 18px;
+      border: 1px solid var(--input-border);
+      border-radius: 12px;
+      background: var(--input-bg);
+      color: var(--text-light);
+      font-size: 15px;
+      transition: all 0.3s ease;
+    }
+
+    .form input::placeholder {
+      color: #8a8f95;
+      font-size: 13px;
+    }
+
+    .form input:focus {
+      outline: none;
+      border-color: var(--primary-blue);
+      box-shadow: 0 0 10px rgba(0, 210, 255, 0.3);
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="brand">TALA<span>Trajet</span></div>
+  <a href="index.html" style="color: #b0bcc9; text-decoration: none; font-size: 0.9rem;">← Retour</a>
+</header>
+
+<main class="container">
+  <section id="tripDetails" class="card">
+    <p style="text-align: center; color: #b0bcc9;">Chargement des détails du voyage...</p>
+  </section>
+
+  <h3 style="color: #ffffff; font-size: 1.1rem; margin-top: 25px;">Choisissez vos sièges</h3>
+  
+  <div class="bus-wrapper">
+    <div class="legend">
+      <div class="legend-item"><div class="dot free"></div> Libre</div>
+      <div class="legend-item"><div class="dot selected"></div> Choisi</div>
+      <div class="legend-item"><div class="dot occupied"></div> Occupé</div>
+    </div>
+
+    <div id="seatsContainer" class="seats-grid"></div>
+  </div>
+
+  <form id="bookingForm" class="form card">
+    <h3 style="color: #ffffff; font-size: 1.1rem; margin-top: 0; margin-bottom: 20px;">Vos informations de voyage</h3>
+    
+    <input type="text" id="name" name="name" placeholder="Nom et Prénom du passager" required>
+    <input type="email" id="email" name="email" placeholder="Adresse e-mail" required>
+    <input type="tel" id="phone" name="phone" placeholder="Numéro de téléphone (+243...)" required>
+
+    <div class="total-bar">
+      <span>Total: <span id="seatCount">0</span> siège(s)</span>
+      <span id="totalPrice" class="price">0 FC</span>
+    </div>
+
+    <button type="submit" id="submitBtn">Payer et confirmer la réservation </button>
+  </form>
+</main>
+
+<script>
+const { createClient } = window.supabase;
+const supabaseUrl = "https://iyiuysgwbreaqkepilqn.supabase.co";
+const supabaseKey = "sb_publishable_uPwAsJaGU4m_ejyajmEv2A_dLgqIM3h";
+const supabaseClient = createClient(supabaseUrl, supabaseKey);
+
+const params = new URLSearchParams(window.location.search);
+const trajetId = params.get("trajet_id");
+
+let selectedSeats = [];
+let trajet = null;
+
+/* =========================
+   CHARGEMENT DU TRAJET
+========================= */
+async function loadTrip() {
+  if (!trajetId) {
+    alert("Aucun trajet sélectionné.");
+    window.location.href = "index.html";
+    return;
+  }
+
+  // Requête harmonisée avec les tables 'trips', 'buses' et 'agencies'
+  const { data, error } = await supabaseClient
+    .from("trips")
+    .select(`
+      id,
+      ville_depart,
+      ville_arrivee,
+      date_depart,
+      prix,
+      agencies ( id, nom ),
+      buses ( id, immatriculation, capacite )
+    `)
+    .eq("id", trajetId)
+    .maybeSingle();
+
+  if (error || !data) {
+    alert("Trajet introuvable");
+    return;
+  }
+
+  trajet = data;
+
+  // Récupération des réservations existantes pour ce trajet
+  const { data: reservedData } = await supabaseClient
+    .from("reservations")
+    .select("passengers_list")
+    .eq("trajet_id", trajetId);
+
+  let occupiedSeats = [];
+  if (reservedData) {
+    reservedData.forEach(r => {
+      if (r.passengers_list) {
+        try {
+          const list = typeof r.passengers_list === 'string' ? JSON.parse(r.passengers_list) : r.passengers_list;
+          occupiedSeats = occupiedSeats.concat(list);
+        } catch (e) {
+          console.error("Erreur de lecture des sièges:", e);
+        }
+      }
+    });
+  }
+
+  const capacity = trajet.buses ? trajet.buses.capacite : 50;
+  const remainingSeats = capacity - occupiedSeats.length;
+  const dateFormatted = new Date(trajet.date_depart).toLocaleString('fr-FR', { dateStyle: 'full', timeStyle: 'short' });
+
+  document.getElementById("tripDetails").innerHTML = `
+    <h3 style="margin-top:0; color:#00d2ff;">${trajet.ville_depart} ➔ ${trajet.ville_arrivee}</h3>
+    <p style="margin: 5px 0; color:#b0bcc9;"><strong>Compagnie :</strong> ${trajet.agencies ? trajet.agencies.nom : 'Agence Partenaire'}</p>
+    <p style="margin: 5px 0; color:#b0bcc9;">📅 <strong>Départ :</strong> ${dateFormatted}</p>
+    <p style="margin: 5px 0; color:#b0bcc9;">💰 <strong>Prix :</strong> ${trajet.prix.toLocaleString()} FC / place</p>
+    <p style="margin: 5px 0; color:#2ecc71;">🪑 <strong>Places restantes :</strong> ${remainingSeats} sur ${capacity}</p>
+  `;
+
+  generateSeats(capacity, occupiedSeats);
+}
+
+/* =========================
+   GESTION DES SIÈGES
+========================= */
+function generateSeats(totalSeats, occupiedSeats) {
+  const container = document.getElementById("seatsContainer");
+  if (!container) return;
+  
+  container.innerHTML = "";
+
+  for (let i = 1; i <= totalSeats; i++) {
+    const seat = document.createElement("div");
+    seat.classList.add("seat");
+    seat.textContent = i.toString().padStart(2, "0");
+
+    if (occupiedSeats.includes(i)) {
+      seat.classList.add("unavailable");
+    } else {
+      seat.addEventListener("click", () => toggleSeat(i, seat));
+    }
+
+    container.appendChild(seat);
+
+    // Allée centrale tous les 2 sièges
+    if (i % 2 === 0 && i % 4 !== 0) {
+      const aisle = document.createElement("div");
+      aisle.classList.add("aisle");
+      container.appendChild(aisle);
+    }
+  }
+}
+
+function toggleSeat(seatNumber, seatDiv) {
+  if (!trajet || !trajet.prix) return;
+
+  if (selectedSeats.includes(seatNumber)) {
+    selectedSeats = selectedSeats.filter(s => s !== seatNumber);
+    seatDiv.classList.remove("selected");
+  } else {
+    selectedSeats.push(seatNumber);
+    seatDiv.classList.add("selected");
+  }
+
+  document.getElementById("seatCount").textContent = selectedSeats.length;
+  document.getElementById("totalPrice").textContent =
+    (selectedSeats.length * trajet.prix).toLocaleString() + " FC";
+}
+
+/* =========================
+   SOUMISSION DU FORMULAIRE
+========================= */
+document.getElementById("bookingForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  if (selectedSeats.length === 0) {
+    alert("Veuillez sélectionner au moins un siège sur le plan de bus.");
+    return;
+  }
+
+  const btn = document.getElementById("submitBtn");
+  btn.disabled = true;
+  btn.textContent = "Réservation en cours...";
+
+  const formData = new FormData(e.target);
+
+  // 1️⃣ Génération du numéro de ticket
+  const ticketNumber = `TALA-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+  // 2️⃣ Enregistrement dans Supabase
+  const reservationData = {
+    trajet_id: trajetId,
+    bus_id: trajet.buses ? trajet.buses.id : null,
+    agence_id: trajet.agencies ? trajet.agencies.id : null,
+    client_name: formData.get("name"),
+    email: formData.get("email"),
+    client_phone: formData.get("phone"),
+    passengers: selectedSeats.length,
+    passengers_list: JSON.stringify(selectedSeats),
+    statut_reservation: "EN_ATTENTE",
+    statut_paiement: "PENDING",
+    ticket_number: ticketNumber,
+    montant_total: selectedSeats.length * trajet.prix
+  };
+
+  const { data: reservation, error } = await supabaseClient
+    .from("reservations")
+    .insert([reservationData])
+    .select()
+    .single();
+
+  if (error) {
+    alert("Erreur lors de la réservation : " + error.message);
+    btn.disabled = false;
+    btn.textContent = "Payer et confirmer la réservation 🚀";
+    return;
+  }
+
+  // 3️⃣ Redirection ou étape de paiement
+  alert(`Réservation enregistrée avec succès ! Billet N° ${ticketNumber}. Veuillez procéder au paiement.`);
+  btn.textContent = "Paiement en cours...";
+
+  // Redirection éventuelle vers une page de confirmation
+  // window.location.href = `confirmation.html?ticket=${ticketNumber}`;
+});
+
+// Initialisation
+loadTrip();
+</script>
+  
+</body>
+</html>

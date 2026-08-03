@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rechercher un trajet — TALA Trajet</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="brand">TALA<span>Trajet</span></div>
+  <nav class="main-nav" id="navMenu">
+    <a href="index.html">Accueil</a>
+    <a href="search.html" class="active">Rechercher</a>
+    <a href="about.html">À propos</a>
+    <a href="contact.html">Contact</a>
+    <a href="auth.html" class="nav-auth-btn">Mon Compte</a>
+  </nav>
+  <button class="menu-btn" id="menuToggle" aria-label="Ouvrir le menu">☰</button>
+</header>
+
+<!-- MAIN -->
+<main style="padding-bottom: 80px;">
+  
+  <!-- HERO RECHERCHE -->
+  <section class="hero-showcase" style="padding: 60px 20px 40px;">
+    <div class="hero-content">
+      <span class="badge-hero">Réservation en ligne</span>
+      <h1 class="hero-title">Trouvez votre prochain <span>trajet</span></h1>
+      <p class="hero-sub">Comparez les horaires et les tarifs des meilleures agences de transport en RDC.</p>
+    </div>
+  </section>
+
+  <div class="container">
+    
+    <!-- BARRE DE RECHERCHE PRINCIPALE -->
+    <div class="card" style="padding: 28px 24px; border-radius: 16px; margin-top: -30px; position: relative; z-index: 10;">
+      <form id="searchForm" onsubmit="handleSearch(event)" class="search-form">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+          
+          <div style="text-align: left;">
+            <label for="departureCity" style="display: block; margin-bottom: 8px; font-size: 0.85rem; color: #e7edf3; font-weight: 500;">Ville de départ</label>
+            <select id="departureCity" name="departure" required>
+              <option value="">Sélectionnez une ville</option>
+              <option value="Kinshasa">Kinshasa</option>
+              <option value="Matadi">Matadi</option>
+              <option value="Boma">Boma</option>
+              <option value="Moanda">Moanda</option>
+            </select>
+          </div>
+
+          <div style="text-align: left;">
+            <label for="arrivalCity" style="display: block; margin-bottom: 8px; font-size: 0.85rem; color: #e7edf3; font-weight: 500;">Ville d'arrivée</label>
+            <select id="arrivalCity" name="arrival" required>
+              <option value="">Sélectionnez une ville</option>
+              <option value="Matadi">Matadi</option>
+              <option value="Kinshasa">Kinshasa</option>
+              <option value="Boma">Boma</option>
+              <option value="Moanda">Moanda</option>
+            </select>
+          </div>
+
+          <div style="text-align: left;">
+            <label for="travelDate" style="display: block; margin-bottom: 8px; font-size: 0.85rem; color: #e7edf3; font-weight: 500;">Date de voyage</label>
+            <input type="date" id="travelDate" name="date" required>
+          </div>
+
+        </div>
+
+        <button type="submit" class="btn-primary-lg" style="margin-top: 20px; width: 100%; border: none; cursor: pointer; text-align: center;">🔍 Voir les bus disponibles</button>
+      </form>
+    </div>
+
+    <!-- TRAJETS POPULAIRES (APERÇU) -->
+    <section style="margin-top: 50px;">
+      <div class="section-header" style="text-align: left; max-width: 100%; margin-bottom: 24px;">
+        <h2>Trajets <span>populaires</span></h2>
+        <p>Sélectionnez un itinéraire fréquent ou lancez une recherche personnalisée ci-dessus.</p>
+      </div>
+
+      <div class="routes-grid">
+        <div class="route-card">
+          <div class="route-header">
+            <h4>Matadi ➔ Kinshasa</h4>
+            <span class="route-tag">Quotidien</span>
+          </div>
+          <p class="route-info">À partir de 25 000 CDF • Plusieurs départs par jour</p>
+          <a href="results.html?departure=Matadi&arrival=Kinshasa" class="route-link">Voir les horaires →</a>
+        </div>
+
+        <div class="route-card">
+          <div class="route-header">
+            <h4>Kinshasa ➔ Boma</h4>
+            <span class="route-tag">Direct</span>
+          </div>
+          <p class="route-info">À partir de 30 000 CDF • Bus climatisés</p>
+          <a href="results.html?departure=Kinshasa&arrival=Boma" class="route-link">Voir les horaires →</a>
+        </div>
+
+        <div class="route-card">
+          <div class="route-header">
+            <h4>Kinshasa ➔ Moanda</h4>
+            <span class="route-tag">Express</span>
+          </div>
+          <p class="route-info">À partir de 35 000 CDF • Voyage de nuit/jour</p>
+          <a href="results.html?departure=Kinshasa&arrival=Moanda" class="route-link">Voir les horaires →</a>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+</main>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container footer-inner">
+    <div class="footer-brand">
+      <div class="brand">TALA<span>Trajet</span></div>
+      <p>La plateforme intelligente de réservation de billets de transport en République Démocratique du Congo.</p>
+    </div>
+    
+    <div class="footer-links">
+      <a href="about.html">À propos</a>
+      <a href="contact.html">Contact</a>
+      <a href="terms.html">Conditions d'utilisation</a>
+      <a href="privacy.html">Politique de confidentialité</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2026 TALA Trajet — Tous droits réservés.</p>
+  </div>
+</footer>
+
+<script>
+  // Menu Mobile Toggle
+  const menuToggle = document.getElementById('menuToggle');
+  const navMenu = document.getElementById('navMenu');
+  if (menuToggle && navMenu) {
+    menuToggle.addEventListener('click', () => {
+      navMenu.classList.toggle('open');
+      menuToggle.textContent = navMenu.classList.contains('open') ? '✕' : '☰';
+    });
+  }
+
+  // Initialisation de la date minimale à aujourd'hui
+  const dateInput = document.getElementById('travelDate');
+  if (dateInput) {
+    dateInput.min = new Date().toISOString().split('T')[0];
+  }
+
+  // Traitement et Redirection vers results.html
+  function handleSearch(e) {
+    e.preventDefault();
+    
+    const dep = document.getElementById('departureCity').value;
+    const arr = document.getElementById('arrivalCity').value;
+    const date = document.getElementById('travelDate').value;
+
+    if (dep === arr) {
+      alert("La ville de départ et la ville d'arrivée doivent être différentes.");
+      return;
+    }
+
+    // Construction des paramètres de recherche et redirection vers results.html
+    const searchParams = new URLSearchParams({
+      departure: dep,
+      arrival: arr,
+      date: date
+    });
+
+    window.location.href = `results.html?${searchParams.toString()}`;
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mon Compte — TALA Trajet</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  
+  <style>
+    .account-layout {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 24px;
+      margin-top: -30px;
+      position: relative;
+      z-index: 10;
+    }
+    @media (max-width: 850px) {
+      .account-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .badge.CONFIRME, .badge.PAID, .badge.paye {
+      background: rgba(46, 204, 113, 0.15);
+      color: #2ecc71;
+      border: 1px solid #2ecc71;
+    }
+    .badge.EN_ATTENTE, .badge.PENDING {
+      background: rgba(241, 196, 15, 0.15);
+      color: #f1c40f;
+      border: 1px solid #f1c40f;
+    }
+    .history-card {
+      background: #171b22;
+      border: 1px solid #2a313b;
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 16px;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+    .history-card:hover {
+      border-color: #00d2ff;
+      transform: translateY(-2px);
+    }
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #2a313b;
+      font-size: 0.9rem;
+    }
+    .info-row:last-child {
+      border-bottom: none;
+    }
+    .info-row span:first-child {
+      color: #b0bcc9;
+    }
+    .info-row span:last-child {
+      color: #ffffff;
+      font-weight: 600;
+    }
+    /* Style des Onglets */
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: #b0bcc9;
+      padding: 8px 16px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s ease;
+    }
+    .tab-btn.active {
+      color: #00d2ff;
+      border-bottom-color: #00d2ff;
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="brand">TALA<span>Trajet</span></div>
+  <nav class="main-nav" id="navMenu">
+    <a href="index.html">Accueil</a>
+    <a href="search.html">Rechercher</a>
+    <a href="about.html">À propos</a>
+    <a href="contact.html">Contact</a>
+    <a href="account.html" class="active nav-auth-btn">Mon Compte</a>
+  </nav>
+  <button class="menu-btn" id="menuToggle" aria-label="Ouvrir le menu">☰</button>
+</header>
+
+<!-- MAIN -->
+<main style="padding-bottom: 80px;">
+  
+  <!-- HERO COMPTE -->
+  <section class="hero-showcase" style="padding: 50px 20px 50px;">
+    <div class="hero-content">
+      <span class="badge-hero">Espace Personnel</span>
+      <h1 class="hero-title">Tableau de <span>bord</span></h1>
+      <p class="hero-sub">Retrouvez vos informations et l'historique de vos billets de voyage.</p>
+    </div>
+  </section>
+
+  <!-- CONTENU PRINCIPAL -->
+  <div class="container">
+    <div class="account-layout">
+      
+      <!-- COLONNE GAUCHE : INFOS PERSONNELLES -->
+      <div>
+        <div class="card" style="border-radius: 16px; padding: 24px;">
+          <h3 style="color: #ffffff; font-size: 1.15rem; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+            👤 Profil Voyageur
+          </h3>
+          
+          <div id="accountInfo">
+            <p style="color: #b0bcc9; font-size: 0.9rem;">Chargement des données...</p>
+          </div>
+
+          <div style="margin-top: 20px; border-top: 1px solid #2a313b; padding-top: 16px;">
+            <button id="logoutBtn" onclick="handleLogout()" class="btn-secondary-lg" style="width: 100%; font-size: 0.85rem; padding: 10px; display: none;">
+              Déconnexion / Réinitialiser
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- COLONNE DROITE : HISTORIQUE DES BILLETS AVEC ONGLETS -->
+      <div>
+        <div class="card" style="border-radius: 16px; padding: 24px;">
+          
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+            <!-- Onglets -->
+            <div style="display: flex; gap: 8px; border-bottom: 1px solid #2a313b;">
+              <button class="tab-btn active" id="tabUpcoming" onclick="switchTab('upcoming')">Prochains départs</button>
+              <button class="tab-btn" id="tabPast" onclick="switchTab('past')">Historique</button>
+            </div>
+
+            <a href="search.html" class="btn-primary-lg" style="font-size: 0.8rem; padding: 8px 16px;">+ Nouveau trajet</a>
+          </div>
+
+          <!-- Liste des billets -->
+          <div id="reservationHistory">
+            <p style="color: #b0bcc9; font-size: 0.9rem;">Chargement de votre historique...</p>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</main>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container footer-inner">
+    <div class="footer-brand">
+      <div class="brand">TALA<span>Trajet</span></div>
+      <p>La plateforme intelligente de réservation de billets de transport en République Démocratique du Congo.</p>
+    </div>
+    
+    <div class="footer-links">
+      <a href="about.html">À propos</a>
+      <a href="contact.html">Contact</a>
+      <a href="terms.html">Conditions d'utilisation</a>
+      <a href="privacy.html">Politique de confidentialité</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2026 TALA Trajet — Tous droits réservés.</p>
+  </div>
+</footer>
+
+<script>
+  const menuToggle = document.getElementById('menuToggle');
+  const navMenu = document.getElementById('navMenu');
+  if (menuToggle && navMenu) {
+    menuToggle.addEventListener('click', () => {
+      navMenu.classList.toggle('open');
+      menuToggle.textContent = navMenu.classList.contains('open') ? '✕' : '☰';
+    });
+  }
+
+  const { createClient } = window.supabase;
+  const supabaseUrl = "https://iyiuysgwbreaqkepilqn.supabase.co";
+  const supabaseKey = "sb_publishable_uPwAsJaGU4m_ejyajmEv2A_dLgqIM3h";
+  const supabaseClient = createClient(supabaseUrl, supabaseKey);
+
+  let allReservations = [];
+  let currentTab = 'upcoming';
+
+  document.addEventListener("DOMContentLoaded", async () => {
+    const accountInfo = document.getElementById("accountInfo");
+    const logoutBtn = document.getElementById("logoutBtn");
+
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    const lastReservation = JSON.parse(localStorage.getItem("reservationInfo"));
+    
+    let clientPhone = user?.phone || user?.user_metadata?.phone || lastReservation?.client_phone || lastReservation?.telephone;
+    let clientName = user?.user_metadata?.full_name || lastReservation?.client_name || lastReservation?.nom;
+    let clientEmail = user?.email || lastReservation?.email;
+
+    if (clientPhone || clientName || clientEmail) {
+      accountInfo.innerHTML = `
+        <div class="info-row"><span>Nom :</span><span>${clientName || "Non renseigné"}</span></div>
+        <div class="info-row"><span>Téléphone :</span><span>${clientPhone || "Non renseigné"}</span></div>
+        <div class="info-row"><span>Email :</span><span>${clientEmail || "Non renseigné"}</span></div>
+      `;
+      logoutBtn.style.display = "block";
+    } else {
+      accountInfo.innerHTML = `
+        <div style="background: rgba(231, 76, 60, 0.1); border: 1px solid #e74c3c; border-radius: 10px; padding: 15px; text-align: center;">
+          <p style="color: #e74c3c; font-size: 0.85rem; margin-bottom: 10px;">Aucune session active trouvée.</p>
+          <a href="search.html" class="btn-primary-lg" style="font-size: 0.8rem; padding: 8px 16px; display: inline-block;">Réserver un billet</a>
+        </div>
+      `;
+      document.getElementById("reservationHistory").innerHTML = `<p style="color: #b0bcc9; font-size: 0.9rem;">Effectuez une réservation pour consulter vos billets.</p>`;
+      return;
+    }
+
+    if (clientPhone) {
+      const { data, error } = await supabaseClient
+        .from("reservations")
+        .select("*")
+        .eq("client_phone", clientPhone)
+        .order("id", { ascending: false });
+
+      if (!error && data && data.length > 0) {
+        allReservations = data;
+      } else if (lastReservation) {
+        allReservations = [lastReservation];
+      }
+    } else if (lastReservation) {
+      allReservations = [lastReservation];
+    }
+
+    renderReservations();
+  });
+
+  function switchTab(tab) {
+    currentTab = tab;
+    document.getElementById("tabUpcoming").classList.toggle("active", tab === 'upcoming');
+    document.getElementById("tabPast").classList.toggle("active", tab === 'past');
+    renderReservations();
+  }
+
+  function renderReservations() {
+    const container = document.getElementById("reservationHistory");
+    container.innerHTML = "";
+
+    const today = new Date().toISOString().split('T')[0];
+
+    const filtered = allReservations.filter(r => {
+      const resDate = r.date || r.date_depart || today;
+      return currentTab === 'upcoming' ? resDate >= today : resDate < today;
+    });
+
+    if (filtered.length === 0) {
+      container.innerHTML = `<p style="color: #b0bcc9; font-size: 0.9rem; padding: 20px 0;">Aucun billet ${currentTab === 'upcoming' ? 'à venir' : 'dans l\'historique'}.</p>`;
+      return;
+    }
+
+    filtered.forEach(r => {
+      const ticketNum = r.ticket_number || r.id || "TL-N/A";
+      const status = r.statut_reservation || r.statut || "CONFIRME";
+      const passagersCount = r.passengers_list?.length || r.passengers || 1;
+
+      container.innerHTML += `
+        <div class="history-card">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+            <div>
+              <span style="font-size: 0.75rem; color: #b0bcc9; font-family: monospace;">N° ${ticketNum}</span>
+              <h4 style="color: #ffffff; margin: 2px 0 0; font-size: 1.05rem;">
+                ${r.ville_depart || 'Départ'} ➔ ${r.ville_arrivee || 'Arrivée'}
+              </h4>
+            </div>
+            <span class="badge ${status}">${status}</span>
+          </div>
+
+          <div style="display: flex; gap: 16px; font-size: 0.85rem; color: #b0bcc9; margin-bottom: 14px; flex-wrap: wrap;">
+            <span>📅 Date : <strong style="color:#fff;">${r.date || r.date_depart || 'N/A'}</strong></span>
+            <span>💺 Passager(s) : <strong style="color:#fff;">${passagersCount}</strong></span>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <button onclick="viewTicket('${ticketNum}')" class="btn-primary-lg" style="font-size: 0.8rem; padding: 8px; text-align: center;">
+              Afficher le billet 🎫
+            </button>
+            <button onclick="downloadQuickPDF('${ticketNum}')" class="btn-secondary-lg" style="font-size: 0.8rem; padding: 8px; text-align: center;">
+              Télécharger PDF 📥
+            </button>
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  function viewTicket(ticketNum) {
+    window.location.href = `confirmation.html?ticket=${ticketNum}`;
+  }
+
+  async function downloadQuickPDF(ticketNum) {
+    const item = allReservations.find(r => (r.ticket_number || r.id) == ticketNum);
+    if (!item) return alert("Données du billet introuvables");
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    doc.setFillColor(15, 23, 42);
+    doc.rect(0, 0, 210, 30, "F");
+    doc.setFontSize(18);
+    doc.setTextColor(0, 210, 255);
+    doc.text("TALA Trajet — Billet de Voyage", 15, 20);
+
+    doc.setFontSize(11);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`N° Billet : ${ticketNum}`, 20, 45);
+    doc.text(`Trajet : ${item.ville_depart || 'N/A'} -> ${item.ville_arrivee || 'N/A'}`, 20, 55);
+    doc.text(`Passager : ${item.client_name || 'N/A'}`, 20, 65);
+    doc.text(`Téléphone : ${item.client_phone || 'N/A'}`, 20, 75);
+    doc.text(`Date : ${item.date || item.date_depart || 'N/A'}`, 20, 85);
+
+    doc.save(`Billet_${ticketNum}.pdf`);
+  }
+
+  async function handleLogout() {
+    await supabaseClient.auth.signOut();
+    localStorage.removeItem("reservationInfo");
+    window.location.reload();
+  }
+</script>
+
+</body>
+</html>
