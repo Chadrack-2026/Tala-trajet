@@ -298,8 +298,9 @@
 
 <script>
   const { createClient } = window.supabase;
-  const supabaseUrl = "https://iyiuysgwbreaqkepilqn.supabase.co";
-  const supabaseKey = "sb_publishable_uPwAsJaGU4m_ejyajmEv2A_dLgqIM3h";
+  // Correction : Utilisation des bons identifiants du projet actif
+  const supabaseUrl = "https://kfkifkstatbadtzosxai.supabase.co";
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma2lma3N0YXRiYWR0em9zeGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3MTYzMTAsImV4cCI6MjEwMTI5MjMxMH0.xPzFtl_OET2asSc5iH3liRHnPyuUYAfbbjZISwfnaA8";
   const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
   const COMMISSION_RATE = 0.10; // 10% prélevés par TALA Trajet
@@ -310,7 +311,7 @@
     
     if (!session || error) {
       alert("Accès non autorisé. Veuillez vous connecter.");
-      window.location.href = "login.html"; // Redirige vers ta page de connexion
+      window.location.href = "login.html"; // Assurez-vous que le fichier de connexion s'appelle bien ainsi, ou adaptez le nom
       return;
     }
 
@@ -469,7 +470,7 @@
 
   async function logout() {
     await supabaseClient.auth.signOut();
-    window.location.href = "login.html"; // Redirige vers ta page de connexion
+    window.location.href = "login.html"; 
   }
 </script>
 
