@@ -304,7 +304,17 @@
 
   const COMMISSION_RATE = 0.10; // 10% prélevés par TALA Trajet
 
-  document.addEventListener("DOMContentLoaded", () => {
+  /* --- SÉCURITÉ : VÉRIFICATION DE SESSION AU CHARGEMENT --- */
+  document.addEventListener("DOMContentLoaded", async () => {
+    const { data: { session }, error } = await supabaseClient.auth.getSession();
+    
+    if (!session || error) {
+      alert("Accès non autorisé. Veuillez vous connecter.");
+      window.location.href = "login.html"; // Redirige vers ta page de connexion
+      return;
+    }
+
+    // Si authentifié, chargement des données
     loadAdminStats();
     loadAgencies();
     loadPayouts();
@@ -385,7 +395,7 @@
             <td style="color:var(--green); font-weight:600;">${amount}</td>
             <td>${mode}</td>
             <td>
-              <button class="btn-action" onclick="approvePayout(${p.id})" style="color:var(--green); border-color:var(--green);">
+              <button class="btn-action" onclick="approvePayout('${p.id}')" style="color:var(--green); border-color:var(--green);">
                 Payer ✓
               </button>
             </td>
@@ -435,7 +445,7 @@
             <td>${dateStr}</td>
             <td><span class="badge ${isActive ? 'badge-success' : 'badge-danger'}">${isActive ? 'ACTIF' : 'SUSPENDU'}</span></td>
             <td>
-              <button class="btn-action" onclick="toggleAgencyStatus(${a.id}, '${a.statut}')" style="color:${isActive ? 'var(--red)' : 'var(--green)'};">
+              <button class="btn-action" onclick="toggleAgencyStatus('${a.id}', '${a.statut}')" style="color:${isActive ? 'var(--red)' : 'var(--green)'};">
                 ${isActive ? 'Bloquer' : 'Réactiver'}
               </button>
             </td>
@@ -459,7 +469,7 @@
 
   async function logout() {
     await supabaseClient.auth.signOut();
-    window.location.href = "auth.html";
+    window.location.href = "login.html"; // Redirige vers ta page de connexion
   }
 </script>
 
