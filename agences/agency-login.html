@@ -141,9 +141,10 @@
 </footer>
 
 <script>
+  // Initialisation Supabase
   const { createClient } = window.supabase;
-  const supabaseUrl = "https://iyiuysgwbreaqkepilqn.supabase.co";
-  const supabaseKey = "sb_publishable_uPwAsJaGU4m_ejyajmEv2A_dLgqIM3h";
+  const supabaseUrl = "https://kfkifkstatbadtzosxai.supabase.co"; 
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma2lma3N0YXRiYWR0em9zeGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3MTYzMTAsImV4cCI6MjEwMTI5MjMxMH0.xPzFtl_OET2asSc5iH3liRHnPyuUYAfbbjZISwfnaA8";
   const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
   async function handleAgencyLogin(e) {
@@ -206,6 +207,7 @@
       }
 
     } catch (err) {
+      console.error("Erreur de connexion :", err);
       alertBox.textContent = err.message || "Identifiants incorrects.";
       alertBox.style.display = "block";
       btn.disabled = false;
