@@ -439,11 +439,10 @@
 
   /* --- GESTION DES TRAJETS --- */
   async function loadTrips() {
-    // Utilisation de la relation explicite pour éviter les erreurs de jointure
     const { data: trips, error } = await supabaseClient
       .from("trips")
       .select("*, buses!bus_id(immatriculation)")
-      .eq("agence_id", currentAgency.id)
+      .eq("agency_id", currentAgency.id)
       .order("date_depart", { ascending: true });
 
     if (error) {
@@ -483,7 +482,7 @@
     const capacity = parseInt(selectedOption.getAttribute("data-capacity") || "0");
 
     const tripData = {
-      agence_id: currentAgency.id,
+      agency_id: currentAgency.id, // Corrigé ici pour correspondre à la colonne agency_id de la table trips
       ville_depart: document.getElementById("depCity").value.trim(),
       ville_arrivee: document.getElementById("arrCity").value.trim(),
       date_depart: document.getElementById("departureDate").value,
