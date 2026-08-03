@@ -115,7 +115,6 @@
         <div class="form-group">
           <div class="password-header">
             <label for="agencyPassword" style="margin-bottom: 0;">Mot de passe</label>
-            
           </div>
           <input type="password" id="agencyPassword" required placeholder="••••••••">
         </div>
@@ -168,21 +167,43 @@
 
       if (authError) throw authError;
 
-      // 2. Vérification du rôle Agence dans la table 'agencies'
-      const { data: agency, error: agencyError } = await supabaseClient
-        .from("agencies")
-        .select("*")
-        .eq("user_id", authData.user.id)
+      const userId = authData.user.id;
+
+      // 2. Vérification du rôle dans la table 'user_roles'
+      const { data: roleData, error: roleError } = await supabaseClient
+        .from("user_roles")
+        .select("role, agency_id")
+        .eq("user_id", userId)
         .single();
 
-      if (agencyError || !agency) {
+      if (roleError || !roleData) {
         await supabaseClient.auth.signOut();
-        throw new Error("Ce compte n'est pas enregistré comme un compte agence autorisé.");
+        throw new Error("Aucun rôle attribué à ce compte.");
       }
 
-      // 3. Stockage de la session et redirection
-      localStorage.setItem("currentAgency", JSON.stringify(agency));
-      window.location.href = "agency-dashboard.html";
+      // 3. Gestion selon le rôle (Super Admin vs Agence)
+      if (roleData.role === 'super_admin') {
+        window.location.href = "admin-dashboard.html";
+      } 
+      else if (roleData.role === 'agency_admin') {
+        const { data: agencyData, error: agencyError } = await supabaseClient
+          .from("agencies")
+          .select("*")
+          .eq("id", roleData.agency_id)
+          .single();
+
+        if (agencyError || !agencyData) {
+          await supabaseClient.auth.signOut();
+          throw new Error("Agence introuvable ou désactivée.");
+        }
+
+        localStorage.setItem("currentAgency", JSON.stringify(agencyData));
+        window.location.href = "agency-dashboard.html";
+      } 
+      else {
+        await supabaseClient.auth.signOut();
+        throw new Error("Rôle non autorisé sur cet espace.");
+      }
 
     } catch (err) {
       alertBox.textContent = err.message || "Identifiants incorrects.";
