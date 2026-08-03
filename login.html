@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connexion Super Admin — TALA Trajet</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: 'Poppins', sans-serif; background: #0c0f13; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+    .card { background: #171b22; border: 1px solid #2a313b; padding: 30px; border-radius: 16px; width: 320px; }
+    input { width: 100%; padding: 10px; margin: 10px 0; background: #0c0f13; border: 1px solid #2a313b; color: #fff; border-radius: 8px; box-sizing: border-box; }
+    button { width: 100%; padding: 12px; background: #00d2ff; border: none; font-weight: bold; border-radius: 8px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Super Admin</h2>
+    <form onsubmit="loginAdmin(event)">
+      <input type="email" id="email" placeholder="Email admin" required>
+      <input type="password" id="password" placeholder="Mot de passe" required>
+      <button type="submit">Se connecter</button>
+    </form>
+  </div>
+
+  <script>
+    const supabaseClient = window.supabase.createClient(
+      "https://iyiuysgwbreaqkepilqn.supabase.co",
+      "sb_publishable_uPwAsJaGU4m_ejyajmEv2A_dLgqIM3h"
+    );
+
+    async function loginAdmin(e) {
+      e.preventDefault();
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+
+      if (error) {
+        alert("Erreur : " + error.message);
+      } else {
+        // Redirection directe vers votre tableau de bord Super Admin
+        window.location.href = "admin-dashboard.html";
+      }
+    }
+  </script>
+</body>
+</html>
