@@ -7,6 +7,9 @@
   
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+
+  <!-- Inclusion de Supabase JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -39,12 +42,15 @@
         <button class="auth-tab" id="tabRegister" onclick="switchTab('register')" style="flex: 1; padding: 10px; background: none; border: none; color: #b0bcc9; font-weight: 600; font-size: 0.9rem; cursor: pointer; border-radius: 8px;">Inscription</button>
       </div>
 
+      <!-- BOÎTE DE MESSAGE D'ERREUR OU SUCCÈS -->
+      <div id="authAlert" style="display: none; padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 0.85rem; text-align: center;"></div>
+
       <!-- FORMULAIRE CONNEXION -->
       <div id="loginForm" class="auth-form-content">
         <form onsubmit="handleLogin(event)" class="search-form">
           <div style="text-align: left;">
-            <label for="loginEmail" style="display: block; margin-bottom: 8px; font-size: 0.85rem; color: #e7edf3;">Téléphone ou E-mail</label>
-            <input type="text" id="loginEmail" placeholder="+243... ou exemple@mail.com" required>
+            <label for="loginEmail" style="display: block; margin-bottom: 8px; font-size: 0.85rem; color: #e7edf3;">E-mail</label>
+            <input type="email" id="loginEmail" placeholder="exemple@mail.com" required>
           </div>
 
           <div style="text-align: left; margin-top: 14px;">
@@ -62,7 +68,7 @@
             <a href="#" style="color: #2f7cf0; font-size: 0.82rem;">Mot de passe oublié ?</a>
           </div>
 
-          <button type="submit" class="btn-primary-lg" style="width: 100%; text-align: center; margin-top: 10px;">Se connecter</button>
+          <button type="submit" id="btnLoginSubmit" class="btn-primary-lg" style="width: 100%; text-align: center; margin-top: 10px;">Se connecter</button>
         </form>
       </div>
 
@@ -80,8 +86,8 @@
           </div>
 
           <div style="text-align: left; margin-top: 14px;">
-            <label for="regEmail" style="display: block; margin-bottom: 8px; font-size: 0.85rem; color: #e7edf3;">Adresse e-mail (Optionnel)</label>
-            <input type="email" id="regEmail" placeholder="nom@exemple.com">
+            <label for="regEmail" style="display: block; margin-bottom: 8px; font-size: 0.85rem; color: #e7edf3;">Adresse e-mail</label>
+            <input type="email" id="regEmail" placeholder="nom@exemple.com" required>
           </div>
 
           <div style="text-align: left; margin-top: 14px;">
@@ -92,7 +98,7 @@
             </div>
           </div>
 
-          <button type="submit" class="btn-primary-lg" style="width: 100%; text-align: center; margin-top: 20px;">Créer mon compte</button>
+          <button type="submit" id="btnRegisterSubmit" class="btn-primary-lg" style="width: 100%; text-align: center; margin-top: 20px;">Créer mon compte</button>
         </form>
       </div>
 
@@ -123,6 +129,12 @@
 </footer>
 
 <script>
+  // Initialisation de Supabase
+  const { createClient } = window.supabase;
+  const supabaseUrl = "https://kfkifkstatbadtzosxai.supabase.co"; 
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma2lma3N0YXRiYWR0em9zeGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3MTYzMTAsImV4cCI6MjEwMTI5MjMxMH0.xPzFtl_OET2asSc5iH3liRHnPyuUYAfbbjZISwfnaA8";
+  const supabaseClient = createClient(supabaseUrl, supabaseKey);
+
   // Menu Mobile
   const menuToggle = document.getElementById('menuToggle');
   const navMenu = document.getElementById('navMenu');
@@ -133,8 +145,19 @@
     });
   }
 
+  // Fonction pour afficher des messages d'alerte
+  function showAlert(message, isSuccess = false) {
+    const alertBox = document.getElementById('authAlert');
+    alertBox.style.display = 'block';
+    alertBox.style.background = isSuccess ? 'rgba(46, 204, 113, 0.15)' : 'rgba(231, 76, 60, 0.15)';
+    alertBox.style.color = isSuccess ? '#2ecc71' : '#e74c3c';
+    alertBox.style.border = `1px solid ${isSuccess ? '#2ecc71' : '#e74c3c'}`;
+    alertBox.textContent = message;
+  }
+
   // Alternance des onglets Connexion / Inscription
   function switchTab(tab) {
+    document.getElementById('authAlert').style.display = 'none';
     const tabLogin = document.getElementById('tabLogin');
     const tabRegister = document.getElementById('tabRegister');
     const loginForm = document.getElementById('loginForm');
@@ -179,15 +202,66 @@
     }
   }
 
-  // Soumission et Redirection vers l'espace de recherche (search.html)
-  function handleLogin(e) {
+  // Gestion de la Connexion Supabase
+  async function handleLogin(e) {
     e.preventDefault();
-    window.location.href = "search.html";
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const btn = document.getElementById('btnLoginSubmit');
+
+    btn.disabled = true;
+    btn.textContent = "Connexion...";
+
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
+      email: email,
+      password: password
+    });
+
+    if (error) {
+      showAlert("Échec de connexion : " + error.message);
+      btn.disabled = false;
+      btn.textContent = "Se connecter";
+    } else {
+      showAlert("Connexion réussie ! Redirection...", true);
+      setTimeout(() => {
+        window.location.href = "search.html";
+      }, 1500);
+    }
   }
 
-  function handleRegister(e) {
+  // Gestion de l'Inscription Supabase
+  async function handleRegister(e) {
     e.preventDefault();
-    window.location.href = "search.html";
+    const fullName = document.getElementById('regFullName').value.trim();
+    const phone = document.getElementById('regPhone').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
+    const password = document.getElementById('regPassword').value;
+    const btn = document.getElementById('btnRegisterSubmit');
+
+    btn.disabled = true;
+    btn.textContent = "Création du compte...";
+
+    const { data, error } = await supabaseClient.auth.signUp({
+      email: email,
+      password: password,
+      options: {
+        data: {
+          full_name: fullName,
+          phone: phone
+        }
+      }
+    });
+
+    if (error) {
+      showAlert("Erreur lors de l'inscription : " + error.message);
+      btn.disabled = false;
+      btn.textContent = "Créer mon compte";
+    } else {
+      showAlert("Compte créé avec succès ! Redirection...", true);
+      setTimeout(() => {
+        window.location.href = "search.html";
+      }, 1500);
+    }
   }
 </script>
 
