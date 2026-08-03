@@ -354,7 +354,7 @@
     if (error) {
       alert("Erreur génération : " + error.message);
     } else {
-      const inviteUrl = window.location.origin + '/agency-register.html?token=' + token;
+      const inviteUrl = window.location.origin + '/agences/agency-register.html?token=' + token;
       document.getElementById("generatedUrl").value = inviteUrl;
       document.getElementById("inviteResult").style.display = "block";
       document.getElementById("inviteForm").reset();
