@@ -289,7 +289,7 @@
 
       if (authError) throw authError;
 
-      // 2. Insertion dans la table `agencies`
+            // 2. Insertion dans la table `agencies` (en utilisant "statut" au lieu de "status")
       const { data: agencyRecord, error: agencyError } = await supabaseClient
         .from("agencies")
         .insert([
@@ -299,7 +299,7 @@
             telephone: phone,
             ville_siege: city,
             email: email,
-            status: "ACTIVE"
+            statut: "ACTIVE" // <-- Remplacé "status" par "statut"
           }
         ])
         .select()
