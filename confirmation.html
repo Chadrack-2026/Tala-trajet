@@ -256,8 +256,8 @@
           ticket_number: data.ticket_number,
           ville_depart: data.trip?.ville_depart,
           ville_arrivee: data.trip?.ville_arrivee,
-          client_name: data.full_name,
-          client_phone: data.phone,
+          client_name: data.nom_client,
+          client_phone: data.telephone_client,
           agence: data.agency?.nom || "Agence Partenaire",
           date: data.trip?.date_depart,
           heure_depart: data.trip?.heure_depart,
@@ -284,7 +284,7 @@
           <p style="color: #b0bcc9; font-size: 0.9rem; margin-bottom: 20px;">
             Nous n'avons pas trouvé de détails de billet correspondant.
           </p>
-          <a href="search.html" class="btn-primary-lg" style="padding: 12px 24px; font-size: 0.9rem;">Rechercher un trajet</a>
+          <a href="search.html" class="btn-primary-lg" style="padding: 12px 24px; font-size: 0.9rem; display: inline-block; text-decoration: none;">Rechercher un trajet</a>
         </div>
       `;
       return;
@@ -294,8 +294,8 @@
     const ticketNum = currentReservation.ticket_number || ticketParam || "TL-" + Math.floor(100000 + Math.random() * 900000);
     document.getElementById("ticketNumber").textContent = ticketNum;
     document.getElementById("ticketRoute").textContent = `${currentReservation.ville_depart || "Départ"} ➔ ${currentReservation.ville_arrivee || "Arrivée"}`;
-    document.getElementById("passengerName").textContent = currentReservation.client_name || currentReservation.full_name || "Client TALA";
-    document.getElementById("passengerPhone").textContent = currentReservation.client_phone || currentReservation.phone || "N/A";
+    document.getElementById("passengerName").textContent = currentReservation.client_name || currentReservation.nom_client || "Client TALA";
+    document.getElementById("passengerPhone").textContent = currentReservation.client_phone || currentReservation.telephone_client || "N/A";
     document.getElementById("agencyName").textContent = currentReservation.agence || "Agence Partenaire";
     document.getElementById("travelDateTime").textContent = `${currentReservation.date || currentReservation.date_depart || "Aujourd'hui"} • ${currentReservation.heure_depart || "08:00"}`;
     
@@ -304,7 +304,7 @@
 
     // Formatage des Sièges
     const seatsDisplay = document.getElementById("seatsDisplay");
-    const seatsRaw = currentReservation.seats || currentReservation.passengers_list || [1];
+    const seatsRaw = currentReservation.seats || [1];
     let seatsArray = [];
 
     if (Array.isArray(seatsRaw)) {
