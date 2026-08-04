@@ -8,8 +8,89 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   
-  <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  
+  <style>
+    .account-layout {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 24px;
+      margin-top: -30px;
+      position: relative;
+      z-index: 10;
+    }
+    @media (max-width: 850px) {
+      .account-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .badge.CONFIRME, .badge.PAID, .badge.paye {
+      background: rgba(46, 204, 113, 0.15);
+      color: #2ecc71;
+      border: 1px solid #2ecc71;
+    }
+    .badge.EN_ATTENTE, .badge.PENDING {
+      background: rgba(241, 196, 15, 0.15);
+      color: #f1c40f;
+      border: 1px solid #f1c40f;
+    }
+    .history-card {
+      background: #171b22;
+      border: 1px solid #2a313b;
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 16px;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+    .history-card:hover {
+      border-color: #00d2ff;
+      transform: translateY(-2px);
+    }
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #2a313b;
+      font-size: 0.9rem;
+    }
+    .info-row:last-child {
+      border-bottom: none;
+    }
+    .info-row span:first-child {
+      color: #b0bcc9;
+    }
+    .info-row span:last-child {
+      color: #ffffff;
+      font-weight: 600;
+    }
+    /* Style des Onglets */
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: #b0bcc9;
+      padding: 8px 16px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s ease;
+    }
+    .tab-btn.active {
+      color: #00d2ff;
+      border-bottom-color: #00d2ff;
+    }
+  </style>
 </head>
 <body>
 
@@ -21,7 +102,7 @@
     <a href="search.html">Rechercher</a>
     <a href="about.html">À propos</a>
     <a href="contact.html">Contact</a>
-    <a href="auth.html" id="userAccountLink" class="nav-auth-btn active">Mon Compte</a>
+    <a href="account.html" class="active nav-auth-btn" id="userAccountLink">Mon Compte</a>
   </nav>
   <button class="menu-btn" id="menuToggle" aria-label="Ouvrir le menu">☰</button>
 </header>
@@ -30,56 +111,60 @@
 <main style="padding-bottom: 80px;">
   
   <!-- HERO COMPTE -->
-  <section class="hero-showcase" style="padding: 50px 20px 40px;">
+  <section class="hero-showcase" style="padding: 50px 20px 50px;">
     <div class="hero-content">
-      <span class="badge-hero" style="background: rgba(0, 210, 255, 0.15); color: #00d2ff; border-color: #00d2ff;">
-        👤 Espace Personnel
-      </span>
-      <h1 class="hero-title">Mon <span>Compte</span></h1>
-      <p class="hero-sub">Gérez vos informations et retrouvez vos réservations TALA Trajet.</p>
+      <span class="badge-hero">Espace Personnel</span>
+      <h1 class="hero-title">Tableau de <span>bord</span></h1>
+      <p class="hero-sub">Retrouvez vos informations et l'historique de vos billets de voyage.</p>
     </div>
   </section>
 
-  <!-- CONTENEUR PRINCIPAL DU COMPTE -->
-  <div class="container" style="max-width: 700px;">
-    
-    <!-- CARTE INFORMATIONS UTILISATEUR -->
-    <div style="background: #171b22; border: 1px solid #2a313b; border-radius: 20px; padding: 30px; margin-bottom: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-      <h2 style="color: #ffffff; font-size: 1.2rem; margin-top: 0; margin-bottom: 20px; border-bottom: 1px solid #2a313b; padding-bottom: 12px;">
-        Mes Informations
-      </h2>
+  <!-- CONTENU PRINCIPAL -->
+  <div class="container">
+    <div class="account-layout">
       
-      <div style="display: flex; flex-direction: column; gap: 15px; text-align: left;" id="userInfoContainer">
-        <div style="background: #0c0f13; padding: 12px 16px; border-radius: 10px; border: 1px solid #2a313b;">
-          <label style="display: block; font-size: 0.75rem; color: #b0bcc9; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Nom complet</label>
-          <span id="userName" style="color: #ffffff; font-weight: 600; font-size: 0.95rem;">Chargement...</span>
+      <!-- COLONNE GAUCHE : INFOS PERSONNELLES -->
+      <div>
+        <div class="card" style="border-radius: 16px; padding: 24px;">
+          <h3 style="color: #ffffff; font-size: 1.15rem; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+            👤 Profil Voyageur
+          </h3>
+          
+          <div id="accountInfo">
+            <p style="color: #b0bcc9; font-size: 0.9rem;">Chargement des données...</p>
+          </div>
+
+          <div style="margin-top: 20px; border-top: 1px solid #2a313b; padding-top: 16px;">
+            <button id="logoutBtn" onclick="handleLogout()" class="btn-secondary-lg" style="width: 100%; font-size: 0.85rem; padding: 10px; display: none;">
+              Déconnexion / Réinitialiser
+            </button>
+          </div>
         </div>
-        
-        <div style="background: #0c0f13; padding: 12px 16px; border-radius: 10px; border: 1px solid #2a313b;">
-          <label style="display: block; font-size: 0.75rem; color: #b0bcc9; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Adresse e-mail</label>
-          <span id="userEmail" style="color: #ffffff; font-weight: 600; font-size: 0.95rem;">Chargement...</span>
+      </div>
+
+      <!-- COLONNE DROITE : HISTORIQUE DES BILLETS AVEC ONGLETS -->
+      <div>
+        <div class="card" style="border-radius: 16px; padding: 24px;">
+          
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+            <!-- Onglets -->
+            <div style="display: flex; gap: 8px; border-bottom: 1px solid #2a313b;">
+              <button class="tab-btn active" id="tabUpcoming" onclick="switchTab('upcoming')">Prochains départs</button>
+              <button class="tab-btn" id="tabPast" onclick="switchTab('past')">Historique</button>
+            </div>
+
+            <a href="search.html" class="btn-primary-lg" style="font-size: 0.8rem; padding: 8px 16px;">+ Nouveau trajet</a>
+          </div>
+
+          <!-- Liste des billets -->
+          <div id="reservationHistory">
+            <p style="color: #b0bcc9; font-size: 0.9rem;">Chargement de votre historique...</p>
+          </div>
+
         </div>
       </div>
 
-      <!-- BOUTON DÉCONNEXION -->
-      <div style="margin-top: 25px; text-align: right;">
-        <button id="logoutBtn" style="background: rgba(231, 76, 60, 0.15); color: #e74c3c; border: 1px solid #e74c3c; padding: 12px 20px; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 0.9rem; transition: background 0.3s;">
-          🚪 Se déconnecter
-        </button>
-      </div>
     </div>
-
-    <!-- CARTE HISTORIQUE / ACTIONS -->
-    <div style="background: #171b22; border: 1px solid #2a313b; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-      <h2 style="color: #ffffff; font-size: 1.2rem; margin-top: 0; margin-bottom: 20px; border-bottom: 1px solid #2a313b; padding-bottom: 12px;">
-        Actions Rapides
-      </h2>
-      <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-        <a href="search.html" class="btn-primary-lg" style="text-decoration: none; padding: 12px 20px; font-size: 0.9rem; display: inline-block;">🔍 Rechercher un trajet</a>
-        <a href="index.html" class="btn-secondary-lg" style="text-decoration: none; padding: 12px 20px; font-size: 0.9rem; display: inline-block; text-align: center;">🏠 Retour à l'accueil</a>
-      </div>
-    </div>
-
   </div>
 
 </main>
@@ -105,13 +190,6 @@
 </footer>
 
 <script>
-  // Initialisation Supabase
-  const { createClient } = window.supabase;
-  const supabaseUrl = "https://kfkifkstatbadtzosxai.supabase.co"; 
-  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma2lma3N0YXRiYWR0em9zeGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3MTYzMTAsImV4cCI6MjEwMTI5MjMxMH0.xPzFtl_OET2asSc5iH3liRHnPyuUYAfbbjZISwfnaA8";
-  const supabaseClient = createClient(supabaseUrl, supabaseKey);
-
-  // Menu Mobile Toggle
   const menuToggle = document.getElementById('menuToggle');
   const navMenu = document.getElementById('navMenu');
   if (menuToggle && navMenu) {
@@ -121,44 +199,167 @@
     });
   }
 
-  document.addEventListener("DOMContentLoaded", async () => {
-    // 1. Vérifier la session utilisateur active dans Supabase
-    const { data: { session }, error } = await supabaseClient.auth.getSession();
+  const { createClient } = window.supabase;
+  const supabaseUrl = "https://kfkifkstatbadtzosxai.supabase.co"; 
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma2lma3N0YXRiYWR0em9zeGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3MTYzMTAsImV4cCI6MjEwMTI5MjMxMH0.xPzFtl_OET2asSc5iH3liRHnPyuUYAfbbjZISwfnaA8";
+  const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
-    if (!session || !session.user) {
-      // Si l'utilisateur n'est pas connecté, redirection automatique vers la page de connexion
-      window.location.href = "auth.html";
+  let allReservations = [];
+  let currentTab = 'upcoming';
+
+  document.addEventListener("DOMContentLoaded", async () => {
+    const accountInfo = document.getElementById("accountInfo");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const accountLink = document.getElementById("userAccountLink");
+
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    const user = session?.user;
+    
+    const lastReservation = JSON.parse(localStorage.getItem("reservationInfo"));
+    
+    let clientPhone = user?.phone || user?.user_metadata?.phone || lastReservation?.client_phone || lastReservation?.telephone;
+    let clientName = user?.user_metadata?.full_name || lastReservation?.client_name || lastReservation?.nom;
+    let clientEmail = user?.email || lastReservation?.email;
+
+    if (clientPhone || clientName || clientEmail) {
+      accountInfo.innerHTML = `
+        <div class="info-row"><span>Nom :</span><span>${clientName || "Non renseigné"}</span></div>
+        <div class="info-row"><span>Téléphone :</span><span>${clientPhone || "Non renseigné"}</span></div>
+        <div class="info-row"><span>Email :</span><span>${clientEmail || "Non renseigné"}</span></div>
+      `;
+      logoutBtn.style.display = "block";
+
+      if (clientName && accountLink) {
+        accountLink.textContent = `👤 ${clientName.split(' ')[0]}`;
+      }
+    } else {
+      accountInfo.innerHTML = `
+        <div style="background: rgba(231, 76, 60, 0.1); border: 1px solid #e74c3c; border-radius: 10px; padding: 15px; text-align: center;">
+          <p style="color: #e74c3c; font-size: 0.85rem; margin-bottom: 10px;">Aucune session active trouvée.</p>
+          <a href="auth.html" class="btn-primary-lg" style="font-size: 0.8rem; padding: 8px 16px; display: inline-block; text-decoration: none;">Se connecter / S'inscrire</a>
+        </div>
+      `;
+      document.getElementById("reservationHistory").innerHTML = `<p style="color: #b0bcc9; font-size: 0.9rem;">Connectez-vous ou effectuez une réservation pour consulter vos billets.</p>`;
       return;
     }
 
-    // 2. Affichage des identités (Nom et Email récupérés du compte)
-    const user = session.user;
-    const fullName = user.user_metadata?.full_name || "Nom non renseigné";
-    const userEmail = user.email || "Email non renseigné";
+    if (clientPhone) {
+      const { data, error } = await supabaseClient
+        .from("reservations")
+        .select("*")
+        .eq("client_phone", clientPhone)
+        .order("id", { ascending: false });
 
-    document.getElementById("userName").textContent = fullName;
-    document.getElementById("userEmail").textContent = userEmail;
-
-    // Mise à jour du header
-    const accountLink = document.getElementById('userAccountLink');
-    if (accountLink) {
-      accountLink.textContent = `👤 ${fullName.split(' ')[0]}`;
+      if (!error && data && data.length > 0) {
+        allReservations = data;
+      } else if (lastReservation) {
+        allReservations = [lastReservation];
+      }
+    } else if (lastReservation) {
+      allReservations = [lastReservation];
     }
 
-    // 3. Gestion de la déconnexion au clic sur le bouton
-    const logoutBtn = document.getElementById("logoutBtn");
-    if (logoutBtn) {
-      logoutBtn.addEventListener("click", async () => {
-        const { error: signOutError } = await supabaseClient.auth.signOut();
-        if (!signOutError) {
-          localStorage.removeItem("reservationInfo");
-          window.location.href = "index.html";
-        } else {
-          alert("Erreur lors de la déconnexion : " + signOutError.message);
-        }
-      });
-    }
+    renderReservations();
   });
+
+  function switchTab(tab) {
+    currentTab = tab;
+    document.getElementById("tabUpcoming").classList.toggle("active", tab === 'upcoming');
+    document.getElementById("tabPast").classList.toggle("active", tab === 'past');
+    renderReservations();
+  }
+
+  function renderReservations() {
+    const container = document.getElementById("reservationHistory");
+    container.innerHTML = "";
+
+    const today = new Date().toISOString().split('T')[0];
+
+    const filtered = allReservations.filter(r => {
+      const resDate = r.date || r.date_depart || today;
+      return currentTab === 'upcoming' ? resDate >= today : resDate < today;
+    });
+
+    if (filtered.length === 0) {
+      container.innerHTML = `<p style="color: #b0bcc9; font-size: 0.9rem; padding: 20px 0;">Aucun billet ${currentTab === 'upcoming' ? 'à venir' : 'dans l\'historique'}.</p>`;
+      return;
+    }
+
+    filtered.forEach(r => {
+      const ticketNum = r.ticket_number || r.id || "TL-N/A";
+      const status = r.statut_reservation || r.statut || "CONFIRME";
+      let passagersCount = 1;
+      if (Array.isArray(r.passengers_list)) {
+        passagersCount = r.passengers_list.length;
+      } else if (Array.isArray(r.seats)) {
+        passagersCount = r.seats.length;
+      } else if (r.passengers) {
+        passagersCount = r.passengers;
+      }
+
+      container.innerHTML += `
+        <div class="history-card">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+            <div>
+              <span style="font-size: 0.75rem; color: #b0bcc9; font-family: monospace;">N° ${ticketNum}</span>
+              <h4 style="color: #ffffff; margin: 2px 0 0; font-size: 1.05rem;">
+                ${r.ville_depart || 'Départ'} ➔ ${r.ville_arrivee || 'Arrivée'}
+              </h4>
+            </div>
+            <span class="badge ${status}">${status}</span>
+          </div>
+
+          <div style="display: flex; gap: 16px; font-size: 0.85rem; color: #b0bcc9; margin-bottom: 14px; flex-wrap: wrap;">
+            <span>📅 Date : <strong style="color:#fff;">${r.date || r.date_depart || 'N/A'}</strong></span>
+            <span>💺 Passager(s) : <strong style="color:#fff;">${passagersCount}</strong></span>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <button onclick="viewTicket('${ticketNum}')" class="btn-primary-lg" style="font-size: 0.8rem; padding: 8px; text-align: center; border: none; cursor: pointer;">
+              Afficher le billet 🎫
+            </button>
+            <button onclick="downloadQuickPDF('${ticketNum}')" class="btn-secondary-lg" style="font-size: 0.8rem; padding: 8px; text-align: center; cursor: pointer;">
+              Télécharger PDF 📥
+            </button>
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  function viewTicket(ticketNum) {
+    window.location.href = `confirmation.html?ticket=${ticketNum}`;
+  }
+
+  async function downloadQuickPDF(ticketNum) {
+    const item = allReservations.find(r => (r.ticket_number || r.id) == ticketNum);
+    if (!item) return alert("Données du billet introuvables");
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    doc.setFillColor(15, 23, 42);
+    doc.rect(0, 0, 210, 30, "F");
+    doc.setFontSize(18);
+    doc.setTextColor(0, 210, 255);
+    doc.text("TALA Trajet — Billet de Voyage", 15, 20);
+
+    doc.setFontSize(11);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`N° Billet : ${ticketNum}`, 20, 45);
+    doc.text(`Trajet : ${item.ville_depart || 'N/A'} -> ${item.ville_arrivee || 'N/A'}`, 20, 55);
+    doc.text(`Passager : ${item.client_name || 'N/A'}`, 20, 65);
+    doc.text(`Téléphone : ${item.client_phone || 'N/A'}`, 20, 75);
+    doc.text(`Date : ${item.date || item.date_depart || 'N/A'}`, 20, 85);
+
+    doc.save(`Billet_${ticketNum}.pdf`);
+  }
+
+  async function handleLogout() {
+    await supabaseClient.auth.signOut();
+    localStorage.removeItem("reservationInfo");
+    window.location.href = "index.html";
+  }
 </script>
 
 </body>
