@@ -98,7 +98,8 @@
 <header class="site-header">
   <div class="brand">TALA<span>Trajet</span></div>
   <nav class="main-nav" id="navMenu">
-    <a href="search.html">Accueil</a>
+    <a href="index.html">Accueil</a>
+    <a href="search.html">Rechercher</a>
     <a href="about.html">À propos</a>
     <a href="contact.html">Contact</a>
     <a href="account.html" class="active nav-auth-btn" id="userAccountLink">Mon Compte</a>
@@ -133,9 +134,13 @@
             <p style="color: #b0bcc9; font-size: 0.9rem;">Chargement des données...</p>
           </div>
 
-          <div style="margin-top: 20px; border-top: 1px solid #2a313b; padding-top: 16px;">
-            <button id="logoutBtn" onclick="handleLogout()" class="btn-secondary-lg" style="width: 100%; font-size: 0.85rem; padding: 10px; display: none;">
-              Déconnexion / Réinitialiser
+          <!-- BOUTONS ACTIONS COMPTE (SÉPARÉS) -->
+          <div id="accountActions" style="margin-top: 20px; border-top: 1px solid #2a313b; padding-top: 16px; display: none; flex-direction: column; gap: 10px;">
+            <button onclick="handleLogout()" class="btn-secondary-lg" style="width: 100%; font-size: 0.85rem; padding: 10px; cursor: pointer; text-align: center;">
+              🚪 Se déconnecter
+            </button>
+            <button onclick="handleResetLocal()" class="btn-secondary-lg" style="width: 100%; font-size: 0.85rem; padding: 10px; cursor: pointer; text-align: center; border-color: #e74c3c; color: #e74c3c; background: rgba(231, 76, 60, 0.05);">
+              🔄 Réinitialiser les données locales
             </button>
           </div>
         </div>
@@ -208,7 +213,7 @@
 
   document.addEventListener("DOMContentLoaded", async () => {
     const accountInfo = document.getElementById("accountInfo");
-    const logoutBtn = document.getElementById("logoutBtn");
+    const accountActions = document.getElementById("accountActions");
     const accountLink = document.getElementById("userAccountLink");
 
     const { data: { session } } = await supabaseClient.auth.getSession();
@@ -226,7 +231,7 @@
         <div class="info-row"><span>Téléphone :</span><span>${clientPhone || "Non renseigné"}</span></div>
         <div class="info-row"><span>Email :</span><span>${clientEmail || "Non renseigné"}</span></div>
       `;
-      logoutBtn.style.display = "block";
+      accountActions.style.display = "flex";
 
       if (clientName && accountLink) {
         accountLink.textContent = `👤 ${clientName.split(' ')[0]}`;
@@ -354,10 +359,19 @@
     doc.save(`Billet_${ticketNum}.pdf`);
   }
 
+  // Fonction dédiée à la déconnexion Supabase
   async function handleLogout() {
     await supabaseClient.auth.signOut();
     localStorage.removeItem("reservationInfo");
     window.location.href = "index.html";
+  }
+
+  // Fonction dédiée à la réinitialisation du stockage local uniquement
+  function handleResetLocal() {
+    if (confirm("Voulez-vous réinitialiser les données locales enregistrées sur cet appareil ?")) {
+      localStorage.removeItem("reservationInfo");
+      window.location.reload();
+    }
   }
 </script>
 
