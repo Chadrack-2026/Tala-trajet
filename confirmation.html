@@ -239,39 +239,64 @@
     const params = new URLSearchParams(window.location.search);
     const ticketParam = params.get("ticket");
 
-    // 1. Essayer de charger les données depuis Supabase via l'URL
-    if (ticketParam) {
+    // 1. PRIORITÉ ABSOLUE : Charger depuis localStorage (instantané et contourne les restrictions RLS)
+    const rawLocalStorageData = localStorage.getItem("reservationInfo");
+    if (rawLocalStorageData) {
+      try {
+        const parsedLocal = JSON.parse(rawLocalStorageData);
+        if (!ticketParam || parsedLocal.ticket_number === ticketParam) {
+          currentReservation = parsedLocal;
+        }
+      } catch (e) {
+        console.error("Erreur lecture localStorage:", e);
+      }
+    }
+
+    // 2. Fallback direct vers Supabase par ticket_number si localStorage ne suffit pas
+    if (!currentReservation && ticketParam) {
       const { data, error } = await supabaseClient
         .from("reservations")
-        .select(`
-          *,
-          trip:trips ( ville_depart, ville_arrivee, date_depart, heure_depart ),
-          agency:agencies ( nom )
-        `)
+        .select(`*`)
         .eq("ticket_number", ticketParam)
         .maybeSingle();
 
       if (data && !error) {
+        // Récupérer séparément les infos du trajet si nécessaire pour éviter les erreurs de jointure
+        let tripData = null;
+        let agencyName = "Agence Partenaire";
+
+        if (data.trip_id) {
+          const { data: tData } = await supabaseClient
+            .from("trips")
+            .select("ville_depart, ville_arrivee, date_depart, heure_depart, agency_id")
+            .eq("id", data.trip_id)
+            .maybeSingle();
+          
+          if (tData) {
+            tripData = tData;
+            if (tData.agency_id) {
+              const { data: aData } = await supabaseClient
+                .from("agencies")
+                .select("nom")
+                .eq("id", tData.agency_id)
+                .maybeSingle();
+              if (aData) agencyName = aData.nom;
+            }
+          }
+        }
+
         currentReservation = {
           ticket_number: data.ticket_number,
-          ville_depart: data.trip?.ville_depart,
-          ville_arrivee: data.trip?.ville_arrivee,
+          ville_depart: tripData?.ville_depart || data.ville_depart || "Départ",
+          ville_arrivee: tripData?.ville_arrivee || data.ville_arrivee || "Arrivée",
           client_name: data.nom_client,
           client_phone: data.telephone_client,
-          agence: data.agency?.nom || "Agence Partenaire",
-          date: data.trip?.date_depart,
-          heure_depart: data.trip?.heure_depart,
-          total_price: data.total_price,
+          agence: agencyName,
+          date: tripData?.date_depart || data.date || "Prochainement",
+          heure_depart: tripData?.heure_depart || data.heure_depart || "08:00",
+          total_price: data.total_price || data.prix,
           seats: data.seats
         };
-      }
-    }
-
-    // 2. Fallback vers localStorage si nécessaire
-    if (!currentReservation) {
-      const rawData = localStorage.getItem("reservationInfo");
-      if (rawData) {
-        currentReservation = JSON.parse(rawData);
       }
     }
 
