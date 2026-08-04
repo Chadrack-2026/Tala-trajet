@@ -230,7 +230,7 @@ const supabaseUrl = "https://kfkifkstatbadtzosxai.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma2lma3N0YXRiYWR0em9zeGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3MTYzMTAsImV4cCI6MjEwMTI5MjMxMH0.xPzFtl_OET2asSc5iH3liRHnPyuUYAfbbjZISwfnaA8";
 const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
-// CORRIGÉ ICI : Récupère l'ID du trajet qu'il vienne sous "trip_id" ou "trajet_id"
+// Récupération de l'ID du trajet (trip_id ou trajet_id)
 const params = new URLSearchParams(window.location.search);
 const trajetId = params.get("trip_id") || params.get("trajet_id");
 
@@ -260,7 +260,7 @@ async function loadTrip() {
     }
   }
 
-  // Récupération du trajet avec l'agence affiliée
+  // Récupération sécurisée du trajet avec jointure souple !left
   const { data, error } = await supabaseClient
     .from("trips")
     .select(`
@@ -272,12 +272,18 @@ async function loadTrip() {
       prix,
       places_disponibles,
       places_totales,
-      agency:agencies ( id, nom )
+      agency:agencies!left ( id, nom )
     `)
     .eq("id", trajetId)
     .maybeSingle();
 
-  if (error || !data) {
+  if (error) {
+    console.error("Erreur Supabase :", error);
+    alert("Erreur lors de la récupération : " + error.message);
+    return;
+  }
+
+  if (!data) {
     alert("Impossible de charger les détails du trajet.");
     window.location.href = "results.html";
     return;
