@@ -261,13 +261,13 @@ async function loadTrip() {
   }
 
   // Récupération sécurisée du trajet avec jointure souple !left
-  const { data, error } = await supabaseClient
+    const { data, error } = await supabaseClient
     .from("trips")
     .select(`
       id,
       ville_depart,
       ville_arrivee,
-      date_depart
+      date_depart,
       prix,
       places_disponibles,
       places_totales,
@@ -275,6 +275,7 @@ async function loadTrip() {
     `)
     .eq("id", trajetId)
     .maybeSingle();
+
 
   if (error) {
     console.error("Erreur Supabase :", error);
