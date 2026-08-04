@@ -261,7 +261,7 @@ async function loadTrip() {
   }
 
   // Récupération sécurisée du trajet avec jointure souple !left
-    const { data, error } = await supabaseClient
+  const { data, error } = await supabaseClient
     .from("trips")
     .select(`
       id,
@@ -270,11 +270,11 @@ async function loadTrip() {
       date_depart,
       prix,
       places_disponibles,
+      places_totales,
       agency:agencies!left ( id, nom )
     `)
     .eq("id", trajetId)
     .maybeSingle();
-
 
   if (error) {
     console.error("Erreur Supabase :", error);
@@ -290,11 +290,11 @@ async function loadTrip() {
 
   trajet = data;
 
-  // Récupération des sièges déjà réservés sur ce trajet
+  // Récupération des sièges déjà réservés sur ce trajet (filtré par trip_id)
   const { data: reservedData } = await supabaseClient
     .from("reservations")
     .select("seats")
-    .eq("trajet_id", trajetId);
+    .eq("trip_id", trajetId);
 
   let occupiedSeats = [];
   if (reservedData) {
@@ -316,7 +316,7 @@ async function loadTrip() {
   document.getElementById("tripDetails").innerHTML = `
     <h3 style="margin-top:0; color:#00d2ff; font-size:1.3rem;">${trajet.ville_depart} ➔ ${trajet.ville_arrivee}</h3>
     <p style="margin: 5px 0; color:#b0bcc9;">🏢 <strong>Compagnie :</strong> ${trajet.agency ? trajet.agency.nom : 'Agence Partenaire'}</p>
-    <p style="margin: 5px 0; color:#b0bcc9;">📅 <strong>Départ :</strong> ${trajet.date_depart} à ${trajet.heure_depart || 'N/A'}</p>
+    <p style="margin: 5px 0; color:#b0bcc9;">📅 <strong>Départ :</strong> ${trajet.date_depart}</p>
     <p style="margin: 5px 0; color:#b0bcc9;">💰 <strong>Prix :</strong> ${Number(trajet.prix).toLocaleString('fr-FR')} FC / place</p>
     <p style="margin: 5px 0; color:#2ecc71;">🪑 <strong>Places restantes :</strong> ${remainingSeats} sur ${capacity}</p>
   `;
@@ -390,21 +390,18 @@ document.getElementById("bookingForm").addEventListener("submit", async (e) => {
   const ticketNumber = `TALA-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
   const totalAmount = selectedSeats.length * Number(trajet.prix);
 
-    // Enregistrement de la réservation (sans agency_id si la colonne n'existe pas)
+  // Enregistrement avec les noms de colonnes exacts de votre table reservations
   const reservationData = {
-    trajet_id: trajetId,
-    user_id: currentUserId,
-    full_name: formData.get("name"),
+    trip_id: trajetId,
+    nom_client: formData.get("name"),
     email: formData.get("email"),
-    phone: formData.get("phone"),
+    telephone_client: formData.get("phone"),
     seats: selectedSeats,
     seats_count: selectedSeats.length,
     total_price: totalAmount,
     ticket_number: ticketNumber,
-    statut: "PENDING",
     statut: "CONFIRMED"
   };
-
 
   const { data: reservation, error } = await supabaseClient
     .from("reservations")
@@ -420,13 +417,15 @@ document.getElementById("bookingForm").addEventListener("submit", async (e) => {
   }
 
   // 2️⃣ Mettre à jour les places disponibles du trajet
-  const newPlacesCount = Math.max(0, (trajet.places_disponibles || selectedSeats.length) - selectedSeats.length);
+  const currentAvailable = trajet.places_disponibles !== null ? trajet.places_disponibles : (trajet.places_totales || 50);
+  const newPlacesCount = Math.max(0, currentAvailable - selectedSeats.length);
+  
   await supabaseClient
     .from("trips")
     .update({ places_disponibles: newPlacesCount })
     .eq("id", trajetId);
 
-  // 3️⃣ Redirection vers la page de confirmation / paiement
+  // 3️⃣ Redirection vers la page de confirmation
   window.location.href = `confirmation.html?ticket=${ticketNumber}`;
 });
 
