@@ -390,11 +390,10 @@ document.getElementById("bookingForm").addEventListener("submit", async (e) => {
   const ticketNumber = `TALA-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
   const totalAmount = selectedSeats.length * Number(trajet.prix);
 
-  // 1️⃣ Enregistrement de la réservation
+    // Enregistrement de la réservation (sans agency_id si la colonne n'existe pas)
   const reservationData = {
     trajet_id: trajetId,
     user_id: currentUserId,
-    agency_id: trajet.agency ? trajet.agency.id : null,
     full_name: formData.get("name"),
     email: formData.get("email"),
     phone: formData.get("phone"),
@@ -405,6 +404,7 @@ document.getElementById("bookingForm").addEventListener("submit", async (e) => {
     payment_status: "PENDING",
     booking_status: "CONFIRMED"
   };
+
 
   const { data: reservation, error } = await supabaseClient
     .from("reservations")
