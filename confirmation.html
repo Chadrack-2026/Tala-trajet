@@ -239,7 +239,7 @@
     const params = new URLSearchParams(window.location.search);
     const ticketParam = params.get("ticket");
 
-    // 1. PRIORITÉ ABSOLUE : Charger depuis localStorage (instantané et contourne les restrictions RLS)
+    // 1. PRIORITÉ ABSOLUE : Charger depuis localStorage (instantané et contient souvent déjà le nom de l'agence)
     const rawLocalStorageData = localStorage.getItem("reservationInfo");
     if (rawLocalStorageData) {
       try {
@@ -252,7 +252,7 @@
       }
     }
 
-    // 2. Fallback direct vers Supabase par ticket_number si localStorage ne suffit pas
+    // 2. Fallback direct vers Supabase si localStorage est vide ou incomplet
     if (!currentReservation && ticketParam) {
       const { data, error } = await supabaseClient
         .from("reservations")
@@ -261,10 +261,10 @@
         .maybeSingle();
 
       if (data && !error) {
-        // Récupérer séparément les infos du trajet si nécessaire pour éviter les erreurs de jointure
         let tripData = null;
-        let agencyName = "Agence Partenaire";
+        let agencyName = data.agence || "Agence Partenaire";
 
+        // Récupérer les infos du trajet et de l'agence séparément pour éviter les erreurs de relation
         if (data.trip_id) {
           const { data: tData } = await supabaseClient
             .from("trips")
@@ -280,7 +280,7 @@
                 .select("nom")
                 .eq("id", tData.agency_id)
                 .maybeSingle();
-              if (aData) agencyName = aData.nom;
+              if (aData && aData.nom) agencyName = aData.nom;
             }
           }
         }
@@ -321,7 +321,11 @@
     document.getElementById("ticketRoute").textContent = `${currentReservation.ville_depart || "Départ"} ➔ ${currentReservation.ville_arrivee || "Arrivée"}`;
     document.getElementById("passengerName").textContent = currentReservation.client_name || currentReservation.nom_client || "Client TALA";
     document.getElementById("passengerPhone").textContent = currentReservation.client_phone || currentReservation.telephone_client || "N/A";
-    document.getElementById("agencyName").textContent = currentReservation.agence || "Agence Partenaire";
+    
+    // Affichage sécurisé de l'agence (Vérifie plusieurs clés possibles)
+    const nomAgence = currentReservation.agence || currentReservation.agency_name || "Agence Partenaire";
+    document.getElementById("agencyName").textContent = nomAgence;
+
     document.getElementById("travelDateTime").textContent = `${currentReservation.date || currentReservation.date_depart || "Aujourd'hui"} • ${currentReservation.heure_depart || "08:00"}`;
     
     const prix = currentReservation.total_price || currentReservation.prix || 0;
