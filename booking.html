@@ -219,9 +219,11 @@
       <span id="totalPrice" class="price">0 FC</span>
     </div>
 
-    <button type="submit" id="submitBtn">Payer et confirmer la réservation</button>
+    <button type="submit" id="submitBtn">Procéder au paiement 💳</button>
   </form>
 </main>
+
+<script>
 // Key Supabase réelles de TALA Trajet
 const { createClient } = window.supabase;
 const supabaseUrl = "https://kfkifkstatbadtzosxai.supabase.co"; 
@@ -383,7 +385,7 @@ document.getElementById("bookingForm").addEventListener("submit", (e) => {
   const formData = new FormData(e.target);
   const totalAmount = selectedSeats.length * Number(trajet.prix);
 
-  // Regroupement des données de la réservation pour les passer à payment.html
+  // Regroupement des données de la réservation à transmettre temporairement
   const reservationInfoToSave = {
     trip_id: trajetId,
     nom_client: formData.get("name"),
@@ -408,7 +410,7 @@ document.getElementById("bookingForm").addEventListener("submit", (e) => {
 
 // Lancement
 loadTrip();
+</script>
 
-  
 </body>
 </html>
