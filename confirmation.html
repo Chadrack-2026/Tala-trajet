@@ -239,7 +239,7 @@
     const params = new URLSearchParams(window.location.search);
     const ticketParam = params.get("ticket");
 
-    // 1. Récupérer les données de base (localStorage ou Supabase)
+    // 1. Récupération des données locales (localStorage)
     let localData = null;
     const rawLocalStorageData = localStorage.getItem("reservationInfo");
     if (rawLocalStorageData) {
@@ -250,7 +250,7 @@
       }
     }
 
-    // Si on a un ticket dans l'URL, on cherche en priorité dans la table "reservations" de Supabase pour être sûr d'avoir les vrais IDs à jour
+    // 2. Recherche prioritaire dans la table "reservations" de Supabase
     let dbReservation = null;
     if (ticketParam) {
       const { data, error } = await supabaseClient
@@ -263,10 +263,13 @@
       }
     }
 
-    // Fusionner ou choisir la source prioritaire
-    let baseInfo = dbReservation || localData;
+    // Fusion intelligente sans perdre l'agence stockée en local
+    let baseInfo = { ...(localData || {}), ...(dbReservation || {}) };
+    if (localData && localData.agence && !baseInfo.agence) {
+      baseInfo.agence = localData.agence;
+    }
 
-    if (!baseInfo) {
+    if (!baseInfo || Object.keys(baseInfo).length === 0) {
       document.getElementById("ticketContent").innerHTML = `
         <div style="text-align: center; padding: 30px;">
           <div style="font-size: 3rem; margin-bottom: 15px;">⚠️</div>
@@ -280,40 +283,33 @@
       return;
     }
 
-    // 2. RÉCUPÉRATION AUTOMATIQUE DU NOM DE L'AGENCE VIA SUPABASE
-    let resolvedAgencyName = baseInfo.agence || baseInfo.agency_name || "Nom indisponible";
+    // 3. RÉCUPÉRATION DU NOM DE L'AGENCE VIA LA TABLE TRIPS & AGENCIES
+    let resolvedAgencyName = baseInfo.agence || "Agence Partenaire";
     let tripData = null;
-
     const tripId = baseInfo.trip_id;
+
     if (tripId) {
-      // Interroger la table trips pour obtenir les détails du voyage et l'agency_id
       const { data: tData, error: tError } = await supabaseClient
         .from("trips")
-        .select("ville_depart, ville_arrivee, date_depart, heure_depart, agency_id, agence")
+        .select(`
+          ville_depart,
+          ville_arrivee,
+          date_depart,
+          heure_depart,
+          agence,
+          agency:agencies!agency_id ( nom )
+        `)
         .eq("id", tripId)
         .maybeSingle();
 
       if (tData && !tError) {
         tripData = tData;
-        if (tData.agence) {
-          resolvedAgencyName = tData.agence;
-        }
-        // Si la table trips contient un agency_id, on va chercher le vrai nom dans la table agencies
-        if (tData.agency_id) {
-          const { data: aData, error: aError } = await supabaseClient
-            .from("agencies")
-            .select("nom")
-            .eq("id", tData.agency_id)
-            .maybeSingle();
-
-          if (aData && aData.nom && !aError) {
-            resolvedAgencyName = aData.nom;
-          }
-        }
+        // Priorité : 1. Nom de l'agence lié via la table agencies, 2. Champ agence direct du trajet, 3. Valeur locale
+        resolvedAgencyName = tData.agency?.nom || tData.agence || baseInfo.agence || "Agence Partenaire";
       }
     }
 
-    // Structure finale de l'objet réservation
+    // Structure finale unifiée de l'objet réservation
     currentReservation = {
       ticket_number: baseInfo.ticket_number || ticketParam,
       ville_depart: tripData?.ville_depart || baseInfo.ville_depart || "Départ",
@@ -327,13 +323,11 @@
       seats: baseInfo.seats || [1]
     };
 
-    // 3. INJECTION DES DONNÉES DANS LE HTML
+    // 4. INJECTION DES DONNÉES DANS LE HTML
     document.getElementById("ticketNumber").textContent = currentReservation.ticket_number;
     document.getElementById("ticketRoute").textContent = `${currentReservation.ville_depart} ➔ ${currentReservation.ville_arrivee}`;
     document.getElementById("passengerName").textContent = currentReservation.client_name;
     document.getElementById("passengerPhone").textContent = currentReservation.client_phone;
-    
-    // Affichage automatique du vrai nom de l'agence
     document.getElementById("agencyName").textContent = currentReservation.agence;
 
     document.getElementById("travelDateTime").textContent = `${currentReservation.date} • ${currentReservation.heure_depart}`;
@@ -358,7 +352,7 @@
       seatsDisplay.innerHTML = `<span class="seat-badge">Siège Standard</span>`;
     }
 
-    // 4. GÉNÉRATION DU QR CODE
+    // 5. GÉNÉRATION DU QR CODE
     const qrDiv = document.getElementById("qrcode");
     qrDiv.innerHTML = "";
     new QRCode(qrDiv, {
