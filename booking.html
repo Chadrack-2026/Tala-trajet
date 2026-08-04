@@ -260,7 +260,7 @@ async function loadTrip() {
     }
   }
 
-  // Récupération sécurisée du trajet avec jointure souple !left
+  // Récupération sécurisée du trajet sans heure_depart
   const { data, error } = await supabaseClient
     .from("trips")
     .select(`
@@ -289,7 +289,7 @@ async function loadTrip() {
 
   trajet = data;
 
-  // Récupération des sièges déjà réservés sur ce trajet (filtré par trip_id)
+  // Récupération des sièges déjà réservés sur ce trajet
   const { data: reservedData } = await supabaseClient
     .from("reservations")
     .select("seats")
@@ -315,7 +315,7 @@ async function loadTrip() {
   document.getElementById("tripDetails").innerHTML = `
     <h3 style="margin-top:0; color:#00d2ff; font-size:1.3rem;">${trajet.ville_depart} ➔ ${trajet.ville_arrivee}</h3>
     <p style="margin: 5px 0; color:#b0bcc9;">🏢 <strong>Compagnie :</strong> ${trajet.agency ? trajet.agency.nom : 'Agence Partenaire'}</p>
-    <p style="margin: 5px 0; color:#b0bcc9;">📅 <strong>Départ :</strong> ${trajet.date_depart} • ${trajet.heure_depart || '08:00'}</p>
+    <p style="margin: 5px 0; color:#b0bcc9;">📅 <strong>Date de départ :</strong> ${trajet.date_depart}</p>
     <p style="margin: 5px 0; color:#b0bcc9;">💰 <strong>Prix :</strong> ${Number(trajet.prix).toLocaleString('fr-FR')} FC / place</p>
     <p style="margin: 5px 0; color:#2ecc71;">🪑 <strong>Places restantes :</strong> ${remainingSeats} sur ${capacity}</p>
   `;
@@ -345,7 +345,6 @@ function generateSeats(totalSeats, occupiedSeats) {
 
     container.appendChild(seat);
 
-    // Allée centrale après chaque paire de 2 sièges (colonnes 1-2 | allée | 3-4)
     if (i % 2 === 0 && i % 4 !== 0) {
       const aisle = document.createElement("div");
       aisle.classList.add("aisle");
@@ -389,7 +388,6 @@ document.getElementById("bookingForm").addEventListener("submit", async (e) => {
   const ticketNumber = `TALA-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
   const totalAmount = selectedSeats.length * Number(trajet.prix);
 
-  // Enregistrement avec les noms de colonnes exacts de votre table reservations
   const reservationData = {
     trip_id: trajetId,
     nom_client: formData.get("name"),
@@ -415,7 +413,7 @@ document.getElementById("bookingForm").addEventListener("submit", async (e) => {
     return;
   }
 
-  // 2️⃣ Mettre à jour les places disponibles du trajet
+  // Mettre à jour les places disponibles du trajet
   const currentAvailable = trajet.places_disponibles !== null ? trajet.places_disponibles : (trajet.places_totales || 50);
   const newPlacesCount = Math.max(0, currentAvailable - selectedSeats.length);
   
@@ -424,7 +422,7 @@ document.getElementById("bookingForm").addEventListener("submit", async (e) => {
     .update({ places_disponibles: newPlacesCount })
     .eq("id", trajetId);
 
-  // 3️⃣ Stocker les données localement pour garantir l'affichage immédiat sur confirmation.html
+  // Stocker les données localement pour la page confirmation.html
   const reservationInfoToSave = {
     ticket_number: ticketNumber,
     ville_depart: trajet.ville_depart,
@@ -433,13 +431,12 @@ document.getElementById("bookingForm").addEventListener("submit", async (e) => {
     client_phone: formData.get("phone"),
     agence: trajet.agency ? trajet.agency.nom : 'Agence Partenaire',
     date: trajet.date_depart,
-    heure_depart: trajet.heure_depart || '08:00',
     total_price: totalAmount,
     seats: selectedSeats
   };
   localStorage.setItem("reservationInfo", JSON.stringify(reservationInfoToSave));
 
-  // 4️⃣ Redirection vers la page de confirmation avec le ticket en paramètre
+  // Redirection vers la page de confirmation
   window.location.href = `confirmation.html?ticket=${ticketNumber}`;
 });
 
