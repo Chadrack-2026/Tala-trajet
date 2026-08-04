@@ -7,8 +7,8 @@
   
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
-
-  <!-- Inclusion SDK Supabase -->
+  
+  <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -30,40 +30,53 @@
 <main style="padding-bottom: 80px;">
   
   <!-- HERO COMPTE -->
-  <section class="hero-showcase" style="padding: 50px 20px 30px;">
+  <section class="hero-showcase" style="padding: 50px 20px 40px;">
     <div class="hero-content">
-      <span class="badge-hero">Espace Personnel</span>
-      <h1 class="hero-title" style="font-size: 2rem; margin-top: 10px;">Mon <span>Compte</span></h1>
-      <p class="hero-sub" id="welcomeSub">Gérez vos informations et retrouvez vos réservations.</p>
+      <span class="badge-hero" style="background: rgba(0, 210, 255, 0.15); color: #00d2ff; border-color: #00d2ff;">
+        👤 Espace Personnel
+      </span>
+      <h1 class="hero-title">Mon <span>Compte</span></h1>
+      <p class="hero-sub">Gérez vos informations et retrouvez vos réservations TALA Trajet.</p>
     </div>
   </section>
 
-  <div class="container" style="max-width: 700px; margin-top: 20px;">
+  <!-- CONTENEUR PRINCIPAL DU COMPTE -->
+  <div class="container" style="max-width: 700px;">
     
-    <!-- CARTE PROFIL & DÉCONNEXION -->
-    <div style="background: #171b22; border: 1px solid #2a313b; border-radius: 16px; padding: 30px; margin-bottom: 30px;">
-      <h3 style="color: #ffffff; margin-top: 0; margin-bottom: 20px; font-size: 1.2rem; border-bottom: 1px solid #2a313b; padding-bottom: 12px;">
-        👤 Informations du profil
-      </h3>
+    <!-- CARTE INFORMATIONS UTILISATEUR -->
+    <div style="background: #171b22; border: 1px solid #2a313b; border-radius: 20px; padding: 30px; margin-bottom: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+      <h2 style="color: #ffffff; font-size: 1.2rem; margin-top: 0; margin-bottom: 20px; border-bottom: 1px solid #2a313b; padding-bottom: 12px;">
+        Mes Informations
+      </h2>
       
-      <div id="profileDetails" style="color: #b0bcc9; font-size: 0.95rem; display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px;">
-        <div>Chargement de vos informations...</div>
+      <div style="display: flex; flex-direction: column; gap: 15px; text-align: left;" id="userInfoContainer">
+        <div style="background: #0c0f13; padding: 12px 16px; border-radius: 10px; border: 1px solid #2a313b;">
+          <label style="display: block; font-size: 0.75rem; color: #b0bcc9; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Nom complet</label>
+          <span id="userName" style="color: #ffffff; font-weight: 600; font-size: 0.95px;">Chargement...</span>
+        </div>
+        
+        <div style="background: #0c0f13; padding: 12px 16px; border-radius: 10px; border: 1px solid #2a313b;">
+          <label style="display: block; font-size: 0.75rem; color: #b0bcc9; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Adresse e-mail</label>
+          <span id="userEmail" style="color: #ffffff; font-weight: 600; font-size: 0.95px;">Chargement...</span>
+        </div>
       </div>
 
-      <!-- Bouton de déconnexion -->
-      <button id="logoutBtn" class="btn-secondary-lg" style="background: rgba(231, 76, 60, 0.1); color: #e74c3c; border: 1px solid rgba(231, 76, 60, 0.4); width: 100%; cursor: pointer; padding: 14px; font-weight: 600; border-radius: 10px; transition: all 0.3s ease;">
-        🚪 Se déconnecter
-      </button>
+      <!-- BOUTON DÉCONNEXION AJOUTÉ ICI -->
+      <div style="margin-top: 25px; text-align: right;">
+        <button id="logoutBtn" style="background: rgba(231, 76, 60, 0.15); color: #e74c3c; border: 1px solid #e74c3c; padding: 12px 20px; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 0.9rem; transition: background 0.3s;">
+          🚪 Se déconnecter
+        </button>
+      </div>
     </div>
 
-    <!-- SECTION HISTORIQUE DES RÉSERVATIONS -->
-    <div style="background: #171b22; border: 1px solid #2a313b; border-radius: 16px; padding: 30px;">
-      <h3 style="color: #ffffff; margin-top: 0; margin-bottom: 20px; font-size: 1.2rem; border-bottom: 1px solid #2a313b; padding-bottom: 12px;">
-        🎫 Mes Derniers Billets
-      </h3>
-      
-      <div id="userReservationsList" style="color: #b0bcc9; font-size: 0.9rem;">
-        Recherche de vos réservations en cours...
+    <!-- CARTE HISTORIQUE / ACTIONS -->
+    <div style="background: #171b22; border: 1px solid #2a313b; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+      <h2 style="color: #ffffff; font-size: 1.2rem; margin-top: 0; margin-bottom: 20px; border-bottom: 1px solid #2a313b; padding-bottom: 12px;">
+        Actions Rapides
+      </h2>
+      <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+        <a href="search.html" class="btn-primary-lg" style="text-decoration: none; padding: 12px 20px; font-size: 0.9rem; display: inline-block;">🔍 Rechercher un trajet</a>
+        <a href="index.html" class="btn-secondary-lg" style="text-decoration: none; padding: 12px 20px; font-size: 0.9rem; display: inline-block; text-align: center;">🏠 Retour à l'accueil</a>
       </div>
     </div>
 
@@ -109,106 +122,43 @@
   }
 
   document.addEventListener("DOMContentLoaded", async () => {
-    // 1. Vérification de la session utilisateur
-    const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+    // 1. Vérifier la session utilisateur active dans Supabase
+    const { data: { session }, error } = await supabaseClient.auth.getSession();
 
     if (!session || !session.user) {
-      // Rediriger vers la page de connexion si l'utilisateur n'est pas connecté
+      // Si l'utilisateur n'est pas connecté, redirection automatique vers la page de connexion
       window.location.href = "auth.html";
       return;
     }
 
+    // 2. Affichage des identités (Nom et Email récupérés du compte)
     const user = session.user;
-    const fullName = user.user_metadata?.full_name || "Utilisateur TALA";
-    const userEmail = user.email || "Non renseigné";
+    const fullName = user.user_metadata?.full_name || "Nom non renseigné";
+    const userEmail = user.email || "Email non renseigné";
 
-    // Mettre à jour l'affichage du header et du profil
+    document.getElementById("userName").textContent = fullName;
+    document.getElementById("userEmail").textContent = userEmail;
+
+    // Mise à jour du header
     const accountLink = document.getElementById('userAccountLink');
     if (accountLink) {
       accountLink.textContent = `👤 ${fullName.split(' ')[0]}`;
     }
 
-    const profileDiv = document.getElementById("profileDetails");
-    if (profileDiv) {
-      profileDiv.innerHTML = `
-        <div><strong>Nom complet :</strong> <span style="color: #ffffff;">${fullName}</span></div>
-        <div><strong>Adresse e-mail :</strong> <span style="color: #ffffff;">${userEmail}</span></div>
-      `;
-    }
-
-    // 2. Gestion de l'action de déconnexion
+    // 3. Gestion de la déconnexion au clic sur le bouton
     const logoutBtn = document.getElementById("logoutBtn");
     if (logoutBtn) {
       logoutBtn.addEventListener("click", async () => {
-        const { error } = await supabaseClient.auth.signOut();
-        if (!error) {
+        const { error: signOutError } = await supabaseClient.auth.signOut();
+        if (!signOutError) {
           localStorage.removeItem("reservationInfo");
           window.location.href = "index.html";
         } else {
-          alert("Erreur lors de la déconnexion : " + error.message);
+          alert("Erreur lors de la déconnexion : " + signOutError.message);
         }
       });
     }
-
-    // 3. Charger les réservations liées à cet utilisateur (si stockées ou liées par téléphone/email)
-    loadUserReservations(userEmail);
   });
-
-  // Fonction pour charger l'historique des réservations
-  async function loadUserReservations(email) {
-    const listContainer = document.getElementById("userReservationsList");
-    if (!listContainer) return;
-
-    // Vous pouvez adapter cette requête si vous stockez l'email ou l'id utilisateur dans la table reservations
-    const { data, error } = await supabaseClient
-      .from("reservations")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(5);
-
-    if (error || !data || data.length === 0) {
-      // Vérifier aussi le localStorage en secours
-      const localData = localStorage.getItem("reservationInfo");
-      if (localData) {
-        try {
-          const res = JSON.parse(localData);
-          listContainer.innerHTML = `
-            <div style="background: #0c0f13; border: 1px solid #2a313b; padding: 15px; border-radius: 10px; margin-bottom: 10px;">
-              <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                <strong style="color: #00d2ff;">${res.ville_depart} ➔ ${res.ville_arrivee}</strong>
-                <span style="color: #2ecc71; font-weight: 600;">Confirmé</span>
-              </div>
-              <div style="font-size: 0.85rem; color: #b0bcc9;">N° Billet : <strong>${res.ticket_number}</strong></div>
-              <div style="font-size: 0.85rem; color: #b0bcc9; margin-top: 4px;">Date : ${res.date}</div>
-              <div style="margin-top: 10px;">
-                <a href="confirmation.html?ticket=${res.ticket_number}" style="color: #00d2ff; font-size: 0.85rem; text-decoration: underline;">Voir mon billet →</a>
-              </div>
-            </div>
-          `;
-          return;
-        } catch(e) {}
-      }
-
-      listContainer.innerHTML = `<p style="color: #b0bcc9; margin: 0;">Aucune réservation enregistrée pour le moment.</p>`;
-      return;
-    }
-
-    listContainer.innerHTML = "";
-    data.forEach(res => {
-      listContainer.innerHTML += `
-        <div style="background: #0c0f13; border: 1px solid #2a313b; padding: 15px; border-radius: 10px; margin-bottom: 10px;">
-          <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-            <strong style="color: #00d2ff;">${res.ville_depart || 'Trajet'} ➔ ${res.ville_arrivee || ''}</strong>
-            <span style="color: #2ecc71; font-weight: 600;">Confirmé</span>
-          </div>
-          <div style="font-size: 0.85rem; color: #b0bcc9;">N° Billet : <strong>${res.ticket_number}</strong></div>
-          <div style="margin-top: 10px;">
-            <a href="confirmation.html?ticket=${res.ticket_number}" style="color: #00d2ff; font-size: 0.85rem; text-decoration: underline;">Voir mon billet →</a>
-          </div>
-        </div>
-      `;
-    });
-  }
 </script>
 
 </body>
