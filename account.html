@@ -3,13 +3,85 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mon Compte — TALA Trajet</title>
+  <title>Confirmation de réservation — TALA Trajet</title>
   
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   
   <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <!-- Librairies PDF et QR Code -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  
+  <style>
+    .ticket-card {
+      background: #171b22;
+      border: 1px solid #2a313b;
+      border-radius: 20px;
+      padding: 30px;
+      max-width: 650px;
+      margin: -40px auto 0;
+      position: relative;
+      z-index: 10;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .ticket-header {
+      border-bottom: 2px dashed #2a313b;
+      padding-bottom: 20px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .ticket-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+      text-align: left;
+    }
+    .ticket-item {
+      background: #0c0f13;
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: 1px solid #2a313b;
+    }
+    .ticket-item label {
+      display: block;
+      font-size: 0.75rem;
+      color: #b0bcc9;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+    .ticket-item span {
+      color: #ffffff;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .seat-badge {
+      display: inline-block;
+      background: rgba(0, 210, 255, 0.15);
+      color: #00d2ff;
+      border: 1px solid #00d2ff;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-weight: 700;
+      margin: 3px;
+      font-size: 0.85rem;
+    }
+    .qr-container {
+      background: #ffffff;
+      padding: 15px;
+      border-radius: 12px;
+      display: inline-block;
+      margin: 15px 0;
+    }
+  </style>
 </head>
 <body>
 
@@ -21,7 +93,7 @@
     <a href="search.html">Rechercher</a>
     <a href="about.html">À propos</a>
     <a href="contact.html">Contact</a>
-    <a href="auth.html" id="userAccountLink" class="nav-auth-btn active">Mon Compte</a>
+    <a href="auth.html" id="userAccountLink" class="nav-auth-btn">Mon Compte</a>
   </nav>
   <button class="menu-btn" id="menuToggle" aria-label="Ouvrir le menu">☰</button>
 </header>
@@ -29,57 +101,88 @@
 <!-- MAIN -->
 <main style="padding-bottom: 80px;">
   
-  <!-- HERO COMPTE -->
-  <section class="hero-showcase" style="padding: 50px 20px 40px;">
+  <!-- HERO CONFIRMATION -->
+  <section class="hero-showcase" style="padding: 50px 20px 60px;">
     <div class="hero-content">
-      <span class="badge-hero" style="background: rgba(0, 210, 255, 0.15); color: #00d2ff; border-color: #00d2ff;">
-        👤 Espace Personnel
+      <span class="badge-hero" style="background: rgba(46, 204, 113, 0.2); color: #2ecc71; border-color: #2ecc71;">
+        ✓ Réservation Confirmée
       </span>
-      <h1 class="hero-title">Mon <span>Compte</span></h1>
-      <p class="hero-sub">Gérez vos informations et retrouvez vos réservations TALA Trajet.</p>
+      <h1 class="hero-title">Bon voyage avec <span>TALA Trajet</span></h1>
+      <p class="hero-sub">Votre billet de transport a été généré avec succès.</p>
     </div>
   </section>
 
-  <!-- CONTENEUR PRINCIPAL DU COMPTE -->
-  <div class="container" style="max-width: 700px;">
-    
-    <!-- CARTE INFORMATIONS UTILISATEUR -->
-    <div style="background: #171b22; border: 1px solid #2a313b; border-radius: 20px; padding: 30px; margin-bottom: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-      <h2 style="color: #ffffff; font-size: 1.2rem; margin-top: 0; margin-bottom: 20px; border-bottom: 1px solid #2a313b; padding-bottom: 12px;">
-        Mes Informations
-      </h2>
+  <!-- CONTENEUR DU BILLET -->
+  <div class="container">
+    <div class="ticket-card" id="ticketContent">
       
-      <div style="display: flex; flex-direction: column; gap: 15px; text-align: left;" id="userInfoContainer">
-        <div style="background: #0c0f13; padding: 12px 16px; border-radius: 10px; border: 1px solid #2a313b;">
-          <label style="display: block; font-size: 0.75rem; color: #b0bcc9; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Nom complet</label>
-          <span id="userName" style="color: #ffffff; font-weight: 600; font-size: 0.95px;">Chargement...</span>
+      <!-- En-tête du billet -->
+      <div class="ticket-header">
+        <div>
+          <span style="color: #00d2ff; font-weight: 700; font-size: 0.85rem; letter-spacing: 1px;">BILLET DE VOYAGE</span>
+          <h2 id="ticketRoute" style="color: #ffffff; margin: 4px 0 0; font-size: 1.3rem;">⏳ Chargement...</h2>
         </div>
-        
-        <div style="background: #0c0f13; padding: 12px 16px; border-radius: 10px; border: 1px solid #2a313b;">
-          <label style="display: block; font-size: 0.75rem; color: #b0bcc9; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Adresse e-mail</label>
-          <span id="userEmail" style="color: #ffffff; font-weight: 600; font-size: 0.95px;">Chargement...</span>
+        <div style="text-align: right;">
+          <span style="font-size: 0.8rem; color: #b0bcc9;">N° Billet</span>
+          <div id="ticketNumber" style="color: #00d2ff; font-weight: 700; font-size: 1.1rem; font-family: monospace;">------</div>
         </div>
       </div>
 
-      <!-- BOUTON DÉCONNEXION AJOUTÉ ICI -->
-      <div style="margin-top: 25px; text-align: right;">
-        <button id="logoutBtn" style="background: rgba(231, 76, 60, 0.15); color: #e74c3c; border: 1px solid #e74c3c; padding: 12px 20px; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 0.9rem; transition: background 0.3s;">
-          🚪 Se déconnecter
+      <!-- Informations détaillées -->
+      <div class="ticket-grid">
+        <div class="ticket-item">
+          <label>Passager principal</label>
+          <span id="passengerName">--</span>
+        </div>
+        <div class="ticket-item">
+          <label>Téléphone</label>
+          <span id="passengerPhone">--</span>
+        </div>
+        <div class="ticket-item">
+          <label>Agence de transport</label>
+          <span id="agencyName" style="color: #00d2ff;">--</span>
+        </div>
+        <div class="ticket-item">
+          <label>Date & Horaire</label>
+          <span id="travelDateTime">--</span>
+        </div>
+        <div class="ticket-item">
+          <label>Montant payé</label>
+          <span id="totalPrice" style="color: #2ecc71;">-- FC</span>
+        </div>
+        <div class="ticket-item">
+          <label>Statut</label>
+          <span style="color: #2ecc71;">Confirmé ✓</span>
+        </div>
+      </div>
+
+      <!-- Section des Sièges -->
+      <div style="text-align: left; margin-bottom: 20px;">
+        <label style="display: block; font-size: 0.8rem; color: #b0bcc9; margin-bottom: 8px; font-weight: 500;">
+          Siège(s) attribué(s) :
+        </label>
+        <div id="seatsDisplay"></div>
+      </div>
+
+      <!-- QR Code de validation -->
+      <div style="text-align: center; border-top: 1px solid #2a313b; padding-top: 15px;">
+        <p style="font-size: 0.8rem; color: #b0bcc9; margin-bottom: 5px;">Présentez ce QR Code lors de l'embarquement</p>
+        <div class="qr-container">
+          <div id="qrcode"></div>
+        </div>
+      </div>
+
+      <!-- Boutons d'action -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px;">
+        <button onclick="downloadTicket()" class="btn-primary-lg" style="border: none; cursor: pointer; padding: 14px; font-size: 0.9rem;">
+          📥 Télécharger en PDF
+        </button>
+        <button onclick="window.location.href='index.html'" class="btn-secondary-lg" style="padding: 14px; font-size: 0.9rem; text-align: center;">
+          🏠 Retour à l'accueil
         </button>
       </div>
-    </div>
 
-    <!-- CARTE HISTORIQUE / ACTIONS -->
-    <div style="background: #171b22; border: 1px solid #2a313b; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-      <h2 style="color: #ffffff; font-size: 1.2rem; margin-top: 0; margin-bottom: 20px; border-bottom: 1px solid #2a313b; padding-bottom: 12px;">
-        Actions Rapides
-      </h2>
-      <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-        <a href="search.html" class="btn-primary-lg" style="text-decoration: none; padding: 12px 20px; font-size: 0.9rem; display: inline-block;">🔍 Rechercher un trajet</a>
-        <a href="index.html" class="btn-secondary-lg" style="text-decoration: none; padding: 12px 20px; font-size: 0.9rem; display: inline-block; text-align: center;">🏠 Retour à l'accueil</a>
-      </div>
     </div>
-
   </div>
 
 </main>
@@ -121,44 +224,254 @@
     });
   }
 
-  document.addEventListener("DOMContentLoaded", async () => {
-    // 1. Vérifier la session utilisateur active dans Supabase
-    const { data: { session }, error } = await supabaseClient.auth.getSession();
+  let currentReservation = null;
 
-    if (!session || !session.user) {
-      // Si l'utilisateur n'est pas connecté, redirection automatique vers la page de connexion
-      window.location.href = "auth.html";
+  document.addEventListener("DOMContentLoaded", async () => {
+    // Vérifier si l'utilisateur est connecté pour mettre à jour le header
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    const accountLink = document.getElementById('userAccountLink');
+    if (session && session.user) {
+      const userName = session.user.user_metadata?.full_name || "Mon Compte";
+      accountLink.textContent = `👤 ${userName.split(' ')[0]}`;
+      accountLink.href = "account.html";
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const ticketParam = params.get("ticket");
+
+    // 1. Récupérer les données de base (localStorage ou Supabase)
+    let localData = null;
+    const rawLocalStorageData = localStorage.getItem("reservationInfo");
+    if (rawLocalStorageData) {
+      try {
+        localData = JSON.parse(rawLocalStorageData);
+      } catch (e) {
+        console.error("Erreur lecture localStorage:", e);
+      }
+    }
+
+    // Si on a un ticket dans l'URL, on cherche en priorité dans la table "reservations" de Supabase pour être sûr d'avoir les vrais IDs à jour
+    let dbReservation = null;
+    if (ticketParam) {
+      const { data, error } = await supabaseClient
+        .from("reservations")
+        .select("*")
+        .eq("ticket_number", ticketParam)
+        .maybeSingle();
+      if (data && !error) {
+        dbReservation = data;
+      }
+    }
+
+    // Fusionner ou choisir la source prioritaire
+    let baseInfo = dbReservation || localData;
+
+    if (!baseInfo) {
+      document.getElementById("ticketContent").innerHTML = `
+        <div style="text-align: center; padding: 30px;">
+          <div style="font-size: 3rem; margin-bottom: 15px;">⚠️</div>
+          <h3 style="color: #ffffff; margin-bottom: 10px;">Aucune réservation récente</h3>
+          <p style="color: #b0bcc9; font-size: 0.9rem; margin-bottom: 20px;">
+            Nous n'avons pas trouvé de détails de billet correspondant.
+          </p>
+          <a href="search.html" class="btn-primary-lg" style="padding: 12px 24px; font-size: 0.9rem; display: inline-block; text-decoration: none;">Rechercher un trajet</a>
+        </div>
+      `;
       return;
     }
 
-    // 2. Affichage des identités (Nom et Email récupérés du compte)
-    const user = session.user;
-    const fullName = user.user_metadata?.full_name || "Nom non renseigné";
-    const userEmail = user.email || "Email non renseigné";
+    // 2. RÉCUPÉRATION AUTOMATIQUE DU NOM DE L'AGENCE VIA SUPABASE
+    let resolvedAgencyName = baseInfo.agence || baseInfo.agency_name || "Nom indisponible";
+    let tripData = null;
 
-    document.getElementById("userName").textContent = fullName;
-    document.getElementById("userEmail").textContent = userEmail;
+    const tripId = baseInfo.trip_id;
+    if (tripId) {
+      // Interroger la table trips pour obtenir les détails du voyage et l'agency_id
+      const { data: tData, error: tError } = await supabaseClient
+        .from("trips")
+        .select("ville_depart, ville_arrivee, date_depart, heure_depart, agency_id, agence")
+        .eq("id", tripId)
+        .maybeSingle();
 
-    // Mise à jour du header
-    const accountLink = document.getElementById('userAccountLink');
-    if (accountLink) {
-      accountLink.textContent = `👤 ${fullName.split(' ')[0]}`;
-    }
-
-    // 3. Gestion de la déconnexion au clic sur le bouton
-    const logoutBtn = document.getElementById("logoutBtn");
-    if (logoutBtn) {
-      logoutBtn.addEventListener("click", async () => {
-        const { error: signOutError } = await supabaseClient.auth.signOut();
-        if (!signOutError) {
-          localStorage.removeItem("reservationInfo");
-          window.location.href = "index.html";
-        } else {
-          alert("Erreur lors de la déconnexion : " + signOutError.message);
+      if (tData && !tError) {
+        tripData = tData;
+        if (tData.agence) {
+          resolvedAgencyName = tData.agence;
         }
-      });
+        // Si la table trips contient un agency_id, on va chercher le vrai nom dans la table agencies
+        if (tData.agency_id) {
+          const { data: aData, error: aError } = await supabaseClient
+            .from("agencies")
+            .select("nom")
+            .eq("id", tData.agency_id)
+            .maybeSingle();
+
+          if (aData && aData.nom && !aError) {
+            resolvedAgencyName = aData.nom;
+          }
+        }
+      }
     }
+
+    // Structure finale de l'objet réservation
+    currentReservation = {
+      ticket_number: baseInfo.ticket_number || ticketParam,
+      ville_depart: tripData?.ville_depart || baseInfo.ville_depart || "Départ",
+      ville_arrivee: tripData?.ville_arrivee || baseInfo.ville_arrivee || "Arrivée",
+      client_name: baseInfo.nom_client || baseInfo.client_name || "Client TALA",
+      client_phone: baseInfo.telephone_client || baseInfo.client_phone || "N/A",
+      agence: resolvedAgencyName,
+      date: tripData?.date_depart || baseInfo.date || baseInfo.date_depart || "Aujourd'hui",
+      heure_depart: tripData?.heure_depart || baseInfo.heure_depart || "08:00",
+      total_price: baseInfo.total_price || baseInfo.prix || 0,
+      seats: baseInfo.seats || [1]
+    };
+
+    // 3. INJECTION DES DONNÉES DANS LE HTML
+    document.getElementById("ticketNumber").textContent = currentReservation.ticket_number;
+    document.getElementById("ticketRoute").textContent = `${currentReservation.ville_depart} ➔ ${currentReservation.ville_arrivee}`;
+    document.getElementById("passengerName").textContent = currentReservation.client_name;
+    document.getElementById("passengerPhone").textContent = currentReservation.client_phone;
+    
+    // Affichage automatique du vrai nom de l'agence
+    document.getElementById("agencyName").textContent = currentReservation.agence;
+
+    document.getElementById("travelDateTime").textContent = `${currentReservation.date} • ${currentReservation.heure_depart}`;
+    document.getElementById("totalPrice").textContent = Number(currentReservation.total_price).toLocaleString('fr-FR') + " FC";
+
+    // Formatage des Sièges
+    const seatsDisplay = document.getElementById("seatsDisplay");
+    let seatsArray = [];
+    const seatsRaw = currentReservation.seats;
+
+    if (Array.isArray(seatsRaw)) {
+      seatsArray = seatsRaw;
+    } else if (typeof seatsRaw === "string") {
+      try { seatsArray = JSON.parse(seatsRaw); } catch { seatsArray = [seatsRaw]; }
+    } else if (typeof seatsRaw === "number") {
+      seatsArray = Array.from({ length: seatsRaw }, (_, i) => i + 1);
+    }
+
+    if (seatsArray.length > 0) {
+      seatsDisplay.innerHTML = seatsArray.map(s => `<span class="seat-badge">Siège n°${s}</span>`).join(" ");
+    } else {
+      seatsDisplay.innerHTML = `<span class="seat-badge">Siège Standard</span>`;
+    }
+
+    // 4. GÉNÉRATION DU QR CODE
+    const qrDiv = document.getElementById("qrcode");
+    qrDiv.innerHTML = "";
+    new QRCode(qrDiv, {
+      text: `https://talatrajet.com/verify?ticket=${currentReservation.ticket_number}`,
+      width: 130,
+      height: 130,
+      colorDark: "#0a0e17",
+      colorLight: "#ffffff",
+      correctLevel: QRCode.CorrectLevel.H
+    });
   });
+
+  // Générateur QR Code au format Image Data-URL pour le PDF
+  function generateQRDataURL(text) {
+    return new Promise((resolve) => {
+      const tempDiv = document.createElement("div");
+      new QRCode(tempDiv, {
+        text: text,
+        width: 150,
+        height: 150,
+        correctLevel: QRCode.CorrectLevel.H
+      });
+      setTimeout(() => {
+        const canvas = tempDiv.querySelector("canvas");
+        resolve(canvas ? canvas.toDataURL("image/png") : null);
+      }, 250);
+    });
+  }
+
+  // Téléchargement du Billet au format PDF
+  async function downloadTicket() {
+    if (!currentReservation) {
+      alert("Erreur : Impossible de charger les données du billet.");
+      return;
+    }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4"
+    });
+
+    const ticketNum = document.getElementById("ticketNumber").textContent;
+    const clientName = document.getElementById("passengerName").textContent;
+    const clientPhone = document.getElementById("passengerPhone").textContent;
+    const agency = document.getElementById("agencyName").textContent;
+    const dateTime = document.getElementById("travelDateTime").textContent;
+    const route = document.getElementById("ticketRoute").textContent;
+    const totalPrice = document.getElementById("totalPrice").textContent;
+
+    // Fond En-tête PDF
+    doc.setFillColor(15, 23, 42);
+    doc.rect(0, 0, 210, 40, "F");
+
+    // Marque
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(22);
+    doc.setTextColor(0, 210, 255);
+    doc.text("TALA Trajet", 15, 22);
+
+    doc.setFontSize(10);
+    doc.setTextColor(200, 200, 200);
+    doc.text("Billet Officiel de Transport", 15, 30);
+
+    doc.setFontSize(12);
+    doc.setTextColor(255, 255, 255);
+    doc.text(`N° ${ticketNum}`, 140, 25);
+
+    // Titre Trajet
+    doc.setFillColor(240, 244, 248);
+    doc.rect(15, 50, 180, 20, "F");
+    
+    doc.setTextColor(15, 23, 42);
+    doc.setFontSize(14);
+    doc.text(`Trajet : ${route}`, 20, 63);
+
+    // Tableau Infos
+    doc.setFontSize(10);
+    let y = 85;
+    const addRow = (label, val) => {
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(80, 80, 80);
+      doc.text(label, 20, y);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(15, 23, 42);
+      doc.text(val, 70, y);
+      doc.setDrawColor(220, 220, 220);
+      doc.line(20, y + 3, 190, y + 3);
+      y += 12;
+    };
+
+    addRow("Passager :", clientName);
+    addRow("Téléphone :", clientPhone);
+    addRow("Agence :", agency);
+    addRow("Date & Départ :", dateTime);
+    addRow("Montant Total :", totalPrice);
+    addRow("Statut Paiement :", "CONFIRMÉ / PAYÉ");
+
+    // Intégration QR Code dans le PDF
+    const qrDataUrl = await generateQRDataURL(`https://talatrajet.com/verify?ticket=${ticketNum}`);
+    if (qrDataUrl) {
+      doc.addImage(qrDataUrl, "PNG", 75, y + 10, 60, 60);
+    }
+
+    doc.setFontSize(9);
+    doc.setTextColor(120, 120, 120);
+    doc.text("Veuillez présenter ce document accompagné d'une pièce d'identité à l'embarquement.", 105, y + 80, { align: "center" });
+    doc.text("© 2026 TALA Trajet — Plateforme de réservation en ligne.", 105, 285, { align: "center" });
+
+    // Téléchargement
+    doc.save(`Billet_TALA_${ticketNum}.pdf`);
+  }
 </script>
 
 </body>
