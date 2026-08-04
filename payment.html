@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TALA Trajet — Paiement</title>
+
+  <!-- Police -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --primary-blue: #00d2ff;
+      --accent-green: #2ecc71;
+      --bg-dark: #0c0f13;
+      --card-dark: #171b22;
+      --text-light: #e7edf3;
+      --input-bg: #1c2129;
+      --input-border: #2a313b;
+      --placeholder: #9aa0a6;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-light);
+      margin: 0;
+    }
+
+    header.site-header {
+      background: var(--card-dark);
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--input-border);
+    }
+    .brand {
+      font-weight: 700;
+      font-size: 1.4rem;
+      color: var(--primary-blue);
+    }
+    .brand span { color: #ffffff; }
+
+    .container {
+      max-width: 600px;
+      margin: 30px auto;
+      padding: 0 24px;
+    }
+
+    .card {
+      background: var(--card-dark);
+      border: 1px solid var(--input-border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+
+    /* Grille opérateurs */
+    .operator-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 20px 0;
+    }
+    @media (max-width: 500px) {
+      .operator-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .operator-card {
+      background: var(--input-bg);
+      border: 2px solid var(--input-border);
+      border-radius: 12px;
+      padding: 15px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .operator-card.selected {
+      border-color: var(--primary-blue);
+      background: rgba(0, 210, 255, 0.05);
+    }
+    .operator-card:hover {
+      border-color: #444;
+    }
+
+    /* Résumé encadré */
+    .summary-box {
+      background: #0c0f13;
+      border: 1px solid var(--input-border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .price { color: var(--primary-blue); font-size: 1.3rem; font-weight: 700; }
+
+    /* Formulaire */
+    .form input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 14px 16px;
+      margin-bottom: 18px;
+      border: 1px solid var(--input-border);
+      border-radius: 12px;
+      background: var(--input-bg);
+      color: var(--text-light);
+      font-size: 15px;
+      transition: all 0.3s ease;
+    }
+    .form input:focus {
+      outline: none;
+      border-color: var(--primary-blue);
+      box-shadow: 0 0 10px rgba(0, 210, 255, 0.3);
+    }
+    .form label {
+      display: block;
+      font-size: 0.85rem;
+      color: #b0bcc9;
+      margin-bottom: 8px;
+    }
+
+    /* Bouton */
+    button {
+      width: 100%;
+      padding: 15px;
+      background: var(--primary-blue);
+      color: #0c0f13;
+      border: none;
+      border-radius: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: all 0.3s ease;
+      font-size: 1rem;
+    }
+    button:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+    }
+    button:disabled {
+      background: #444;
+      color: #888;
+      cursor: not-allowed;
+      transform: none;
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="brand">TALA<span>Trajet</span></div>
+  <a href="booking.html" style="color: #b0bcc9; text-decoration: none; font-size: 0.9rem;">← Modifier les sièges</a>
+</header>
+
+<main class="container">
+  <section class="card">
+    <h2 style="margin-top: 0; color: #ffffff; font-size: 1.3rem;">💳 Paiement Mobile Money</h2>
+    <p style="color: #b0bcc9; font-size: 0.9rem; margin-bottom: 24px;">Sélectionnez votre opérateur et entrez votre numéro pour régler votre voyage.</p>
+
+    <!-- RÉSUMÉ -->
+    <div class="summary-box">
+      <div>
+        <span style="font-size: 0.8rem; color: #b0bcc9; display: block;">Trajet</span>
+        <strong id="summaryRoute" style="color: #ffffff; font-size: 0.95rem;">Chargement...</strong>
+      </div>
+      <div style="text-align: right;">
+        <span style="font-size: 0.8rem; color: #b0bcc9; display: block;">Montant total</span>
+        <span id="summaryPrice" class="price">0 FC</span>
+      </div>
+    </div>
+
+    <!-- CHOIX OPÉRATEUR -->
+    <label>Choisissez l'opérateur de paiement</label>
+    <div class="operator-grid">
+      <div class="operator-card selected" onclick="selectOperator('M-Pesa', this)">
+        <div style="font-weight: 700; color: #e74c3c;">M-Pesa</div>
+        <span style="font-size: 0.75rem; color: #b0bcc9;">Vodacom</span>
+      </div>
+      <div class="operator-card" onclick="selectOperator('Airtel Money', this)">
+        <div style="font-weight: 700; color: #e67e22;">Airtel Money</div>
+        <span style="font-size: 0.75rem; color: #b0bcc9;">Airtel</span>
+      </div>
+      <div class="operator-card" onclick="selectOperator('Orange Money', this)">
+        <div style="font-weight: 700; color: #f39c12;">Orange Money</div>
+        <span style="font-size: 0.75rem; color: #b0bcc9;">Orange</span>
+      </div>
+    </div>
+
+    <!-- FORMULAIRE PAIEMENT -->
+    <form id="paymentForm" class="form" style="margin-top: 20px;">
+      <div>
+        <label id="phoneLabel">Numéro M-Pesa (ex: +243...)</label>
+        <input type="tel" id="paymentPhone" placeholder="+243 820 000 000" required>
+      </div>
+
+      <button type="submit" id="payBtn">Confirmer et payer 🔒</button>
+    </form>
+  </section>
+</main>
+
+<script>
+// Clés Supabase de TALA Trajet
+const { createClient } = window.supabase;
+const supabaseUrl = "https://kfkifkstatbadtzosxai.supabase.co"; 
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma2lma3N0YXRiYWR0em9zeGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3MTYzMTAsImV4cCI6MjEwMTI5MjMxMH0.xPzFtl_OET2asSc5iH3liRHnPyuUYAfbbjZISwfnaA8";
+const supabaseClient = createClient(supabaseUrl, supabaseKey);
+
+let selectedOperator = "M-Pesa";
+let pendingReservation = null;
+
+// Chargement des données stockées depuis booking.html
+document.addEventListener("DOMContentLoaded", () => {
+  const storedData = localStorage.getItem("reservationInfo");
+  if (!storedData) {
+    alert("Aucune réservation en cours.");
+    window.location.href = "search.html";
+    return;
+  }
+
+  pendingReservation = JSON.parse(storedData);
+
+  document.getElementById("summaryRoute").textContent = `${pendingReservation.ville_depart} ➔ ${pendingReservation.ville_arrivee}`;
+  document.getElementById("summaryPrice").textContent = Number(pendingReservation.total_price).toLocaleString('fr-FR') + " FC";
+
+  // Pré-remplir le champ téléphone s'il a déjà été saisi à l'étape précédente
+  if (pendingReservation.telephone_client) {
+    document.getElementById("paymentPhone").value = pendingReservation.telephone_client;
+  }
+});
+
+// Sélection de l'opérateur visuel
+function selectOperator(operator, element) {
+  selectedOperator = operator;
+  document.querySelectorAll('.operator-card').forEach(card => card.classList.remove('selected'));
+  element.classList.add('selected');
+  document.getElementById("phoneLabel").textContent = `Numéro ${operator} (ex: +243...)`;
+}
+
+// Validation et finalisation de la transaction
+document.getElementById("paymentForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const phone = document.getElementById("paymentPhone").value.trim();
+  if (!phone) {
+    alert("Veuillez entrer votre numéro de téléphone pour le paiement.");
+    return;
+  }
+
+  const btn = document.getElementById("payBtn");
+  btn.disabled = true;
+  btn.textContent = `Validation ${selectedOperator} en cours...`;
+
+  // Simulation d'une attente d'approbation USSD sur le téléphone du client (3 secondes)
+  setTimeout(async () => {
+    // Génération du numéro de ticket unique définitif
+    const ticketNumber = `TALA-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
+
+    // Compléter l'objet de réservation avec le paiement et le statut final
+    const finalReservationData = {
+      trip_id: pendingReservation.trip_id,
+      nom_client: pendingReservation.nom_client,
+      email: pendingReservation.email,
+      telephone_client: phone,
+      seats: pendingReservation.seats,
+      seats_count: pendingReservation.seats_count,
+      total_price: pendingReservation.total_price,
+      ticket_number: ticketNumber,
+      statut: "CONFIRMED",
+      mode_paiement: selectedOperator
+    };
+
+    // 1. Enregistrement définitif dans la base de données Supabase
+    const { error: insertError } = await supabaseClient
+      .from("reservations")
+      .insert([finalReservationData]);
+
+    if (insertError) {
+      alert("Erreur lors de l'enregistrement de la réservation : " + insertError.message);
+      btn.disabled = false;
+      btn.textContent = "Confirmer et payer 🔒";
+      return;
+    }
+
+    // 2. Récupération et mise à jour sécurisée des places disponibles du trajet
+    const { data: tripData, error: tripFetchError } = await supabaseClient
+      .from("trips")
+      .select("places_totales, places_disponibles")
+      .eq("id", pendingReservation.trip_id)
+      .maybeSingle();
+
+    if (!tripFetchError && tripData) {
+      const capacity = tripData.places_totales ? Number(tripData.places_totales) : 57;
+      const currentAvailable = tripData.places_disponibles !== null ? tripData.places_disponibles : capacity;
+      const newPlacesCount = Math.max(0, currentAvailable - pendingReservation.seats_count);
+
+      await supabaseClient
+        .from("trips")
+        .update({ places_disponibles: newPlacesCount })
+        .eq("id", pendingReservation.trip_id);
+    }
+
+    // 3. Mettre à jour le localStorage avec le vrai ticket number pour la page confirmation
+    pendingReservation.ticket_number = ticketNumber;
+    pendingReservation.mode_paiement = selectedOperator;
+    localStorage.setItem("reservationInfo", JSON.stringify(pendingReservation));
+
+    // 4. Redirection vers la page de confirmation / billet
+    window.location.href = `confirmation.html?ticket=${ticketNumber}`;
+
+  }, 3000);
+});
+</script>
+
+</body>
+</html>
