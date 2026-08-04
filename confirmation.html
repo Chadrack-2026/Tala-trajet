@@ -140,7 +140,7 @@
         </div>
         <div class="ticket-item">
           <label>Agence de transport</label>
-          <span id="agencyName">--</span>
+          <span id="agencyName" style="color: #00d2ff;">--</span>
         </div>
         <div class="ticket-item">
           <label>Date & Horaire</label>
@@ -239,7 +239,7 @@
     const params = new URLSearchParams(window.location.search);
     const ticketParam = params.get("ticket");
 
-    // 1. PRIORITÉ ABSOLUE : Charger depuis localStorage (instantané et contient souvent déjà le nom de l'agence)
+    // 1. PRIORITÉ ABSOLUE : Charger depuis localStorage (instantané et contient les données exactes du choix utilisateur)
     const rawLocalStorageData = localStorage.getItem("reservationInfo");
     if (rawLocalStorageData) {
       try {
@@ -252,7 +252,7 @@
       }
     }
 
-    // 2. Fallback direct vers Supabase si localStorage est vide ou incomplet
+    // 2. Fallback direct vers Supabase si localStorage est vide
     if (!currentReservation && ticketParam) {
       const { data, error } = await supabaseClient
         .from("reservations")
@@ -262,25 +262,25 @@
 
       if (data && !error) {
         let tripData = null;
-        let agencyName = data.agence || "Agence Partenaire";
+        let foundAgencyName = data.agence || data.agency_name || "TALA Partner";
 
-        // Récupérer les infos du trajet et de l'agence séparément pour éviter les erreurs de relation
         if (data.trip_id) {
           const { data: tData } = await supabaseClient
             .from("trips")
-            .select("ville_depart, ville_arrivee, date_depart, heure_depart, agency_id")
+            .select("ville_depart, ville_arrivee, date_depart, heure_depart, agency_id, agence")
             .eq("id", data.trip_id)
             .maybeSingle();
           
           if (tData) {
             tripData = tData;
+            if (tData.agence) foundAgencyName = tData.agence;
             if (tData.agency_id) {
               const { data: aData } = await supabaseClient
                 .from("agencies")
                 .select("nom")
                 .eq("id", tData.agency_id)
                 .maybeSingle();
-              if (aData && aData.nom) agencyName = aData.nom;
+              if (aData && aData.nom) foundAgencyName = aData.nom;
             }
           }
         }
@@ -291,7 +291,7 @@
           ville_arrivee: tripData?.ville_arrivee || data.ville_arrivee || "Arrivée",
           client_name: data.nom_client,
           client_phone: data.telephone_client,
-          agence: agencyName,
+          agence: foundAgencyName,
           date: tripData?.date_depart || data.date || "Prochainement",
           heure_depart: tripData?.heure_depart || data.heure_depart || "08:00",
           total_price: data.total_price || data.prix,
@@ -322,9 +322,9 @@
     document.getElementById("passengerName").textContent = currentReservation.client_name || currentReservation.nom_client || "Client TALA";
     document.getElementById("passengerPhone").textContent = currentReservation.client_phone || currentReservation.telephone_client || "N/A";
     
-    // Affichage sécurisé de l'agence (Vérifie plusieurs clés possibles)
-    const nomAgence = currentReservation.agence || currentReservation.agency_name || "Agence Partenaire";
-    document.getElementById("agencyName").textContent = nomAgence;
+    // Récupération intelligente et prioritaire du nom de l'agence
+    const nomAgenceFinal = currentReservation.agence || currentReservation.agency_name || currentReservation.nom_agence || "Agence Partenaire";
+    document.getElementById("agencyName").textContent = nomAgenceFinal;
 
     document.getElementById("travelDateTime").textContent = `${currentReservation.date || currentReservation.date_depart || "Aujourd'hui"} • ${currentReservation.heure_depart || "08:00"}`;
     
