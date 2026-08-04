@@ -270,7 +270,6 @@ async function loadTrip() {
       date_depart,
       prix,
       places_disponibles,
-      places_totales,
       agency:agencies!left ( id, nom )
     `)
     .eq("id", trajetId)
