@@ -260,7 +260,7 @@ async function loadTrip() {
     }
   }
 
-  // Récupération sécurisée du trajet sans heure_depart
+  // Récupération sécurisée du trajet incluant places_totales
   const { data, error } = await supabaseClient
     .from("trips")
     .select(`
@@ -269,6 +269,7 @@ async function loadTrip() {
       ville_arrivee,
       date_depart,
       prix,
+      places_totales,
       places_disponibles,
       agency:agencies!left ( id, nom )
     `)
@@ -309,7 +310,8 @@ async function loadTrip() {
     });
   }
 
-  const capacity = trajet.places_totales || 50;
+  // Capacité exacte récupérée de la table trips (par défaut 57 si non défini)
+  const capacity = trajet.places_totales ? Number(trajet.places_totales) : 57;
   const remainingSeats = trajet.places_disponibles !== null ? trajet.places_disponibles : (capacity - occupiedSeats.length);
 
   document.getElementById("tripDetails").innerHTML = `
@@ -413,8 +415,8 @@ document.getElementById("bookingForm").addEventListener("submit", async (e) => {
     return;
   }
 
-  // Mettre à jour les places disponibles du trajet
-  const currentAvailable = trajet.places_disponibles !== null ? trajet.places_disponibles : (trajet.places_totales || 50);
+  const capacity = trajet.places_totales ? Number(trajet.places_totales) : 57;
+  const currentAvailable = trajet.places_disponibles !== null ? trajet.places_disponibles : capacity;
   const newPlacesCount = Math.max(0, currentAvailable - selectedSeats.length);
   
   await supabaseClient
@@ -422,7 +424,6 @@ document.getElementById("bookingForm").addEventListener("submit", async (e) => {
     .update({ places_disponibles: newPlacesCount })
     .eq("id", trajetId);
 
-  // Stocker les données localement pour la page confirmation.html
   const reservationInfoToSave = {
     ticket_number: ticketNumber,
     ville_depart: trajet.ville_depart,
@@ -436,7 +437,6 @@ document.getElementById("bookingForm").addEventListener("submit", async (e) => {
   };
   localStorage.setItem("reservationInfo", JSON.stringify(reservationInfoToSave));
 
-  // Redirection vers la page de confirmation
   window.location.href = `confirmation.html?ticket=${ticketNumber}`;
 });
 
