@@ -239,69 +239,34 @@
     const params = new URLSearchParams(window.location.search);
     const ticketParam = params.get("ticket");
 
-    // 1. PRIORITÉ ABSOLUE : Charger depuis localStorage (instantané et contient les données exactes du choix utilisateur)
+    // 1. Récupérer les données de base (localStorage ou Supabase)
+    let localData = null;
     const rawLocalStorageData = localStorage.getItem("reservationInfo");
     if (rawLocalStorageData) {
       try {
-        const parsedLocal = JSON.parse(rawLocalStorageData);
-        if (!ticketParam || parsedLocal.ticket_number === ticketParam) {
-          currentReservation = parsedLocal;
-        }
+        localData = JSON.parse(rawLocalStorageData);
       } catch (e) {
         console.error("Erreur lecture localStorage:", e);
       }
     }
 
-    // 2. Fallback direct vers Supabase si localStorage est vide
-    if (!currentReservation && ticketParam) {
+    // Si on a un ticket dans l'URL, on cherche en priorité dans la table "reservations" de Supabase pour être sûr d'avoir les vrais IDs à jour
+    let dbReservation = null;
+    if (ticketParam) {
       const { data, error } = await supabaseClient
         .from("reservations")
-        .select(`*`)
+        .select("*")
         .eq("ticket_number", ticketParam)
         .maybeSingle();
-
       if (data && !error) {
-        let tripData = null;
-        let foundAgencyName = data.agence || data.agency_name || "TALA Partner";
-
-        if (data.trip_id) {
-          const { data: tData } = await supabaseClient
-            .from("trips")
-            .select("ville_depart, ville_arrivee, date_depart, heure_depart, agency_id, agence")
-            .eq("id", data.trip_id)
-            .maybeSingle();
-          
-          if (tData) {
-            tripData = tData;
-            if (tData.agence) foundAgencyName = tData.agence;
-            if (tData.agency_id) {
-              const { data: aData } = await supabaseClient
-                .from("agencies")
-                .select("nom")
-                .eq("id", tData.agency_id)
-                .maybeSingle();
-              if (aData && aData.nom) foundAgencyName = aData.nom;
-            }
-          }
-        }
-
-        currentReservation = {
-          ticket_number: data.ticket_number,
-          ville_depart: tripData?.ville_depart || data.ville_depart || "Départ",
-          ville_arrivee: tripData?.ville_arrivee || data.ville_arrivee || "Arrivée",
-          client_name: data.nom_client,
-          client_phone: data.telephone_client,
-          agence: foundAgencyName,
-          date: tripData?.date_depart || data.date || "Prochainement",
-          heure_depart: tripData?.heure_depart || data.heure_depart || "08:00",
-          total_price: data.total_price || data.prix,
-          seats: data.seats
-        };
+        dbReservation = data;
       }
     }
 
-    // Si aucune réservation trouvée
-    if (!currentReservation) {
+    // Fusionner ou choisir la source prioritaire
+    let baseInfo = dbReservation || localData;
+
+    if (!baseInfo) {
       document.getElementById("ticketContent").innerHTML = `
         <div style="text-align: center; padding: 30px;">
           <div style="font-size: 3rem; margin-bottom: 15px;">⚠️</div>
@@ -315,26 +280,69 @@
       return;
     }
 
-    // Injection des données dans le DOM
-    const ticketNum = currentReservation.ticket_number || ticketParam || "TL-" + Math.floor(100000 + Math.random() * 900000);
-    document.getElementById("ticketNumber").textContent = ticketNum;
-    document.getElementById("ticketRoute").textContent = `${currentReservation.ville_depart || "Départ"} ➔ ${currentReservation.ville_arrivee || "Arrivée"}`;
-    document.getElementById("passengerName").textContent = currentReservation.client_name || currentReservation.nom_client || "Client TALA";
-    document.getElementById("passengerPhone").textContent = currentReservation.client_phone || currentReservation.telephone_client || "N/A";
-    
-    // Récupération intelligente et prioritaire du nom de l'agence
-    const nomAgenceFinal = currentReservation.agence || currentReservation.agency_name || currentReservation.nom_agence || "Agence Partenaire";
-    document.getElementById("agencyName").textContent = nomAgenceFinal;
+    // 2. RÉCUPÉRATION AUTOMATIQUE DU NOM DE L'AGENCE VIA SUPABASE
+    let resolvedAgencyName = baseInfo.agence || baseInfo.agency_name || "Nom indisponible";
+    let tripData = null;
 
-    document.getElementById("travelDateTime").textContent = `${currentReservation.date || currentReservation.date_depart || "Aujourd'hui"} • ${currentReservation.heure_depart || "08:00"}`;
+    const tripId = baseInfo.trip_id;
+    if (tripId) {
+      // Interroger la table trips pour obtenir les détails du voyage et l'agency_id
+      const { data: tData, error: tError } = await supabaseClient
+        .from("trips")
+        .select("ville_depart, ville_arrivee, date_depart, heure_depart, agency_id, agence")
+        .eq("id", tripId)
+        .maybeSingle();
+
+      if (tData && !tError) {
+        tripData = tData;
+        if (tData.agence) {
+          resolvedAgencyName = tData.agence;
+        }
+        // Si la table trips contient un agency_id, on va chercher le vrai nom dans la table agencies
+        if (tData.agency_id) {
+          const { data: aData, error: aError } = await supabaseClient
+            .from("agencies")
+            .select("nom")
+            .eq("id", tData.agency_id)
+            .maybeSingle();
+
+          if (aData && aData.nom && !aError) {
+            resolvedAgencyName = aData.nom;
+          }
+        }
+      }
+    }
+
+    // Structure finale de l'objet réservation
+    currentReservation = {
+      ticket_number: baseInfo.ticket_number || ticketParam,
+      ville_depart: tripData?.ville_depart || baseInfo.ville_depart || "Départ",
+      ville_arrivee: tripData?.ville_arrivee || baseInfo.ville_arrivee || "Arrivée",
+      client_name: baseInfo.nom_client || baseInfo.client_name || "Client TALA",
+      client_phone: baseInfo.telephone_client || baseInfo.client_phone || "N/A",
+      agence: resolvedAgencyName,
+      date: tripData?.date_depart || baseInfo.date || baseInfo.date_depart || "Aujourd'hui",
+      heure_depart: tripData?.heure_depart || baseInfo.heure_depart || "08:00",
+      total_price: baseInfo.total_price || baseInfo.prix || 0,
+      seats: baseInfo.seats || [1]
+    };
+
+    // 3. INJECTION DES DONNÉES DANS LE HTML
+    document.getElementById("ticketNumber").textContent = currentReservation.ticket_number;
+    document.getElementById("ticketRoute").textContent = `${currentReservation.ville_depart} ➔ ${currentReservation.ville_arrivee}`;
+    document.getElementById("passengerName").textContent = currentReservation.client_name;
+    document.getElementById("passengerPhone").textContent = currentReservation.client_phone;
     
-    const prix = currentReservation.total_price || currentReservation.prix || 0;
-    document.getElementById("totalPrice").textContent = prix ? Number(prix).toLocaleString('fr-FR') + " FC" : "Payé";
+    // Affichage automatique du vrai nom de l'agence
+    document.getElementById("agencyName").textContent = currentReservation.agence;
+
+    document.getElementById("travelDateTime").textContent = `${currentReservation.date} • ${currentReservation.heure_depart}`;
+    document.getElementById("totalPrice").textContent = Number(currentReservation.total_price).toLocaleString('fr-FR') + " FC";
 
     // Formatage des Sièges
     const seatsDisplay = document.getElementById("seatsDisplay");
-    const seatsRaw = currentReservation.seats || [1];
     let seatsArray = [];
+    const seatsRaw = currentReservation.seats;
 
     if (Array.isArray(seatsRaw)) {
       seatsArray = seatsRaw;
@@ -350,11 +358,11 @@
       seatsDisplay.innerHTML = `<span class="seat-badge">Siège Standard</span>`;
     }
 
-    // Génération QR Code
+    // 4. GÉNÉRATION DU QR CODE
     const qrDiv = document.getElementById("qrcode");
     qrDiv.innerHTML = "";
     new QRCode(qrDiv, {
-      text: `https://talatrajet.com/verify?ticket=${ticketNum}`,
+      text: `https://talatrajet.com/verify?ticket=${currentReservation.ticket_number}`,
       width: 130,
       height: 130,
       colorDark: "#0a0e17",
@@ -403,13 +411,13 @@
     const totalPrice = document.getElementById("totalPrice").textContent;
 
     // Fond En-tête PDF
-    doc.setFillColor(15, 23, 42); // Dark Navy
+    doc.setFillColor(15, 23, 42);
     doc.rect(0, 0, 210, 40, "F");
 
     // Marque
     doc.setFont("helvetica", "bold");
     doc.setFontSize(22);
-    doc.setTextColor(0, 210, 255); // Cyan Neon
+    doc.setTextColor(0, 210, 255);
     doc.text("TALA Trajet", 15, 22);
 
     doc.setFontSize(10);
