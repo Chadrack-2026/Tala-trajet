@@ -176,33 +176,25 @@
       </div>
     </div>
 
-    <!-- CHOIX OPÉRATEUR -->
-    <label id="phoneLabel">
-    Numéro Mobile Money (243XXXXXXXXX)
-</label>
-
     <!-- FORMULAIRE PAIEMENT -->
     <form id="paymentForm" class="form" style="margin-top:20px;">
+      <div>
+        <label for="paymentPhone">
+          Numéro Mobile Money (ex: 243XXXXXXXXX ou 08XXXXXXXX)
+        </label>
+        <input
+          type="tel"
+          id="paymentPhone"
+          placeholder="243XXXXXXXXX"
+          inputmode="numeric"
+          autocomplete="tel"
+          required>
+      </div>
 
-  <div>
-    <label for="paymentPhone">
-      Numéro Mobile Money
-    </label>
-
-    <input
-      type="tel"
-      id="paymentPhone"
-      placeholder="243XXXXXXXXX"
-      inputmode="numeric"
-      autocomplete="tel"
-      required>
-  </div>
-
-  <button type="submit" id="payBtn">
-    Confirmer et payer 🔒
-  </button>
-
-</form>
+      <button type="submit" id="payBtn">
+        Confirmer et payer 🔒
+      </button>
+    </form>
   </section>
 </main>
 
@@ -229,9 +221,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // Affichage du trajet
   document.getElementById("summaryRoute").textContent = `${pendingReservation.ville_depart} ➔ ${pendingReservation.ville_arrivee}`;
   
-  // Gestion dynamique du prix (affichage ou champ modifiable selon ton HTML)
+  // Gestion dynamique du prix
   const priceDisplay = document.getElementById("summaryPrice");
-  const priceInput = document.getElementById("montant-input"); // Si tu as ajouté un champ input pour modifier le montant
+  const priceInput = document.getElementById("montant-input");
 
   const currentPrice = Number(pendingReservation.total_price) || 0;
 
@@ -252,11 +244,21 @@ document.addEventListener("DOMContentLoaded", () => {
 document.getElementById("paymentForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const phone = document.getElementById("paymentPhone").value.trim();
+  let phone = document.getElementById("paymentPhone").value.trim();
   if (!phone) {
     alert("Veuillez entrer votre numéro de téléphone pour le paiement.");
     return;
   }
+
+  // --- CORRECTION ET FORMATAGE AUTOMATIQUE DU NUMÉRO POUR SHWARY ---
+  if (phone.startsWith("243")) {
+    phone = "+" + phone;
+  } else if (phone.startsWith("0")) {
+    phone = "+243" + phone.substring(1);
+  } else if (!phone.startsWith("+")) {
+    phone = "+243" + phone;
+  }
+  // -----------------------------------------------------------------
 
   // Récupérer le montant (depuis l'input modifiable s'il existe, sinon depuis la réservation stockée)
   const priceInput = document.getElementById("montant-input");
@@ -271,10 +273,10 @@ document.getElementById("paymentForm").addEventListener("submit", async (e) => {
   btn.disabled = true;
   btn.textContent = "Validation du paiement en cours...";
 
-  // Mettre à jour l'objet avec les données finales du paiement
+  // Mettre à jour l'objet avec les données formatées et finales
   pendingReservation.telephone_client = phone;
   pendingReservation.mode_paiement = "Mobile Money";
-  pendingReservation.total_price = finalPrice; // Enregistre le montant dynamique (modifié ou d'origine)
+  pendingReservation.total_price = finalPrice;
 
   try {
     // Appel de l'Edge Function Supabase (qui communique avec Shwary)
@@ -310,7 +312,6 @@ document.getElementById("paymentForm").addEventListener("submit", async (e) => {
   }
 });
 </script>
-
 
 </body>
 </html>
