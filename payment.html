@@ -226,8 +226,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
   pendingReservation = JSON.parse(storedData);
 
+  // Affichage du trajet
   document.getElementById("summaryRoute").textContent = `${pendingReservation.ville_depart} ➔ ${pendingReservation.ville_arrivee}`;
-  document.getElementById("summaryPrice").textContent = Number(pendingReservation.total_price).toLocaleString('fr-FR') + " FC";
+  
+  // Gestion dynamique du prix (affichage ou champ modifiable selon ton HTML)
+  const priceDisplay = document.getElementById("summaryPrice");
+  const priceInput = document.getElementById("montant-input"); // Si tu as ajouté un champ input pour modifier le montant
+
+  const currentPrice = Number(pendingReservation.total_price) || 0;
+
+  if (priceInput) {
+    priceInput.value = currentPrice;
+  } else if (priceDisplay) {
+    priceDisplay.textContent = currentPrice.toLocaleString('fr-FR') + " FC";
+  }
 
   // Pré-remplir le champ téléphone s'il a déjà été saisi à l'étape précédente
   if (pendingReservation.telephone_client) {
@@ -253,16 +265,26 @@ document.getElementById("paymentForm").addEventListener("submit", async (e) => {
     return;
   }
 
+  // Récupérer le montant (depuis l'input modifiable s'il existe, sinon depuis la réservation stockée)
+  const priceInput = document.getElementById("montant-input");
+  const finalPrice = priceInput ? Number(priceInput.value) : Number(pendingReservation.total_price);
+
+  if (isNaN(finalPrice) || finalPrice <= 0) {
+    alert("Veuillez entrer un montant valide.");
+    return;
+  }
+
   const btn = document.getElementById("payBtn");
   btn.disabled = true;
   btn.textContent = `Validation ${selectedOperator} en cours...`;
 
-  // Mettre à jour l'objet avec le numéro de téléphone et l'opérateur choisi
+  // Mettre à jour l'objet avec les données finales du paiement
   pendingReservation.telephone_client = phone;
   pendingReservation.mode_paiement = selectedOperator;
+  pendingReservation.total_price = finalPrice; // Enregistre le montant dynamique (modifié ou d'origine)
 
   try {
-    // Appel de l'Edge Function Supabase (sécurisée)
+    // Appel de l'Edge Function Supabase (qui communique avec Shwary)
     const response = await fetch("https://kfkifkstatbadtzosxai.supabase.co/functions/v1/process-payment", {
       method: "POST",
       headers: {
@@ -281,7 +303,7 @@ document.getElementById("paymentForm").addEventListener("submit", async (e) => {
 
       window.location.href = `confirmation.html?ticket=${result.ticket_number}`;
     } else {
-      // S'il y a une erreur renvoyée par le serveur ou Orange
+      // S'il y a une erreur renvoyée par le serveur ou Shwary
       alert("Erreur : " + (result.message || "Échec du paiement"));
       btn.disabled = false;
       btn.textContent = "Confirmer et payer 🔒";
@@ -295,6 +317,7 @@ document.getElementById("paymentForm").addEventListener("submit", async (e) => {
   }
 });
 </script>
+
 
 </body>
 </html>
