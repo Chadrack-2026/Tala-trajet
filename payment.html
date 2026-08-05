@@ -182,19 +182,27 @@
 </label>
 
     <!-- FORMULAIRE PAIEMENT -->
-    <form id="paymentForm" class="form" style="margin-top: 20px;">
-      <div>
-        <label id="phoneLabel">Numéro M-Pesa (ex: +243...)</label>
-        <input
-    type="tel"
-    id="paymentPhone"
-    placeholder="243XXXXXXXXX"
-    inputmode="numeric"
-    required>
-      </div>
+    <form id="paymentForm" class="form" style="margin-top:20px;">
 
-      <button type="submit" id="payBtn">Confirmer et payer 🔒</button>
-    </form>
+  <div>
+    <label for="paymentPhone">
+      Numéro Mobile Money
+    </label>
+
+    <input
+      type="tel"
+      id="paymentPhone"
+      placeholder="243XXXXXXXXX"
+      inputmode="numeric"
+      autocomplete="tel"
+      required>
+  </div>
+
+  <button type="submit" id="payBtn">
+    Confirmer et payer 🔒
+  </button>
+
+</form>
   </section>
 </main>
 
