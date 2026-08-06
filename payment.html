@@ -373,5 +373,23 @@
       }, 3000);
     }
   </script>
+
+<!-- Conteneur global de la notification -->
+<div id="talaToast" class="tala-toast">
+  <!-- Icône dynamique -->
+  <div class="toast-icon-wrapper" id="talaToastIcon">
+    <span id="toastEmoji">✨</span>
+  </div>
+  
+  <!-- Contenu du message -->
+  <div class="toast-body">
+    <h4 id="talaToastTitle">Notification</h4>
+    <p id="talaToastMessage">Message d'information de l'application...</p>
+  </div>
+
+  <!-- Bouton de fermeture optionnel -->
+  <button class="toast-close" onclick="hideTalaToast()" aria-label="Fermer">✕</button>
+</div>
+
 </body>    
 </html>
