@@ -197,7 +197,6 @@
     </form>
   </section>
 </main>
-
 <script>
 // Clés Supabase de TALA Trajet
 const { createClient } = window.supabase;
@@ -239,7 +238,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-
 // Validation et finalisation de la transaction via la fonction Supabase
 document.getElementById("paymentForm").addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -250,7 +248,7 @@ document.getElementById("paymentForm").addEventListener("submit", async (e) => {
     return;
   }
 
-  // --- CORRECTION ET FORMATAGE AUTOMATIQUE DU NUMÉRO POUR SHWARY ---
+  // --- FORMATAGE AUTOMATIQUE DU NUMÉRO ---
   if (phone.startsWith("243")) {
     phone = "+" + phone;
   } else if (phone.startsWith("0")) {
@@ -258,9 +256,7 @@ document.getElementById("paymentForm").addEventListener("submit", async (e) => {
   } else if (!phone.startsWith("+")) {
     phone = "+243" + phone;
   }
-  // -----------------------------------------------------------------
 
-  // Récupérer le montant (depuis l'input modifiable s'il existe, sinon depuis la réservation stockée)
   const priceInput = document.getElementById("montant-input");
   const finalPrice = priceInput ? Number(priceInput.value) : Number(pendingReservation.total_price);
 
@@ -273,13 +269,11 @@ document.getElementById("paymentForm").addEventListener("submit", async (e) => {
   btn.disabled = true;
   btn.textContent = "Validation du paiement en cours...";
 
-  // Mettre à jour l'objet avec les données formatées et finales
   pendingReservation.telephone_client = phone;
   pendingReservation.mode_paiement = "Mobile Money";
   pendingReservation.total_price = finalPrice;
 
   try {
-    // Appel de l'Edge Function Supabase (qui communique avec Shwary)
     const response = await fetch("https://kfkifkstatbadtzosxai.supabase.co/functions/v1/process-payment", {
       method: "POST",
       headers: {
@@ -290,24 +284,26 @@ document.getElementById("paymentForm").addEventListener("submit", async (e) => {
     });
 
     const result = await response.json();
+    console.log("Résultat process-payment:", result); // Pour voir ce que renvoie l'API dans la console
 
-    // Paiement terminé immédiatement (si le gateway valide tout de suite)
-    if (result.success) {
+    // 1. Succès direct
+    if (result.success && !result.transaction_id && !result.id) {
         pendingReservation.ticket_number = result.ticket_number;
         localStorage.setItem("reservationInfo", JSON.stringify(pendingReservation));
         window.location.href = `confirmation.html?ticket=${result.ticket_number}`;
         return;
     }
 
-        // Paiement en attente de confirmation (cas standard Mobile Money)
-    if (result.pending || result.transaction_id) {
+    // 2. En attente (on récupère l'ID peu importe son nom dans le résultat)
+    const txId = result.transaction_id || result.id;
+    if (result.success || result.pending || txId) {
         btn.textContent = "Confirmation du paiement en cours...";
         alert("Une demande de paiement vient d'être envoyée sur votre téléphone.\n\nVeuillez confirmer avec votre code PIN.");
-        startPaymentVerification(result.transaction_id || result.id); // Prend transaction_id ou id renvoyé par l'API
+        startPaymentVerification(txId);
         return;
     }
 
-    // Erreur renvoyée par le serveur
+    // 3. Erreur explicite
     alert(result.message || "Paiement refusé.");
     btn.disabled = false;
     btn.textContent = "Confirmer et payer 🔒";
@@ -322,7 +318,8 @@ document.getElementById("paymentForm").addEventListener("submit", async (e) => {
 
 async function startPaymentVerification(transactionId) {
     let attempts = 0;
-    const maxAttempts = 40; // Limite d'attente (environ 2 minutes)
+    const maxAttempts = 40; 
+    const btn = document.getElementById("payBtn");
 
     const interval = setInterval(async () => {
         attempts++;
@@ -343,43 +340,44 @@ async function startPaymentVerification(transactionId) {
             );
 
             const result = await response.json();
+            console.log("Résultat shewary-callback:", result);
 
             if (result.success) {
-                // CAS 1 : Paiement complété avec succès
                 if (result.status === 'completed') {
                     clearInterval(interval);
                     pendingReservation.ticket_number = result.ticket_number;
                     localStorage.setItem("reservationInfo", JSON.stringify(pendingReservation));
                     window.location.href = `confirmation.html?ticket=${result.ticket_number}`;
                 } 
-                // CAS 2 : Paiement échoué, rejeté ou solde insuffisant
                 else if (result.status === 'failed' || result.status === 'cancelled') {
                     clearInterval(interval);
                     alert("Paiement échoué : " + (result.message || "Solde insuffisant ou transaction annulée."));
-                    
-                    // Remettre le bouton en état initial pour permettre de réessayer
-                    const btn = document.getElementById("payBtn");
                     btn.disabled = false;
                     btn.textContent = "Confirmer et payer 🔒";
                 }
             }
 
-            // Arrêter la boucle si le délai maximum est atteint
             if (attempts >= maxAttempts) {
                 clearInterval(interval);
                 alert("Délai d'attente dépassé pour la confirmation du paiement.");
-                const btn = document.getElementById("payBtn");
                 btn.disabled = false;
                 btn.textContent = "Confirmer et payer 🔒";
             }
 
         } catch (e) {
             console.log("Erreur lors de la vérification :", e);
+            // Même en cas d'erreur réseau dans l'intervalle, on s'assure de ne pas bloquer l'UI indéfiniment après plusieurs échecs
+            if (attempts >= maxAttempts) {
+                clearInterval(interval);
+                btn.disabled = false;
+                btn.textContent = "Confirmer et payer 🔒";
+            }
         }
 
     }, 3000);
 }
 </script>
+
 
 
 </body>
