@@ -291,18 +291,43 @@ document.getElementById("paymentForm").addEventListener("submit", async (e) => {
 
     const result = await response.json();
 
-    if (result.success) {
-      // Si tout est validé : on sauvegarde le ticket et on redirige vers la confirmation
-      pendingReservation.ticket_number = result.ticket_number;
-      localStorage.setItem("reservationInfo", JSON.stringify(pendingReservation));
+// Paiement terminé
+if (result.success) {
 
-      window.location.href = `confirmation.html?ticket=${result.ticket_number}`;
-    } else {
-      // S'il y a une erreur renvoyée par le serveur ou Shwary
-      alert("Erreur : " + (result.message || "Échec du paiement"));
-      btn.disabled = false;
-      btn.textContent = "Confirmer et payer 🔒";
-    }
+    pendingReservation.ticket_number = result.ticket_number;
+
+    localStorage.setItem(
+        "reservationInfo",
+        JSON.stringify(pendingReservation)
+    );
+
+    window.location.href =
+        `confirmation.html?ticket=${result.ticket_number}`;
+
+    return;
+}
+
+// Paiement en attente de confirmation
+if (result.pending) {
+
+    btn.textContent = "Confirmation du paiement en cours...";
+
+    alert(
+        "Une demande de paiement vient d'être envoyée sur votre téléphone.\n\nVeuillez confirmer avec votre code PIN."
+    );
+
+    startPaymentVerification(result.transaction_id);
+
+    return;
+}
+
+// Erreur
+
+alert(result.message || "Paiement refusé.");
+
+btn.disabled = false;
+
+btn.textContent = "Confirmer et payer 🔒";
 
   } catch (error) {
     console.error("Erreur réseau :", error);
