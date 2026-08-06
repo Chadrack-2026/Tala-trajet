@@ -5,10 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TALA Trajet — Réservation</title>
 
-  <!-- Police -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
-
-  <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
@@ -24,163 +21,31 @@
       --placeholder: #9aa0a6;
     }
 
-    body {
-      font-family: 'Poppins', sans-serif;
-      background-color: var(--bg-dark);
-      color: var(--text-light);
-      margin: 0;
-    }
-
-    header.site-header {
-      background: var(--card-dark);
-      padding: 16px 24px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid var(--input-border);
-    }
-    .brand {
-      font-weight: 700;
-      font-size: 1.4rem;
-      color: var(--primary-blue);
-    }
+    body { font-family: 'Poppins', sans-serif; background-color: var(--bg-dark); color: var(--text-light); margin: 0; }
+    header.site-header { background: var(--card-dark); padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--input-border); }
+    .brand { font-weight: 700; font-size: 1.4rem; color: var(--primary-blue); }
     .brand span { color: #ffffff; }
-
-    .container {
-      max-width: 700px;
-      margin: 24px auto;
-      padding: 0 24px;
-    }
-
-    .card {
-      background: var(--card-dark);
-      border: 1px solid var(--input-border);
-      border-radius: 16px;
-      padding: 24px;
-      margin-bottom: 20px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-    }
-
-    /* Plan de bus */
-    .bus-wrapper {
-      background: var(--card-dark);
-      padding: 30px;
-      border-radius: 20px;
-      border: 1px solid var(--input-border);
-      box-shadow: 0 6px 12px rgba(0,0,0,0.6);
-      margin: 20px 0;
-    }
-
-    .legend {
-      display: flex;
-      justify-content: space-around;
-      margin-bottom: 25px;
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text-light);
-    }
+    .container { max-width: 700px; margin: 24px auto; padding: 0 24px; }
+    .card { background: var(--card-dark); border: 1px solid var(--input-border); border-radius: 16px; padding: 24px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+    .bus-wrapper { background: var(--card-dark); padding: 30px; border-radius: 20px; border: 1px solid var(--input-border); box-shadow: 0 6px 12px rgba(0,0,0,0.6); margin: 20px 0; }
+    .legend { display: flex; justify-content: space-around; margin-bottom: 25px; font-size: 12px; font-weight: 600; color: var(--text-light); }
     .legend-item { display: flex; align-items: center; gap: 8px; }
     .dot { width: 15px; height: 15px; border-radius: 4px; }
     .dot.occupied { background: var(--seat-occupied); }
     .dot.selected { background: var(--seat-selected); }
     .dot.free { background: #2a313b; border: 1px solid #444; }
-
-    .seats-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr) 35px repeat(2, 1fr);
-      gap: 12px;
-      align-items: center;
-    }
-
-    .seat {
-      aspect-ratio: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background-color: #2a313b;
-      border: 1px solid #444;
-      border-radius: 10px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: all 0.3s ease;
-      font-size: 14px;
-      color: var(--text-light);
-    }
-    .seat:hover {
-      transform: scale(1.05);
-      border-color: var(--primary-blue);
-    }
-    .seat.selected {
-      background-color: var(--seat-selected);
-      color: white;
-      border-color: var(--seat-selected);
-    }
-    .seat.unavailable {
-      background-color: var(--seat-occupied);
-      color: white;
-      cursor: not-allowed;
-      border: none;
-    }
+    .seats-grid { display: grid; grid-template-columns: repeat(2, 1fr) 35px repeat(2, 1fr); gap: 12px; align-items: center; }
+    .seat { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; background-color: #2a313b; border: 1px solid #444; border-radius: 10px; cursor: pointer; font-weight: 600; transition: all 0.3s ease; font-size: 14px; color: var(--text-light); }
+    .seat:hover { transform: scale(1.05); border-color: var(--primary-blue); }
+    .seat.selected { background-color: var(--seat-selected); color: white; border-color: var(--seat-selected); }
+    .seat.unavailable { background-color: var(--seat-occupied); color: white; cursor: not-allowed; border: none; }
     .aisle { grid-column: 3; }
-
-    /* Barre total */
-    .total-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 15px;
-      background: #0c0f13;
-      border: 1px solid var(--input-border);
-      border-radius: 12px;
-      margin-top: 15px;
-      font-weight: 700;
-      color: var(--text-light);
-    }
+    .total-bar { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #0c0f13; border: 1px solid var(--input-border); border-radius: 12px; margin-top: 15px; font-weight: 700; color: var(--text-light); }
     .price { color: var(--primary-blue); font-size: 1.2rem; }
-
-    /* Bouton */
-    button {
-      width: 100%;
-      padding: 15px;
-      background: var(--primary-blue);
-      color: #0c0f13;
-      border: none;
-      border-radius: 10px;
-      font-weight: 700;
-      cursor: pointer;
-      margin-top: 15px;
-      transition: all 0.3s ease;
-      font-size: 1rem;
-    }
-    button:hover {
-      opacity: 0.9;
-      transform: translateY(-2px);
-    }
-
-    /* Inputs du formulaire */
-    .form input {
-      width: 100%;
-      box-sizing: border-box;
-      padding: 14px 16px;
-      margin-bottom: 18px;
-      border: 1px solid var(--input-border);
-      border-radius: 12px;
-      background: var(--input-bg);
-      color: var(--text-light);
-      font-size: 15px;
-      transition: all 0.3s ease;
-    }
-
-    .form input::placeholder {
-      color: #8a8f95;
-      font-size: 13px;
-    }
-
-    .form input:focus {
-      outline: none;
-      border-color: var(--primary-blue);
-      box-shadow: 0 0 10px rgba(0, 210, 255, 0.3);
-    }
+    button { width: 100%; padding: 15px; background: var(--primary-blue); color: #0c0f13; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; margin-top: 15px; transition: all 0.3s ease; font-size: 1rem; }
+    button:hover { opacity: 0.9; transform: translateY(-2px); }
+    .form input { width: 100%; box-sizing: border-box; padding: 14px 16px; margin-bottom: 18px; border: 1px solid var(--input-border); border-radius: 12px; background: var(--input-bg); color: var(--text-light); font-size: 15px; }
+    .form input:focus { outline: none; border-color: var(--primary-blue); box-shadow: 0 0 10px rgba(0, 210, 255, 0.3); }
   </style>
 </head>
 <body>
@@ -203,13 +68,11 @@
       <div class="legend-item"><div class="dot selected"></div> Choisi</div>
       <div class="legend-item"><div class="dot occupied"></div> Occupé</div>
     </div>
-
     <div id="seatsContainer" class="seats-grid"></div>
   </div>
 
   <form id="bookingForm" class="form card">
     <h3 style="color: #ffffff; font-size: 1.1rem; margin-top: 0; margin-bottom: 20px;">Vos informations de voyage</h3>
-    
     <input type="text" id="name" name="name" placeholder="Nom et Prénom du passager" required>
     <input type="email" id="email" name="email" placeholder="Adresse e-mail" required>
     <input type="tel" id="phone" name="phone" placeholder="Numéro de téléphone (+243...)" required>
@@ -224,192 +87,166 @@
 </main>
 
 <script>
-// Key Supabase réelles de TALA Trajet
-const { createClient } = window.supabase;
-const supabaseUrl = "https://kfkifkstatbadtzosxai.supabase.co"; 
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma2lma3N0YXRiYWR0em9zeGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3MTYzMTAsImV4cCI6MjEwMTI5MjMxMH0.xPzFtl_OET2asSc5iH3liRHnPyuUYAfbbjZISwfnaA8";
-const supabaseClient = createClient(supabaseUrl, supabaseKey);
+  const { createClient } = window.supabase;
+  const supabaseUrl = "https://kfkifkstatbadtzosxai.supabase.co"; 
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma2lma3N0YXRiYWR0em9zeGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3MTYzMTAsImV4cCI6MjEwMTI5MjMxMH0.xPzFtl_OET2asSc5iH3liRHnPyuUYAfbbjZISwfnaA8";
+  const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
-// Récupération de l'ID du trajet (trip_id ou trajet_id)
-const params = new URLSearchParams(window.location.search);
-const trajetId = params.get("trip_id") || params.get("trajet_id");
+  const params = new URLSearchParams(window.location.search);
+  const trajetId = params.get("trip_id") || params.get("trajet_id");
 
-let selectedSeats = [];
-let trajet = null;
-let currentUserId = null;
+  let selectedSeats = [];
+  let trajet = null;
+  let currentUserId = null;
 
-/* =========================
-   CHARGEMENT DU TRAJET & USER
-========================= */
-async function loadTrip() {
-  if (!trajetId) {
-    alert("Aucun trajet sélectionné.");
-    window.location.href = "search.html";
-    return;
-  }
-
-  // Pré-remplissage si l'utilisateur est connecté
-  const { data: { session } } = await supabaseClient.auth.getSession();
-  if (session && session.user) {
-    currentUserId = session.user.id;
-    if (session.user.user_metadata?.full_name) {
-      document.getElementById("name").value = session.user.user_metadata.full_name;
+  async function loadTrip() {
+    if (!trajetId) {
+      alert("Aucun trajet sélectionné.");
+      window.location.href = "search.html";
+      return;
     }
-    if (session.user.email) {
-      document.getElementById("email").value = session.user.email;
-    }
-  }
 
-  // Récupération sécurisée du trajet incluant places_totales
-  const { data, error } = await supabaseClient
-    .from("trips")
-    .select(`
-      id,
-      ville_depart,
-      ville_arrivee,
-      date_depart,
-      prix,
-      places_totales,
-      places_disponibles,
-      agency:agencies!left ( id, nom )
-    `)
-    .eq("id", trajetId)
-    .maybeSingle();
-
-  if (error) {
-    console.error("Erreur Supabase :", error);
-    alert("Erreur lors de la récupération : " + error.message);
-    return;
-  }
-
-  if (!data) {
-    alert("Impossible de charger les détails du trajet.");
-    window.location.href = "search.html";
-    return;
-  }
-
-  trajet = data;
-
-  // Récupération des sièges déjà réservés sur ce trajet
-  const { data: reservedData } = await supabaseClient
-    .from("reservations")
-    .select("seats")
-    .eq("trip_id", trajetId);
-
-  let occupiedSeats = [];
-  if (reservedData) {
-    reservedData.forEach(r => {
-      if (r.seats) {
-        try {
-          const list = Array.isArray(r.seats) ? r.seats : JSON.parse(r.seats);
-          occupiedSeats = occupiedSeats.concat(list.map(Number));
-        } catch (e) {
-          console.error("Erreur parsing sièges:", e);
-        }
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (session && session.user) {
+      currentUserId = session.user.id;
+      if (session.user.user_metadata?.full_name) {
+        document.getElementById("name").value = session.user.user_metadata.full_name;
       }
-    });
+      if (session.user.email) {
+        document.getElementById("email").value = session.user.email;
+      }
+    }
+
+    const { data, error } = await supabaseClient
+      .from("trips")
+      .select(`
+        id,
+        ville_depart,
+        ville_arrivee,
+        date_depart,
+        prix,
+        places_totales,
+        places_disponibles,
+        agency:agencies!left ( id, nom )
+      `)
+      .eq("id", trajetId)
+      .maybeSingle();
+
+    if (error || !data) {
+      alert("Impossible de charger les détails du trajet.");
+      window.location.href = "search.html";
+      return;
+    }
+
+    trajet = data;
+
+    const { data: reservedData } = await supabaseClient
+      .from("reservations")
+      .select("seats")
+      .eq("trip_id", trajetId);
+
+    let occupiedSeats = [];
+    if (reservedData) {
+      reservedData.forEach(r => {
+        if (r.seats) {
+          try {
+            const list = Array.isArray(r.seats) ? r.seats : JSON.parse(r.seats);
+            occupiedSeats = occupiedSeats.concat(list.map(Number));
+          } catch (e) {
+            console.error("Erreur parsing sièges:", e);
+          }
+        }
+      });
+    }
+
+    const capacity = trajet.places_totales ? Number(trajet.places_totales) : 57;
+    const remainingSeats = trajet.places_disponibles !== null ? trajet.places_disponibles : (capacity - occupiedSeats.length);
+
+    document.getElementById("tripDetails").innerHTML = `
+      <h3 style="margin-top:0; color:#00d2ff; font-size:1.3rem;">${trajet.ville_depart} ➔ ${trajet.ville_arrivee}</h3>
+      <p style="margin: 5px 0; color:#b0bcc9;">🏢 <strong>Compagnie :</strong> ${trajet.agency ? trajet.agency.nom : 'Agence Partenaire'}</p>
+      <p style="margin: 5px 0; color:#b0bcc9;">📅 <strong>Date de départ :</strong> ${trajet.date_depart}</p>
+      <p style="margin: 5px 0; color:#b0bcc9;">💰 <strong>Prix :</strong> ${Number(trajet.prix).toLocaleString('fr-FR')} FC / place</p>
+      <p style="margin: 5px 0; color:#2ecc71;">🪑 <strong>Places restantes :</strong> ${remainingSeats} sur ${capacity}</p>
+    `;
+
+    generateSeats(capacity, occupiedSeats);
   }
 
-  // Capacité exacte récupérée de la table trips (par défaut 57 si non défini)
-  const capacity = trajet.places_totales ? Number(trajet.places_totales) : 57;
-  const remainingSeats = trajet.places_disponibles !== null ? trajet.places_disponibles : (capacity - occupiedSeats.length);
+  function generateSeats(totalSeats, occupiedSeats) {
+    const container = document.getElementById("seatsContainer");
+    if (!container) return;
+    
+    container.innerHTML = "";
 
-  document.getElementById("tripDetails").innerHTML = `
-    <h3 style="margin-top:0; color:#00d2ff; font-size:1.3rem;">${trajet.ville_depart} ➔ ${trajet.ville_arrivee}</h3>
-    <p style="margin: 5px 0; color:#b0bcc9;">🏢 <strong>Compagnie :</strong> ${trajet.agency ? trajet.agency.nom : 'Agence Partenaire'}</p>
-    <p style="margin: 5px 0; color:#b0bcc9;">📅 <strong>Date de départ :</strong> ${trajet.date_depart}</p>
-    <p style="margin: 5px 0; color:#b0bcc9;">💰 <strong>Prix :</strong> ${Number(trajet.prix).toLocaleString('fr-FR')} FC / place</p>
-    <p style="margin: 5px 0; color:#2ecc71;">🪑 <strong>Places restantes :</strong> ${remainingSeats} sur ${capacity}</p>
-  `;
+    for (let i = 1; i <= totalSeats; i++) {
+      const seat = document.createElement("div");
+      seat.classList.add("seat");
+      seat.textContent = i.toString().padStart(2, "0");
 
-  generateSeats(capacity, occupiedSeats);
-}
+      if (occupiedSeats.includes(i)) {
+        seat.classList.add("unavailable");
+      } else {
+        seat.addEventListener("click", () => toggleSeat(i, seat));
+      }
 
-/* =========================
-   GESTION DU PLAN DE SIÈGES
-========================= */
-function generateSeats(totalSeats, occupiedSeats) {
-  const container = document.getElementById("seatsContainer");
-  if (!container) return;
-  
-  container.innerHTML = "";
+      container.appendChild(seat);
 
-  for (let i = 1; i <= totalSeats; i++) {
-    const seat = document.createElement("div");
-    seat.classList.add("seat");
-    seat.textContent = i.toString().padStart(2, "0");
+      if (i % 2 === 0 && i % 4 !== 0) {
+        const aisle = document.createElement("div");
+        aisle.classList.add("aisle");
+        container.appendChild(aisle);
+      }
+    }
+  }
 
-    if (occupiedSeats.includes(i)) {
-      seat.classList.add("unavailable");
+  function toggleSeat(seatNumber, seatDiv) {
+    if (!trajet || !trajet.prix) return;
+
+    if (selectedSeats.includes(seatNumber)) {
+      selectedSeats = selectedSeats.filter(s => s !== seatNumber);
+      seatDiv.classList.remove("selected");
     } else {
-      seat.addEventListener("click", () => toggleSeat(i, seat));
+      selectedSeats.push(seatNumber);
+      seatDiv.classList.add("selected");
     }
 
-    container.appendChild(seat);
+    document.getElementById("seatCount").textContent = selectedSeats.length;
+    document.getElementById("totalPrice").textContent =
+      (selectedSeats.length * Number(trajet.prix)).toLocaleString('fr-FR') + " FC";
+  }
 
-    if (i % 2 === 0 && i % 4 !== 0) {
-      const aisle = document.createElement("div");
-      aisle.classList.add("aisle");
-      container.appendChild(aisle);
+  document.getElementById("bookingForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    if (selectedSeats.length === 0) {
+      alert("Veuillez sélectionner au moins un siège sur le plan de bus.");
+      return;
     }
-  }
-}
 
-function toggleSeat(seatNumber, seatDiv) {
-  if (!trajet || !trajet.prix) return;
+    const formData = new FormData(e.target);
+    const totalAmount = selectedSeats.length * Number(trajet.prix);
 
-  if (selectedSeats.includes(seatNumber)) {
-    selectedSeats = selectedSeats.filter(s => s !== seatNumber);
-    seatDiv.classList.remove("selected");
-  } else {
-    selectedSeats.push(seatNumber);
-    seatDiv.classList.add("selected");
-  }
+    const reservationInfoToSave = {
+      trip_id: trajetId,
+      nom_client: formData.get("name"),
+      email: formData.get("email"),
+      telephone_client: formData.get("phone"),
+      seats: selectedSeats,
+      seats_count: selectedSeats.length,
+      total_price: totalAmount,
+      ville_depart: trajet.ville_depart,
+      ville_arrivee: trajet.ville_arrivee,
+      agence: trajet.agency ? trajet.agency.nom : 'Agence Partenaire',
+      date: trajet.date_depart,
+      statut: "EN_ATTENTE_PAIEMENT"
+    };
 
-  document.getElementById("seatCount").textContent = selectedSeats.length;
-  document.getElementById("totalPrice").textContent =
-    (selectedSeats.length * Number(trajet.prix)).toLocaleString('fr-FR') + " FC";
-}
+    localStorage.setItem("reservationInfo", JSON.stringify(reservationInfoToSave));
+    window.location.href = "payment.html";
+  });
 
-/* =========================
-   SOUMISSION & REDIRECTION PAIEMENT
-========================= */
-document.getElementById("bookingForm").addEventListener("submit", (e) => {
-  e.preventDefault();
-
-  if (selectedSeats.length === 0) {
-    alert("Veuillez sélectionner au moins un siège sur le plan de bus.");
-    return;
-  }
-
-  const formData = new FormData(e.target);
-  const totalAmount = selectedSeats.length * Number(trajet.prix);
-
-  // Regroupement des données de la réservation à transmettre temporairement
-  const reservationInfoToSave = {
-    trip_id: trajetId,
-    nom_client: formData.get("name"),
-    email: formData.get("email"),
-    telephone_client: formData.get("phone"),
-    seats: selectedSeats,
-    seats_count: selectedSeats.length,
-    total_price: totalAmount,
-    ville_depart: trajet.ville_depart,
-    ville_arrivee: trajet.ville_arrivee,
-    agence: trajet.agency ? trajet.agency.nom : 'Agence Partenaire',
-    date: trajet.date_depart,
-    statut: "EN_ATTENTE_PAIEMENT"
-  };
-
-  // Stockage temporaire dans le navigateur
-  localStorage.setItem("reservationInfo", JSON.stringify(reservationInfoToSave));
-
-  // Redirection vers la page de paiement
-  window.location.href = "payment.html";
-});
-
-// Lancement
-loadTrip();
+  loadTrip();
 </script>
 
 </body>
