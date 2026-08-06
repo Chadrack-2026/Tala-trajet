@@ -291,15 +291,6 @@
           return;
         }
 
-        // 2. En attente
-        const txId = result.transaction_id || result.id;
-        if (result.success || result.pending || txId) {
-          btn.textContent = "Confirmation du paiement en cours...";
-          alert("Une demande de paiement vient d'être envoyée sur votre téléphone.\n\nVeuillez confirmer avec votre code PIN.");
-          startPaymentVerification(txId);
-          return;
-        }
-
         // 3. Erreur explicite
         alert(result.message || "Paiement refusé.");
         btn.disabled = false;
