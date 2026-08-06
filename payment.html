@@ -342,20 +342,35 @@ async function startPaymentVerification(transactionId) {
             const result = await response.json();
             console.log("Résultat shewary-callback:", result);
 
-            if (result.success) {
-                if (result.status === 'completed') {
-                    clearInterval(interval);
-                    pendingReservation.ticket_number = result.ticket_number;
-                    localStorage.setItem("reservationInfo", JSON.stringify(pendingReservation));
-                    window.location.href = `confirmation.html?ticket=${result.ticket_number}`;
-                } 
-                else if (result.status === 'failed' || result.status === 'cancelled') {
-                    clearInterval(interval);
-                    alert("Paiement échoué : " + (result.message || "Solde insuffisant ou transaction annulée."));
-                    btn.disabled = false;
-                    btn.textContent = "Confirmer et payer 🔒";
-                }
-            }
+            if (result.status === 'completed') {
+
+    clearInterval(interval);
+
+    pendingReservation.ticket_number = result.ticket_number;
+    localStorage.setItem("reservationInfo", JSON.stringify(pendingReservation));
+
+    window.location.href = `confirmation.html?ticket=${result.ticket_number}`;
+
+}
+
+else if (
+    result.status === 'failed' || 
+    result.status === 'cancelled'
+) {
+
+    clearInterval(interval);
+
+    alert("Paiement échoué : " + (result.message || "Transaction annulée."));
+
+    btn.disabled = false;
+    btn.textContent = "Confirmer et payer 🔒";
+
+}
+
+else if (result.status === 'pending') {
+
+    console.log("Paiement toujours en attente...");
+}
 
             if (attempts >= maxAttempts) {
                 clearInterval(interval);
