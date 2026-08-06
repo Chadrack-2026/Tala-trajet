@@ -189,6 +189,30 @@
 
     window.location.href = `results.html?${searchParams.toString()}`;
   }
+
+async function cleanUnpaidReservations() {
+  // Définir le délai d'expiration à 1 minute (1 * 60 * 1000 ms)
+  const expirationTime = new Date(Date.now() - 1 * 60 * 1000).toISOString();
+
+  // Supprimer les réservations non payées de plus d'1 minute
+  const { error } = await supabaseClient
+    .from('reservations')
+    .delete()
+    .eq('Statut', 'EN_ATTENTE_PAIEMENT')
+    .lt('created_at', expirationTime);
+
+  if (error) {
+    console.error("Erreur lors du nettoyage des réservations expirées :", error);
+  } else {
+    console.log("Nettoyage des places en attente de paiement (expirées > 1 min) effectué avec succès.");
+  }
+}
+
+// Lancer le nettoyage dès l'ouverture de la page
+document.addEventListener("DOMContentLoaded", () => {
+  cleanUnpaidReservations();
+});
+
 </script>
 
 </body>
