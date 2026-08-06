@@ -51,15 +51,14 @@
 </head>
 <body>
 
-<!-- HEADER -->
+<!-- HEADER CORRIGÉ -->
 <header class="site-header">
   <div class="brand">TALA<span>Trajet</span></div>
   <nav class="main-nav" id="navMenu">
     <a href="search.html">Accueil</a>
-    <a href="search.html">Rechercher</a>
     <a href="about.html">À propos</a>
     <a href="contact.html">Contact</a>
-    <a href="account.html" class="nav-auth-btn">Mon Compte</a>
+    <a href="auth.html" class="nav-auth-btn">Se connecter / S'inscrire</a>
   </nav>
   <button class="menu-btn" id="menuToggle" aria-label="Ouvrir le menu">☰</button>
 </header>
@@ -67,7 +66,6 @@
 <!-- MAIN -->
 <main style="padding-bottom: 80px;">
   
-  <!-- HERO POLITIQUE -->
   <section class="hero-showcase" style="padding: 50px 20px 50px;">
     <div class="hero-content">
       <span class="badge-hero">Protection des données</span>
@@ -76,14 +74,11 @@
     </div>
   </section>
 
-  <!-- CONTENU JURIDIQUE -->
   <div class="container legal-content">
     
     <div class="legal-section">
       <h2>1. Collecte des données personnelles</h2>
-      <p>
-        Dans le cadre de l'utilisation de nos services de réservation de transport, nous collectons les informations strictement nécessaires à la bonne exécution de votre commande :
-      </p>
+      <p>Dans le cadre de l'utilisation de nos services de réservation de transport, nous collectons les informations strictement nécessaires à la bonne exécution de votre commande :</p>
       <ul>
         <li><strong>Identité :</strong> Nom, prénom.</li>
         <li><strong>Coordonnées :</strong> Numéro de téléphone, adresse e-mail.</li>
@@ -94,9 +89,7 @@
 
     <div class="legal-section">
       <h2>2. Utilisation de vos informations</h2>
-      <p>
-        Les données collectées par <strong>TALA Trajet</strong> sont exclusivement exploitées pour :
-      </p>
+      <p>Les données collectées par <strong>TALA Trajet</strong> sont exclusivement exploitées pour :</p>
       <ul>
         <li>Générer et valider vos billets de voyage officiels (avec QR Code).</li>
         <li>Transmettre vos listes de passagers aux compagnies de transport partenaires.</li>
@@ -107,16 +100,12 @@
 
     <div class="legal-section">
       <h2>3. Sécurité et Hébergement</h2>
-      <p>
-        La sécurité de vos données est une priorité fondamentale. Toutes les interactions réseau entre votre navigateur et nos serveurs sont chiffrées via le protocole SSL/TLS (HTTPS). Vos données de réservation et comptes utilisateurs sont hébergés et protégés sur des infrastructures cloud hautement sécurisées (Supabase).
-      </p>
+      <p>La sécurité de vos données est une priorité fondamentale. Toutes les interactions réseau entre votre navigateur et nos serveurs sont chiffrées via le protocole SSL/TLS (HTTPS). Vos données de réservation et comptes utilisateurs sont hébergés et protégés sur des infrastructures cloud hautement sécurisées (Supabase).</p>
     </div>
 
     <div class="legal-section">
       <h2>4. Partage avec des tiers</h2>
-      <p>
-        Vos données personnelles ne sont <strong>jamais vendues ni louées</strong> à des fins publicitaires. Elles sont partagées uniquement avec :
-      </p>
+      <p>Vos données personnelles ne sont <strong>jamais vendues ni louées</strong> à des fins publicitaires. Elles sont partagées uniquement avec :</p>
       <ul>
         <li><strong>Les Agences de Transport :</strong> Afin de garantir votre enregistrement au guichet d'embarquement.</li>
         <li><strong>Les Partenaires de Paiement :</strong> Afin de valider et sécuriser le règlement de vos billets.</li>
@@ -125,30 +114,23 @@
 
     <div class="legal-section">
       <h2>5. Vos droits (Accès, Modification et Suppression)</h2>
-      <p>
-        Conformément aux réglementations en vigueur, vous disposez d'un droit d'accès, de rectification et de suppression de l'ensemble de vos données personnelles enregistrées sur notre plateforme. Vous pouvez exercer ce droit à tout moment :
-      </p>
+      <p>Conformément aux réglementations en vigueur, vous disposez d'un droit d'accès, de rectification et de suppression de l'ensemble de vos données personnelles enregistrées sur notre plateforme. Vous pouvez exercer ce droit à tout moment :</p>
       <ul>
-        <li>Depuis votre espace personnel <a href="account.html" style="color: #00d2ff;">Mon Compte</a>.</li>
+        <li>Depuis votre espace personnel.</li>
         <li>En nous envoyant une demande via la page de <a href="contact.html" style="color: #00d2ff;">Contact</a>.</li>
       </ul>
     </div>
 
     <div class="legal-section">
       <h2>6. Mise à jour de la politique</h2>
-      <p>
-        TALA Trajet se réserve le droit de modifier la présente Politique de Confidentialité à tout moment afin de se conformer aux évolutions légales et technologiques. Toute mise à jour sera répercutée directement sur cette page avec effet immédiat.
-      </p>
-      <p style="margin-top: 15px; font-size: 0.85rem; color: #6b7c93;">
-        Dernière mise à jour : <strong>Août 2026</strong>
-      </p>
+      <p>TALA Trajet se réserve le droit de modifier la présente Politique de Confidentialité à tout moment afin de se conformer aux évolutions légales et technologiques. Toute mise à jour sera répercutée directement sur cette page avec effet immédiat.</p>
+      <p style="margin-top: 15px; font-size: 0.85rem; color: #6b7c93;">Dernière mise à jour : <strong>Août 2026</strong></p>
     </div>
 
   </div>
 
 </main>
 
-<!-- FOOTER -->
 <footer>
   <div class="container footer-inner">
     <div class="footer-brand">
@@ -169,7 +151,6 @@
 </footer>
 
 <script>
-  // Menu Mobile Toggle
   const menuToggle = document.getElementById('menuToggle');
   const navMenu = document.getElementById('navMenu');
   if (menuToggle && navMenu) {
