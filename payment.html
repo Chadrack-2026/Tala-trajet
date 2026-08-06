@@ -375,75 +375,9 @@
 
 
 
-let toastTimeout = null;
 
-function showTalaNotification(type, title, message, duration = 4000) {
-  const toast = document.getElementById('talaToast');
-  const emojiEl = document.getElementById('toastEmoji');
-  const iconWrapper = document.getElementById('talaToastIcon');
-  const titleEl = document.getElementById('talaToastTitle');
-  const messageEl = document.getElementById('talaToastMessage');
-
-  if (!toast) return;
-
-  // Annuler le timer précédent si une nouvelle notification arrive
-  if (toastTimeout) clearTimeout(toastTimeout);
-
-  // Nettoyer les classes et réappliquer le type
-  toast.className = 'tala-toast ' + type;
-  emojiEl.className = ''; // Reset animation class
-
-  // Personnaliser l'icône selon le type
-  if (type === 'success') {
-    emojiEl.textContent = '✅';
-  } else if (type === 'error') {
-    emojiEl.textContent = '❌';
-  } else if (type === 'loading') {
-    emojiEl.textContent = '⏳';
-    emojiEl.classList.add('tala-spin');
-  } else {
-    emojiEl.textContent = '✨';
-  }
-
-  titleEl.textContent = title;
-  messageEl.textContent = message;
-
-  // Déclencher l'affichage fluide
-  toast.classList.add('active');
-
-  // Disparition automatique (si duration > 0)
-  if (duration > 0) {
-    toastTimeout = setTimeout(() => {
-      hideTalaToast();
-    }, duration);
-  }
-}
-
-function hideTalaToast() {
-  const toast = document.getElementById('talaToast');
-  if (toast) {
-    toast.classList.remove('active');
-  }
-}
 
   </script>
-
-<!-- Conteneur global de la notification -->
-<div id="talaToast" class="tala-toast">
-  <!-- Icône dynamique -->
-  <div class="toast-icon-wrapper" id="talaToastIcon">
-    <span id="toastEmoji">✨</span>
-  </div>
-  
-  <!-- Contenu du message -->
-  <div class="toast-body">
-    <h4 id="talaToastTitle">Notification</h4>
-    <p id="talaToastMessage">Message d'information de l'application...</p>
-  </div>
-
-  <!-- Bouton de fermeture optionnel -->
-  <button class="toast-close" onclick="hideTalaToast()" aria-label="Fermer">✕</button>
-</div>
 
 </body>    
 </html>
