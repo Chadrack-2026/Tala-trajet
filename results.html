@@ -80,7 +80,7 @@
   const menuToggle = document.getElementById('menuToggle');
   const navMenu = document.getElementById('navMenu');
   if (menuToggle && navMenu) {
-    menuToggle.addEventListener('click', ()  {
+    menuToggle.addEventListener('click', () => {
       navMenu.classList.toggle('open');
       menuToggle.textContent = navMenu.classList.contains('open') ? '✕' : '☰';
     });
@@ -137,18 +137,16 @@
     `;
 
     try {
-      // Requête Supabase pour récupérer tous les trajets avec les infos de l'agence
-      let query = supabaseClient.from("trips").select(`
+      // Requête Supabase sécurisée avec jointure standard sur 'agencies'
+      let { data, error } = await supabaseClient.from("trips").select(`
         id,
         ville_depart,
         ville_arrivee,
         date_depart,
         prix,
         places_disponibles,
-        agency:agencies!agency_id ( nom )
+        agency:agencies ( nom )
       `);
-
-      const { data, error } = await query;
 
       if (error) {
         container.innerHTML = `
@@ -159,26 +157,23 @@
         return;
       }
 
-      // Filtrage intelligent et flexible en JavaScript (insensible à la casse, aux accents et aux espaces)
+      // Filtrage intelligent et flexible en JavaScript
       const filtered = (data || []).filter(trajet => {
         const places = trajet.places_disponibles || 0;
         if (places < passengers) return false;
 
-        // Comparaison souple ville de départ
         if (departureCity) {
           const trajetDep = (trajet.ville_depart || "").toLowerCase().trim();
           const searchDep = departureCity.toLowerCase().trim();
           if (!trajetDep.includes(searchDep)) return false;
         }
 
-        // Comparaison souple ville d'arrivée
         if (arrivalCity) {
           const trajetArr = (trajet.ville_arrivee || "").toLowerCase().trim();
           const searchArr = arrivalCity.toLowerCase().trim();
           if (!trajetArr.includes(searchArr)) return false;
         }
 
-        // Vérification de la date si demandée
         if (travelDate && trajet.date_depart) {
           if (!trajet.date_depart.startsWith(travelDate)) return false;
         }
@@ -208,7 +203,10 @@
       container.innerHTML = "";
 
       filtered.forEach(trajet => {
-        const agenceNom = trajet.agency?.nom || "Agence Partenaire";
+        // Gestion robuste si agency est un tableau ou un objet unique retourné par PostgREST
+        const agenceObj = Array.isArray(trajet.agency) ? trajet.agency[0] : trajet.agency;
+        const agenceNom = agenceObj?.nom || "Agence Partenaire";
+        
         const prixFormate = trajet.prix ? Number(trajet.prix).toLocaleString('fr-FR') : "N/A";
         const dateFormatted = trajet.date_depart ? new Date(trajet.date_depart).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" }) : 'N/A';
         
