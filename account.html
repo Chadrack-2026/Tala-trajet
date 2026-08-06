@@ -74,7 +74,6 @@
       color: #ffffff;
       font-weight: 600;
     }
-    /* Style des Onglets */
     .tab-btn {
       background: transparent;
       border: none;
@@ -110,7 +109,6 @@
 <!-- MAIN -->
 <main style="padding-bottom: 80px;">
   
-  <!-- HERO COMPTE -->
   <section class="hero-showcase" style="padding: 50px 20px 50px;">
     <div class="hero-content">
       <span class="badge-hero">Espace Personnel</span>
@@ -119,7 +117,6 @@
     </div>
   </section>
 
-  <!-- CONTENU PRINCIPAL -->
   <div class="container">
     <div class="account-layout">
       
@@ -134,7 +131,6 @@
             <p style="color: #b0bcc9; font-size: 0.9rem;">Chargement des données...</p>
           </div>
 
-          <!-- BOUTONS ACTIONS COMPTE (SÉPARÉS) -->
           <div id="accountActions" style="margin-top: 20px; border-top: 1px solid #2a313b; padding-top: 16px; display: none; flex-direction: column; gap: 10px;">
             <button onclick="handleLogout()" class="btn-secondary-lg" style="width: 100%; font-size: 0.85rem; padding: 10px; cursor: pointer; text-align: center;">
               Se déconnecter
@@ -146,12 +142,11 @@
         </div>
       </div>
 
-      <!-- COLONNE DROITE : HISTORIQUE DES BILLETS AVEC ONGLETS -->
+      <!-- COLONNE DROITE : HISTORIQUE -->
       <div>
         <div class="card" style="border-radius: 16px; padding: 24px;">
           
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
-            <!-- Onglets -->
             <div style="display: flex; gap: 8px; border-bottom: 1px solid #2a313b;">
               <button class="tab-btn active" id="tabUpcoming" onclick="switchTab('upcoming')">Prochains départs</button>
               <button class="tab-btn" id="tabPast" onclick="switchTab('past')">Historique</button>
@@ -160,7 +155,6 @@
             <a href="search.html" class="btn-primary-lg" style="font-size: 0.8rem; padding: 8px 16px;">+ Nouveau trajet</a>
           </div>
 
-          <!-- Liste des billets -->
           <div id="reservationHistory">
             <p style="color: #b0bcc9; font-size: 0.9rem;">Chargement de votre historique...</p>
           </div>
@@ -173,7 +167,6 @@
 
 </main>
 
-<!-- FOOTER -->
 <footer>
   <div class="container footer-inner">
     <div class="footer-brand">
@@ -216,16 +209,15 @@
     const accountActions = document.getElementById("accountActions");
     const accountLink = document.getElementById("userAccountLink");
 
-    const { data: { session } } = await supabaseClient.auth.getSession();
-    const user = session?.user;
-    
+    // Utilisation sécurisée de getUser() à la place de getSession()
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
     const lastReservation = JSON.parse(localStorage.getItem("reservationInfo"));
     
     let clientPhone = user?.phone || user?.user_metadata?.phone || lastReservation?.client_phone || lastReservation?.telephone;
     let clientName = user?.user_metadata?.full_name || lastReservation?.client_name || lastReservation?.nom;
     let clientEmail = user?.email || lastReservation?.email;
 
-    if (clientPhone || clientName || clientEmail) {
+    if (user || clientPhone || clientName || clientEmail) {
       accountInfo.innerHTML = `
         <div class="info-row"><span>Nom :</span><span>${clientName || "Non renseigné"}</span></div>
         <div class="info-row"><span>Téléphone :</span><span>${clientPhone || "Non renseigné"}</span></div>
@@ -248,10 +240,12 @@
     }
 
     if (clientPhone) {
+      // Nettoyage basique pour interroger la base sans espace superflu
+      const cleanPhone = clientPhone.trim();
       const { data, error } = await supabaseClient
         .from("reservations")
         .select("*")
-        .eq("client_phone", clientPhone)
+        .or(`client_phone.eq.${cleanPhone},client_phone.eq.${cleanPhone.replace('+','')}`)
         .order("id", { ascending: false });
 
       if (!error && data && data.length > 0) {
@@ -359,14 +353,12 @@
     doc.save(`Billet_${ticketNum}.pdf`);
   }
 
-  // Fonction dédiée à la déconnexion Supabase
   async function handleLogout() {
     await supabaseClient.auth.signOut();
     localStorage.removeItem("reservationInfo");
     window.location.href = "index.html";
   }
 
-  // Fonction dédiée à la réinitialisation du stockage local uniquement
   function handleResetLocal() {
     if (confirm("Voulez-vous réinitialiser les données locales enregistrées sur cet appareil ?")) {
       localStorage.removeItem("reservationInfo");
