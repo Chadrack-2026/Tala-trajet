@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TALA Trajet - Vérification du Billet</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-950 text-white min-h-screen flex flex-col items-center justify-center p-4">
+
+    <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-6 text-center">
+        <h1 class="text-2xl font-bold text-cyan-400 mb-1">TALA Contrôle 🎫</h1>
+        <p class="text-slate-400 text-sm mb-6">Validation de l'embarquement</p>
+
+        <!-- Conteneur dynamique du résultat -->
+        <div id="status-card" class="p-6 rounded-2xl mb-6 shadow-inner bg-slate-800/50 border border-slate-700/50">
+            <div class="animate-pulse flex flex-col items-center">
+                <div class="h-6 w-3/4 bg-slate-700 rounded mb-3"></div>
+                <div class="h-4 w-1/2 bg-slate-700 rounded"></div>
+            </div>
+            <p id="status-text" class="text-slate-300 font-medium mt-2">Vérification du billet en cours...</p>
+        </div>
+
+        <!-- Bouton de retour ou pour un nouveau scan -->
+        <button onclick="window.location.href='scan.html'" class="w-full bg-cyan-600 hover:bg-cyan-700 text-white py-3 rounded-xl font-semibold transition shadow-lg shadow-cyan-900/20">
+            Scanner un autre billet
+        </button>
+    </div>
+
+<script>
+// Clés Supabase de TALA Trajet
+const supabaseUrl = "https://kfkifkstatbadtzosxai.supabase.co"; 
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma2lma3N0YXRiYWR0em9zeGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3MTYzMTAsImV4cCI6MjEwMTI5MjMxMH0.xPzFtl_OET2asSc5iH3liRHnPyuUYAfbbjZISwfnaA8";
+const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+document.addEventListener("DOMContentLoaded", async () => {
+    const card = document.getElementById("status-card");
+    const textEl = document.getElementById("status-text");
+
+    // Récupérer le numéro de billet depuis l'URL (ex: verify.html?ticket=TALA-2026-XXXX)
+    const urlParams = new URLSearchParams(window.location.search);
+    const ticketNumber = urlParams.get('ticket');
+
+    if (!ticketNumber) {
+        card.className = "p-6 rounded-2xl mb-6 shadow-inner bg-red-950/40 border border-red-800/50";
+        textEl.innerHTML = `<span class="text-red-400 font-bold text-lg">❌ QR Code Invalide</span><p class="text-slate-300 text-sm mt-1">Aucun numéro de billet détecté.</p>`;
+        return;
+    }
+
+    try {
+        // 1. Rechercher le billet dans Supabase
+        const { data, error } = await supabase
+            .from('reservations')
+            .select('*')
+            .eq('ticket_number', ticketNumber)
+            .single();
+
+        if (error || !data) {
+            card.className = "p-6 rounded-2xl mb-6 shadow-inner bg-red-950/40 border border-red-800/50";
+            textEl.innerHTML = `<span class="text-red-400 font-bold text-lg">❌ Billet Introuvable</span><p class="text-slate-300 text-sm mt-1">Ce billet n'existe pas dans le système (${ticketNumber}).</p>`;
+            return;
+        }
+
+        // 2. Vérifier si le billet a déjà été utilisé
+        if (data.statut === 'USED' || data.statut === 'utilisé') {
+            card.className = "p-6 rounded-2xl mb-6 shadow-inner bg-amber-950/40 border border-amber-800/50";
+            textEl.innerHTML = `
+                <span class="text-amber-400 font-bold text-lg">⚠️ Billet Déjà Utilisé !</span>
+                <div class="text-left text-sm text-slate-300 mt-3 space-y-1 bg-slate-900/60 p-3 rounded-lg border border-slate-800">
+                    <p><strong>Client :</strong> ${data.nom_client || 'Non spécifié'}</p>
+                    <p><strong>Siège(s) :</strong> ${data.seats}</p>
+                </div>
+            `;
+            return;
+        }
+
+        // 3. Mettre à jour le statut du billet à 'USED' (Validé pour l'embarquement)
+        const { error: updateError } = await supabase
+            .from('reservations')
+            .update({ statut: 'USED' })
+            .eq('ticket_number', ticketNumber);
+
+        if (updateError) {
+            throw updateError;
+        }
+
+        // Succès : Billet authentique et validé
+        card.className = "p-6 rounded-2xl mb-6 shadow-inner bg-emerald-950/40 border border-emerald-800/50";
+        textEl.innerHTML = `
+            <span class="text-emerald-400 font-bold text-xl">✅ ACCÈS AUTORISÉ</span>
+            <div class="text-left text-sm text-slate-200 mt-4 space-y-2 bg-slate-900/80 p-4 rounded-xl border border-emerald-900/50">
+                <p><strong>N° Billet :</strong> ${data.ticket_number}</p>
+                <p><strong>Client :</strong> ${data.nom_client || 'Non spécifié'}</p>
+                <p><strong>Siège(s) :</strong> ${data.seats}</p>
+                <p><strong>Téléphone :</strong> ${data.telephone_client}</p>
+            </div>
+        `;
+
+    } catch (err) {
+        console.error("Erreur de validation :", err);
+        card.className = "p-6 rounded-2xl mb-6 shadow-inner bg-red-950/40 border border-red-800/50";
+        textEl.innerHTML = `<span class="text-red-400 font-bold text-lg">❌ Erreur Serveur</span><p class="text-slate-300 text-sm mt-1">Impossible de vérifier le billet pour le moment.</p>`;
+    }
+});
+</script>
+</body>
+</html>
