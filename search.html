@@ -143,9 +143,29 @@
     });
   }
 
-  // Initialisation au chargement de la page
+  // Fonction de nettoyage automatique des places expirées (> 1 min en EN_ATTENTE_PAIEMENT)
+  async function cleanUnpaidReservations() {
+    const expirationTime = new Date(Date.now() - 1 * 60 * 1000).toISOString();
+
+    const { error } = await supabaseClient
+      .from('reservations')
+      .delete()
+      .eq('Statut', 'EN_ATTENTE_PAIEMENT')
+      .lt('created_at', expirationTime);
+
+    if (error) {
+      console.error("Erreur lors du nettoyage des réservations expirées :", error);
+    } else {
+      console.log("Nettoyage des places en attente de paiement effectué avec succès.");
+    }
+  }
+
+  // Initialisation unique au chargement de la page
   document.addEventListener('DOMContentLoaded', async () => {
-    // 1. Définir la date minimale à aujourd'hui
+    // 1. Lancer le nettoyage automatique des places bloquées
+    cleanUnpaidReservations();
+
+    // 2. Définir la date minimale à aujourd'hui
     const dateInput = document.getElementById('travelDate');
     if (dateInput) {
       const today = new Date().toISOString().split('T')[0];
@@ -153,31 +173,7 @@
       dateInput.value = today; // Met la date du jour par défaut
     }
 
-async function cleanUnpaidReservations() {
-  // Définir le délai d'expiration à 1 minute (1 * 60 * 1000 ms)
-  const expirationTime = new Date(Date.now() - 1 * 60 * 1000).toISOString();
-
-  // Supprimer les réservations non payées de plus d'1 minute
-  const { error } = await supabaseClient
-    .from('reservations')
-    .delete()
-    .eq('Statut', 'EN_ATTENTE_PAIEMENT')
-    .lt('created_at', expirationTime);
-
-  if (error) {
-    console.error("Erreur lors du nettoyage des réservations expirées :", error);
-  } else {
-    console.log("Nettoyage des places en attente de paiement (expirées > 1 min) effectué avec succès.");
-  }
-}
-
-// Lancer le nettoyage dès l'ouverture de la page
-document.addEventListener("DOMContentLoaded", () => {
-  cleanUnpaidReservations();
-});
-
-
-    // 2. Vérifier la session utilisateur Supabase pour personnaliser le bouton "Mon Compte"
+    // 3. Vérifier la session utilisateur Supabase pour personnaliser le bouton "Mon Compte"
     const { data: { session } } = await supabaseClient.auth.getSession();
     const accountLink = document.getElementById('userAccountLink');
 
@@ -213,7 +209,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     window.location.href = `results.html?${searchParams.toString()}`;
   }
-
 </script>
 
 </body>
