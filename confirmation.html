@@ -177,7 +177,7 @@
         <button onclick="downloadTicket()" class="btn-primary-lg" style="border: none; cursor: pointer; padding: 14px; font-size: 0.9rem;">
           📥 Télécharger en PDF
         </button>
-        <button onclick="window.location.href='index.html'" class="btn-secondary-lg" style="padding: 14px; font-size: 0.9rem; text-align: center;">
+        <button onclick="window.location.href='search.html'" class="btn-secondary-lg" style="padding: 14px; font-size: 0.9rem; text-align: center;">
           🏠 Retour à l'accueil
         </button>
       </div>
@@ -252,24 +252,29 @@
 
     // 2. Recherche prioritaire dans la table "reservations" de Supabase
     let dbReservation = null;
-    if (ticketParam) {
+    const targetTicket = ticketParam || (localData ? localData.ticket_number : null);
+
+    if (targetTicket) {
       const { data, error } = await supabaseClient
         .from("reservations")
         .select("*")
-        .eq("ticket_number", ticketParam)
+        .eq("ticket_number", targetTicket)
         .maybeSingle();
       if (data && !error) {
         dbReservation = data;
       }
     }
 
-    // Fusion intelligente sans perdre l'agence stockée en local
+    // Fusion intelligente des données
     let baseInfo = { ...(localData || {}), ...(dbReservation || {}) };
-    if (localData && localData.agence && !baseInfo.agence) {
-      baseInfo.agence = localData.agence;
-    }
+    
+    // Gérer les variations de noms de champs entre local et base de données
+    baseInfo.ticket_number = baseInfo.ticket_number || targetTicket;
+    baseInfo.nom_client = baseInfo.nom_client || baseInfo.client_name || "Client TALA";
+    baseInfo.telephone_client = baseInfo.telephone_client || baseInfo.client_phone || "N/A";
+    baseInfo.total_price = baseInfo.total_price || baseInfo.prix || 0;
 
-    if (!baseInfo || Object.keys(baseInfo).length === 0) {
+    if (!baseInfo.ticket_number) {
       document.getElementById("ticketContent").innerHTML = `
         <div style="text-align: center; padding: 30px;">
           <div style="font-size: 3rem; margin-bottom: 15px;">⚠️</div>
@@ -304,22 +309,21 @@
 
       if (tData && !tError) {
         tripData = tData;
-        // Priorité : 1. Nom de l'agence lié via la table agencies, 2. Champ agence direct du trajet, 3. Valeur locale
         resolvedAgencyName = tData.agency?.nom || tData.agence || baseInfo.agence || "Agence Partenaire";
       }
     }
 
     // Structure finale unifiée de l'objet réservation
     currentReservation = {
-      ticket_number: baseInfo.ticket_number || ticketParam,
+      ticket_number: baseInfo.ticket_number,
       ville_depart: tripData?.ville_depart || baseInfo.ville_depart || "Départ",
       ville_arrivee: tripData?.ville_arrivee || baseInfo.ville_arrivee || "Arrivée",
-      client_name: baseInfo.nom_client || baseInfo.client_name || "Client TALA",
-      client_phone: baseInfo.telephone_client || baseInfo.client_phone || "N/A",
+      client_name: baseInfo.nom_client,
+      client_phone: baseInfo.telephone_client,
       agence: resolvedAgencyName,
       date: tripData?.date_depart || baseInfo.date || baseInfo.date_depart || "Aujourd'hui",
       heure_depart: tripData?.heure_depart || baseInfo.heure_depart || "08:00",
-      total_price: baseInfo.total_price || baseInfo.prix || 0,
+      total_price: baseInfo.total_price,
       seats: baseInfo.seats || [1]
     };
 
@@ -352,11 +356,12 @@
       seatsDisplay.innerHTML = `<span class="seat-badge">Siège Standard</span>`;
     }
 
-    // 5. GÉNÉRATION DU QR CODE
+    // 5. GÉNÉRATION DU QR CODE (Pointe vers verify.html pour les agents)
+    const verificationUrl = `${window.location.origin}/verify.html?ticket=${currentReservation.ticket_number}`;
     const qrDiv = document.getElementById("qrcode");
     qrDiv.innerHTML = "";
     new QRCode(qrDiv, {
-      text: `https://talatrajet.com/verify?ticket=${currentReservation.ticket_number}`,
+      text: verificationUrl,
       width: 130,
       height: 130,
       colorDark: "#0a0e17",
@@ -452,8 +457,9 @@
     addRow("Montant Total :", totalPrice);
     addRow("Statut Paiement :", "CONFIRMÉ / PAYÉ");
 
-    // Intégration QR Code dans le PDF
-    const qrDataUrl = await generateQRDataURL(`https://talatrajet.com/verify?ticket=${ticketNum}`);
+    // Intégration QR Code dans le PDF pointant vers la vérification
+    const verificationUrl = `${window.location.origin}/verify.html?ticket=${ticketNum}`;
+    const qrDataUrl = await generateQRDataURL(verificationUrl);
     if (qrDataUrl) {
       doc.addImage(qrDataUrl, "PNG", 75, y + 10, 60, 60);
     }
