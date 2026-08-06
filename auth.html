@@ -8,7 +8,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 
-  <!-- Inclusion de Supabase JS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -30,19 +29,16 @@
   <div class="container" style="max-width: 440px;">
     <div class="card" style="padding: 30px 24px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);">
       
-      <!-- EN-TÊTE FORMULAIRE -->
       <div style="text-align: center; margin-bottom: 24px;">
         <h2 id="authTitle" style="font-size: 1.5rem; margin-bottom: 6px; color: #ffffff;">Bienvenue sur TALA Trajet</h2>
         <p id="authSubtitle" style="color: #b0bcc9; font-size: 0.88rem; margin: 0;">Connectez-vous pour gérer vos réservations</p>
       </div>
 
-      <!-- ONGLETS -->
       <div style="display: flex; background: #0c0f13; border-radius: 10px; padding: 4px; margin-bottom: 24px; border: 1px solid #2a313b;">
-        <button class="auth-tab active" id="tabLogin" onclick="switchTab('login')" style="flex: 1; padding: 10px; background: #2f7cf0; border: none; color: #ffffff; font-weight: 600; font-size: 0.9rem; cursor: pointer; border-radius: 8px;">Connexion</button>
-        <button class="auth-tab" id="tabRegister" onclick="switchTab('register')" style="flex: 1; padding: 10px; background: none; border: none; color: #b0bcc9; font-weight: 600; font-size: 0.9rem; cursor: pointer; border-radius: 8px;">Inscription</button>
+        <button type="button" class="auth-tab active" id="tabLogin" onclick="switchTab('login')" style="flex: 1; padding: 10px; background: #2f7cf0; border: none; color: #ffffff; font-weight: 600; font-size: 0.9rem; cursor: pointer; border-radius: 8px;">Connexion</button>
+        <button type="button" class="auth-tab" id="tabRegister" onclick="switchTab('register')" style="flex: 1; padding: 10px; background: none; border: none; color: #b0bcc9; font-weight: 600; font-size: 0.9rem; cursor: pointer; border-radius: 8px;">Inscription</button>
       </div>
 
-      <!-- BOÎTE DE MESSAGE D'ERREUR OU SUCCÈS -->
       <div id="authAlert" style="display: none; padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 0.85rem; text-align: center;"></div>
 
       <!-- FORMULAIRE CONNEXION -->
@@ -108,7 +104,6 @@
   </div>
 </main>
 
-<!-- FOOTER -->
 <footer>
   <div class="container footer-inner">
     <div class="footer-brand">
@@ -129,13 +124,11 @@
 </footer>
 
 <script>
-  // Initialisation de Supabase
   const { createClient } = window.supabase;
   const supabaseUrl = "https://kfkifkstatbadtzosxai.supabase.co"; 
   const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma2lma3N0YXRiYWR0em9zeGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3MTYzMTAsImV4cCI6MjEwMTI5MjMxMH0.xPzFtl_OET2asSc5iH3liRHnPyuUYAfbbjZISwfnaA8";
   const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
-  // Menu Mobile
   const menuToggle = document.getElementById('menuToggle');
   const navMenu = document.getElementById('navMenu');
   if (menuToggle && navMenu) {
@@ -145,7 +138,6 @@
     });
   }
 
-  // Fonction pour afficher des messages d'alerte
   function showAlert(message, isSuccess = false) {
     const alertBox = document.getElementById('authAlert');
     alertBox.style.display = 'block';
@@ -155,7 +147,6 @@
     alertBox.textContent = message;
   }
 
-  // Alternance des onglets Connexion / Inscription
   function switchTab(tab) {
     document.getElementById('authAlert').style.display = 'none';
     const tabLogin = document.getElementById('tabLogin');
@@ -190,7 +181,6 @@
     }
   }
 
-  // Afficher / Masquer le mot de passe
   function togglePassword(inputId, btn) {
     const input = document.getElementById(inputId);
     if (input.type === "password") {
@@ -202,7 +192,6 @@
     }
   }
 
-  // Gestion de la Connexion Supabase
   async function handleLogin(e) {
     e.preventDefault();
     const email = document.getElementById('loginEmail').value.trim();
@@ -224,12 +213,11 @@
     } else {
       showAlert("Connexion réussie ! Redirection...", true);
       setTimeout(() => {
-        window.location.href = "search.html";
-      }, 1500);
+        window.location.href = "account.html";
+      }, 1200);
     }
   }
 
-  // Gestion de l'Inscription Supabase
   async function handleRegister(e) {
     e.preventDefault();
     const fullName = document.getElementById('regFullName').value.trim();
@@ -259,8 +247,8 @@
     } else {
       showAlert("Compte créé avec succès ! Redirection...", true);
       setTimeout(() => {
-        window.location.href = "search.html";
-      }, 1500);
+        window.location.href = "account.html";
+      }, 1200);
     }
   }
 </script>
