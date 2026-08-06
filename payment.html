@@ -291,43 +291,26 @@ document.getElementById("paymentForm").addEventListener("submit", async (e) => {
 
     const result = await response.json();
 
-// Paiement terminé
-if (result.success) {
+    // Paiement terminé immédiatement (si le gateway valide tout de suite)
+    if (result.success) {
+        pendingReservation.ticket_number = result.ticket_number;
+        localStorage.setItem("reservationInfo", JSON.stringify(pendingReservation));
+        window.location.href = `confirmation.html?ticket=${result.ticket_number}`;
+        return;
+    }
 
-    pendingReservation.ticket_number = result.ticket_number;
+    // Paiement en attente de confirmation (cas standard Mobile Money)
+    if (result.pending || result.transaction_id) {
+        btn.textContent = "Confirmation du paiement en cours...";
+        alert("Une demande de paiement vient d'être envoyée sur votre téléphone.\n\nVeuillez confirmer avec votre code PIN.");
+        startPaymentVerification(result.transaction_id);
+        return;
+    }
 
-    localStorage.setItem(
-        "reservationInfo",
-        JSON.stringify(pendingReservation)
-    );
-
-    window.location.href =
-        `confirmation.html?ticket=${result.ticket_number}`;
-
-    return;
-}
-
-// Paiement en attente de confirmation
-if (result.pending) {
-
-    btn.textContent = "Confirmation du paiement en cours...";
-
-    alert(
-        "Une demande de paiement vient d'être envoyée sur votre téléphone.\n\nVeuillez confirmer avec votre code PIN."
-    );
-
-    startPaymentVerification(result.transaction_id);
-
-    return;
-}
-
-// Erreur
-
-alert(result.message || "Paiement refusé.");
-
-btn.disabled = false;
-
-btn.textContent = "Confirmer et payer 🔒";
+    // Erreur renvoyée par le serveur
+    alert(result.message || "Paiement refusé.");
+    btn.disabled = false;
+    btn.textContent = "Confirmer et payer 🔒";
 
   } catch (error) {
     console.error("Erreur réseau :", error);
@@ -337,13 +320,15 @@ btn.textContent = "Confirmer et payer 🔒";
   }
 });
 
-async function startPaymentVerification(transactionId){
+async function startPaymentVerification(transactionId) {
+    let attempts = 0;
+    const maxAttempts = 40; // Limite d'attente (environ 2 minutes)
 
-    const interval = setInterval(async ()=>{
+    const interval = setInterval(async () => {
+        attempts++;
 
-        try{
-
-                        const response = await fetch(
+        try {
+            const response = await fetch(
                 "https://kfkifkstatbadtzosxai.supabase.co/functions/v1/shewary-callback",
                 {
                     method: "POST",
@@ -354,38 +339,48 @@ async function startPaymentVerification(transactionId){
                     body: JSON.stringify({
                         transaction_id: transactionId
                     })
-                });
-
+                }
+            );
 
             const result = await response.json();
 
-            if(result.success){
-
-                clearInterval(interval);
-
-                pendingReservation.ticket_number =
-                    result.ticket_number;
-
-                localStorage.setItem(
-                    "reservationInfo",
-                    JSON.stringify(pendingReservation)
-                );
-
-                window.location.href =
-                    `confirmation.html?ticket=${result.ticket_number}`;
-
+            if (result.success) {
+                // CAS 1 : Paiement complété avec succès
+                if (result.status === 'completed') {
+                    clearInterval(interval);
+                    pendingReservation.ticket_number = result.ticket_number;
+                    localStorage.setItem("reservationInfo", JSON.stringify(pendingReservation));
+                    window.location.href = `confirmation.html?ticket=${result.ticket_number}`;
+                } 
+                // CAS 2 : Paiement échoué, rejeté ou solde insuffisant
+                else if (result.status === 'failed' || result.status === 'cancelled') {
+                    clearInterval(interval);
+                    alert("Paiement échoué : " + (result.message || "Solde insuffisant ou transaction annulée."));
+                    
+                    // Remettre le bouton en état initial pour permettre de réessayer
+                    const btn = document.getElementById("payBtn");
+                    btn.disabled = false;
+                    btn.textContent = "Confirmer et payer 🔒";
+                }
             }
 
-        }catch(e){
+            // Arrêter la boucle si le délai maximum est atteint
+            if (attempts >= maxAttempts) {
+                clearInterval(interval);
+                alert("Délai d'attente dépassé pour la confirmation du paiement.");
+                const btn = document.getElementById("payBtn");
+                btn.disabled = false;
+                btn.textContent = "Confirmer et payer 🔒";
+            }
 
-            console.log(e);
-
+        } catch (e) {
+            console.log("Erreur lors de la vérification :", e);
         }
 
-    },3000);
-
+    }, 3000);
 }
 </script>
+
 
 </body>
 </html>
