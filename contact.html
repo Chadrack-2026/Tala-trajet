@@ -54,7 +54,8 @@
           <div class="feature-icon">✉️</div>
           <h3>Adresse E-mail</h3>
           <p style="margin-bottom: 8px;">Pour vos demandes officielles</p>
-          <a href="mailto:support@talatrajet.cd" style="color: #00d2ff; font-weight: 600;">talatrajet@gmail.com</a>
+          <!-- CORRECTION : Uniformisation de l'e-mail de support -->
+          <a href="mailto:support@talatrajet.cd" style="color: #00d2ff; font-weight: 600;">support@talatrajet.cd</a>
         </div>
 
         <!-- Carte Info 3 -->
@@ -131,7 +132,6 @@
 </footer>
 
 <script>
-  // Menu Mobile Toggle
   const menuToggle = document.getElementById('menuToggle');
   const navMenu = document.getElementById('navMenu');
   if (menuToggle && navMenu) {
@@ -141,7 +141,6 @@
     });
   }
 
-  // Soumission du formulaire
   function handleContactSubmit(e) {
     e.preventDefault();
     alert("Merci ! Votre message a été envoyé avec succès. Notre équipe va vous recontacter.");
