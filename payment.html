@@ -343,22 +343,19 @@ async function startPaymentVerification(transactionId){
 
         try{
 
-            const response = await fetch(
-                "https://kfkifkstatbadtzosxai.supabase.co/functions/v1/check-payment",
+                        const response = await fetch(
+                "https://kfkifkstatbadtzosxai.supabase.co/functions/v1/shewary-callback",
                 {
-
-                    method:"POST",
-
-                    headers:{
-                        "Content-Type":"application/json",
-                        "Authorization":`Bearer ${supabaseKey}`
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${supabaseKey}`
                     },
-
-                    body:JSON.stringify({
-                        transaction_id:transactionId
+                    body: JSON.stringify({
+                        transaction_id: transactionId
                     })
-
                 });
+
 
             const result = await response.json();
 
