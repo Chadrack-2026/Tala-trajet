@@ -299,11 +299,11 @@ document.getElementById("paymentForm").addEventListener("submit", async (e) => {
         return;
     }
 
-    // Paiement en attente de confirmation (cas standard Mobile Money)
+        // Paiement en attente de confirmation (cas standard Mobile Money)
     if (result.pending || result.transaction_id) {
         btn.textContent = "Confirmation du paiement en cours...";
         alert("Une demande de paiement vient d'être envoyée sur votre téléphone.\n\nVeuillez confirmer avec votre code PIN.");
-        startPaymentVerification(result.transaction_id);
+        startPaymentVerification(result.transaction_id || result.id); // Prend transaction_id ou id renvoyé par l'API
         return;
     }
 
