@@ -564,299 +564,144 @@ alert(error.message);
 // VERIFICATION DU PAIEMENT
 // ===============================
 
-async function startPaymentVerification(transactionId){
+async function startPaymentVerification(transactionId) {
+
+    let attempts = 0;
+    const maxAttempts = 40;
+    const btn = document.getElementById("payBtn");
+
+    const interval = setInterval(async () => {
+
+        attempts++;
+
+        try {
+
+            const response = await fetch(
+                "https://kfkifkstatbadtzosxai.supabase.co/functions/v1/shewary-callback",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${supabaseKey}`
+                    },
+                    body: JSON.stringify({
+                        transaction_id: transactionId
+                    })
+                }
+            );
 
 
-let attempts = 0;
+            const result = await response.json();
 
-const maxAttempts = 20; // 20 x 3 secondes = 1 minute
-
-const btn = document.getElementById("payBtn");
+            console.log("Résultat shewary-callback:", result);
 
 
 
-const interval = setInterval(async()=>{
+            // Paiement réussi
+            if (
+                result.status === "completed" ||
+                result.status === "success" ||
+                result.status === "SUCCESS"
+            ) {
+
+                clearInterval(interval);
+
+                pendingReservation.ticket_number = result.ticket_number;
+
+                localStorage.setItem(
+                    "reservationInfo",
+                    JSON.stringify(pendingReservation)
+                );
 
 
-attempts++;
+                window.location.href =
+                `confirmation.html?ticket=${result.ticket_number}`;
+
+                return;
+            }
 
 
-try{
+
+            // Paiement refusé
+            if (
+                result.status === "failed" ||
+                result.status === "cancelled" ||
+                result.status === "FAILED" ||
+                result.status === "CANCELLED"
+            ) {
+
+                clearInterval(interval);
+
+                alert(
+                    "Paiement échoué : " +
+                    (result.message || "Transaction annulée.")
+                );
 
 
-const response = await fetch(
+                btn.disabled = false;
 
-"https://kfkifkstatbadtzosxai.supabase.co/functions/v1/shewary-callback",
+                btn.textContent =
+                "Confirmer et payer 🔒";
 
-{
+                return;
+            }
 
-method:"POST",
 
-headers:{
 
-"Content-Type":"application/json",
+            // Paiement toujours en attente
+            if (
+                result.status === "pending" ||
+                result.status === "PENDING"
+            ) {
 
-"Authorization":
-`Bearer ${supabaseKey}`
+                console.log("Paiement toujours en attente...");
+            }
 
-},
 
-body:JSON.stringify({
 
-transaction_id:transactionId
+            // Temps dépassé
+            if (attempts >= maxAttempts) {
 
-})
+                clearInterval(interval);
+
+
+                alert(
+                    "Délai d'attente dépassé. Vous pouvez réessayer."
+                );
+
+
+                btn.disabled = false;
+
+                btn.textContent =
+                "Confirmer et payer 🔒";
+            }
+
+
+        } catch(error) {
+
+            console.log(
+                "Erreur vérification paiement :",
+                error
+            );
+
+
+            if (attempts >= maxAttempts) {
+
+                clearInterval(interval);
+
+                btn.disabled = false;
+
+                btn.textContent =
+                "Confirmer et payer 🔒";
+
+            }
+
+        }
+
+
+    }, 3000);
 
 }
-
-);
-
-
-
-const result =
-await response.json();
-
-
-
-console.log(
-"Résultat shewary-callback:",
-result
-);
-
-
-
-// =====================
-// PAIEMENT REUSSI
-// =====================
-
-
-if(
-
-result.status==="completed" ||
-
-result.status==="success" ||
-
-result.status==="SUCCESS"
-
-){
-
-
-clearInterval(interval);
-
-
-localStorage.removeItem(
-"payment_pending"
-);
-
-
-
-pendingReservation.ticket_number =
-result.ticket_number;
-
-
-
-localStorage.setItem(
-
-"reservationInfo",
-
-JSON.stringify(pendingReservation)
-
-);
-
-
-
-window.location.href =
-`confirmation.html?ticket=${result.ticket_number}`;
-
-
-return;
-
-}
-
-
-
-
-// =====================
-// PAIEMENT REFUSE
-// =====================
-
-
-if(
-
-result.status==="failed" ||
-
-result.status==="cancelled" ||
-
-result.status==="FAILED" ||
-
-result.status==="CANCELLED"
-
-){
-
-
-clearInterval(interval);
-
-
-
-localStorage.removeItem(
-"payment_pending"
-);
-
-
-
-btn.disabled=false;
-
-
-btn.textContent=
-"Confirmer et payer 🔒";
-
-
-
-alert(
-
-"Paiement échoué : "+
-
-(result.message ||
-
-"Transaction annulée.")
-
-);
-
-
-
-return;
-
-}
-
-
-
-
-// =====================
-// TOUJOURS EN ATTENTE
-// =====================
-
-
-if(
-
-result.status==="pending" ||
-
-result.status==="PENDING"
-
-){
-
-
-console.log(
-"Paiement toujours en attente..."
-);
-
-}
-
-
-
-// Statut inconnu
-
-else{
-
-
-console.log(
-"Statut reçu inconnu :",
-result
-);
-
-
-}
-
-
-
-
-// =====================
-// EXPIRATION
-// =====================
-
-
-if(attempts>=maxAttempts){
-
-
-clearInterval(interval);
-
-
-
-localStorage.removeItem(
-"payment_pending"
-);
-
-
-
-btn.disabled=false;
-
-
-btn.textContent=
-"Confirmer et payer 🔒";
-
-
-
-alert(
-
-"Le délai de confirmation est dépassé. Vous pouvez réessayer."
-
-);
-
-
-
-}
-
-
-
-}
-
-
-catch(error){
-
-
-console.log(
-"Erreur vérification paiement:",
-error
-);
-
-
-
-if(attempts>=maxAttempts){
-
-
-clearInterval(interval);
-
-
-
-localStorage.removeItem(
-"payment_pending"
-);
-
-
-
-btn.disabled=false;
-
-
-btn.textContent=
-"Confirmer et payer 🔒";
-
-
-alert(
-"Impossible de vérifier le paiement. Réessayez."
-);
-
-
-}
-
-
-}
-
-
-
-},3000);
-
-
-}
-
 </script>
 
 </body>
