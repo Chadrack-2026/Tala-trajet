@@ -357,7 +357,7 @@
     }
 
     // 5. GÉNÉRATION DU QR CODE (Pointe vers verify.html pour les agents)
-    const verificationUrl = `${window.location.origin}/verify.html?ticket=${currentReservation.ticket_number}`;
+    const verificationUrl = `${window.location.origin}/agences/verify.html?ticket=${currentReservation.ticket_number}`;
     const qrDiv = document.getElementById("qrcode");
     qrDiv.innerHTML = "";
     new QRCode(qrDiv, {
@@ -458,7 +458,7 @@
     addRow("Statut Paiement :", "CONFIRMÉ / PAYÉ");
 
     // Intégration QR Code dans le PDF pointant vers la vérification
-    const verificationUrl = `${window.location.origin}/verify.html?ticket=${ticketNum}`;
+    const verificationUrl = `${window.location.origin}/agences/verify.html?ticket=${ticketNum}`;
     const qrDataUrl = await generateQRDataURL(verificationUrl);
     if (qrDataUrl) {
       doc.addImage(qrDataUrl, "PNG", 75, y + 10, 60, 60);
