@@ -8,12 +8,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 
-  <!-- Inclusion SDK Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-<!-- HEADER -->
 <header class="site-header">
   <div class="brand">TALA<span>Trajet</span></div>
   <nav class="main-nav" id="navMenu">
@@ -26,10 +24,7 @@
   <button class="menu-btn" id="menuToggle" aria-label="Ouvrir le menu">☰</button>
 </header>
 
-<!-- MAIN -->
 <main style="padding-bottom: 80px;">
-  
-  <!-- HERO RÉSULTATS -->
   <section class="hero-showcase" style="padding: 50px 20px 30px;">
     <div class="hero-content">
       <span class="badge-hero" id="resultsCount">Recherche en cours...</span>
@@ -39,24 +34,16 @@
   </section>
 
   <div class="container" style="margin-top: 20px;">
-    
-    <!-- LISTE DES RÉSULTATS -->
-    <div id="resultsList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;">
-      <!-- Les cartes de trajets s'injecteront dynamiquement ici -->
-    </div>
-
+    <div id="resultsList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;"></div>
   </div>
-
 </main>
 
-<!-- FOOTER -->
 <footer>
   <div class="container footer-inner">
     <div class="footer-brand">
       <div class="brand">TALA<span>Trajet</span></div>
       <p>La plateforme intelligente de réservation de billets de transport en République Démocratique du Congo.</p>
     </div>
-    
     <div class="footer-links">
       <a href="about.html">À propos</a>
       <a href="contact.html">Contact</a>
@@ -70,13 +57,11 @@
 </footer>
 
 <script>
-  // Initialisation Supabase
   const { createClient } = window.supabase;
   const supabaseUrl = "https://kfkifkstatbadtzosxai.supabase.co"; 
   const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma2lma3N0YXRiYWR0em9zeGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3MTYzMTAsImV4cCI6MjEwMTI5MjMxMH0.xPzFtl_OET2asSc5iH3liRHnPyuUYAfbbjZISwfnaA8";
   const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
-  // Menu Mobile Toggle
   const menuToggle = document.getElementById('menuToggle');
   const navMenu = document.getElementById('navMenu');
   if (menuToggle && navMenu) {
@@ -86,7 +71,6 @@
     });
   }
 
-  // Récupération des paramètres de l'URL
   const urlParams = new URLSearchParams(window.location.search);
   const departureCity = urlParams.get('departure') || '';
   const arrivalCity = urlParams.get('arrival') || '';
@@ -94,7 +78,6 @@
   const passengers = parseInt(urlParams.get('passengers') || '1', 10);
 
   document.addEventListener('DOMContentLoaded', async () => {
-    // Affichage récapitulatif des critères
     const summaryEl = document.getElementById('searchCriteriaSummary');
     if (summaryEl) {
       let summaryText = '';
@@ -107,7 +90,6 @@
       summaryEl.innerHTML = summaryText || "Tous les trajets disponibles";
     }
 
-    // Gestion de la session utilisateur pour le header
     const { data: { session } } = await supabaseClient.auth.getSession();
     const accountLink = document.getElementById('userAccountLink');
     if (session && session.user) {
@@ -119,11 +101,9 @@
       accountLink.href = "auth.html";
     }
 
-    // Lancer la recherche des trajets
     await loadResults();
   });
 
-  // Fonction de chargement et filtrage des trajets
   async function loadResults() {
     const container = document.getElementById("resultsList");
     const countEl = document.getElementById("resultsCount");
@@ -137,7 +117,6 @@
     `;
 
     try {
-      // Requête Supabase sécurisée avec jointure standard sur 'agencies'
       let { data, error } = await supabaseClient.from("trips").select(`
         id,
         ville_depart,
@@ -157,7 +136,6 @@
         return;
       }
 
-      // Filtrage intelligent et flexible en JavaScript
       const filtered = (data || []).filter(trajet => {
         const places = trajet.places_disponibles || 0;
         if (places < passengers) return false;
@@ -196,14 +174,12 @@
         return;
       }
 
-      // Tri par prix croissant
       filtered.sort((a, b) => a.prix - b.prix);
 
       if (countEl) countEl.textContent = `${filtered.length} trajet(s) disponible(s)`;
       container.innerHTML = "";
 
       filtered.forEach(trajet => {
-        // Gestion robuste si agency est un tableau ou un objet unique retourné par PostgREST
         const agenceObj = Array.isArray(trajet.agency) ? trajet.agency[0] : trajet.agency;
         const agenceNom = agenceObj?.nom || "Agence Partenaire";
         
@@ -213,7 +189,6 @@
         container.innerHTML += `
           <div class="card" style="background: #171b22; border: 1px solid #2a313b; border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between;">
             <div class="card-body" style="padding: 24px;">
-              
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                 <span class="route-tag" style="background: rgba(0,210,255,0.1); color: #00d2ff; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 600;">${agenceNom}</span>
                 <strong style="color: #00d2ff; font-size: 1.3rem; font-weight: 700;">${prixFormate} CDF</strong>
@@ -231,7 +206,6 @@
               <button onclick="selectTrip('${trajet.id}')" class="btn-primary-lg" style="width: 100%; border: none; cursor: pointer; text-align: center; font-size: 0.95rem; padding: 14px;">
                 Réserver ce trajet →
               </button>
-
             </div>
           </div>
         `;
@@ -246,7 +220,6 @@
     }
   }
 
-  // Action lors du clic sur Réserver
   function selectTrip(tripId) {
     window.location.href = `booking.html?trip_id=${tripId}`;
   }
