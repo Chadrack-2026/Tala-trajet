@@ -209,7 +209,6 @@
     const accountActions = document.getElementById("accountActions");
     const accountLink = document.getElementById("userAccountLink");
 
-    // Utilisation sécurisée de getUser() à la place de getSession()
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
     const lastReservation = JSON.parse(localStorage.getItem("reservationInfo"));
     
@@ -240,7 +239,6 @@
     }
 
     if (clientPhone) {
-      // Nettoyage basique pour interroger la base sans espace superflu
       const cleanPhone = clientPhone.trim();
       const { data, error } = await supabaseClient
         .from("reservations")
