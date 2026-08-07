@@ -35,15 +35,20 @@
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
-    .badge.CONFIRME, .badge.PAID, .badge.paye, .badge.Confirmé {
+    .badge.CONFIRME, .badge.PAID, .badge.paye, .badge.Confirmé, .badge.payé {
       background: rgba(46, 204, 113, 0.15);
       color: #2ecc71;
       border: 1px solid #2ecc71;
     }
-    .badge.EN_ATTENTE, .badge.PENDING {
+    .badge.EN_ATTENTE, .badge.PENDING, .badge.attente {
       background: rgba(241, 196, 15, 0.15);
       color: #f1c40f;
       border: 1px solid #f1c40f;
+    }
+    .badge.ANNULE, .badge.CANCELLED {
+      background: rgba(231, 76, 60, 0.15);
+      color: #e74c3c;
+      border: 1px solid #e74c3c;
     }
     .history-card {
       background: #171b22;
@@ -240,7 +245,6 @@
 
     if (clientPhone) {
       const cleanPhone = clientPhone.trim();
-      // Utilisation du nom exact de la colonne : téléphone_client
       const { data, error } = await supabaseClient
         .from("reservations")
         .select(`*, trips (ville_depart, ville_arrivee, date_depart, heure_depart, agence, agencies(nom))`)
@@ -284,9 +288,12 @@
 
     filtered.forEach(r => {
       const ticketNum = r.ticket_number || r.id || "TL-N/A";
-      const status = r.statut || "CONFIRME";
-      const seatsCount = r.seats_count || (Array.isArray(r.seats) ? r.seats.length : 1);
       
+      // Récupération directe et exacte de la colonne statut depuis la base de données
+      const rawStatus = r.statut || "En attente";
+      const badgeClass = rawStatus.replace(/\s+/g, '_');
+
+      const seatsCount = r.seats_count || (Array.isArray(r.seats) ? r.seats.length : 1);
       const villeDepart = r.trips?.ville_depart || r.ville_depart || 'Départ';
       const villeArrivee = r.trips?.ville_arrivee || r.ville_arrivee || 'Arrivée';
       const tripDate = r.trips?.date_depart || r.date || 'N/A';
@@ -300,7 +307,7 @@
                 ${villeDepart} ➔ ${villeArrivee}
               </h4>
             </div>
-            <span class="badge ${status}">${status}</span>
+            <span class="badge ${badgeClass}">${rawStatus}</span>
           </div>
 
           <div style="display: flex; gap: 16px; font-size: 0.85rem; color: #b0bcc9; margin-bottom: 14px; flex-wrap: wrap;">
