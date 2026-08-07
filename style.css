@@ -642,3 +642,36 @@ footer {
 }
 
 
+/* =====================================================
+   BADGES DE STATUT (Confirmation & Compte)
+   ===================================================== */
+.badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Statuts validés / payés (Vert) */
+.badge.Confirmé, .badge.CONFIRME, .badge.Payé, .badge.PAID, .badge.paye, .badge.payé {
+  background: rgba(46, 204, 113, 0.15);
+  color: #2ecc71;
+  border: 1px solid #2ecc71;
+}
+
+/* Statuts en attente (Jaune) */
+.badge.En_attente, .badge.EN_ATTENTE, .badge.PENDING, .badge.attente {
+  background: rgba(241, 196, 15, 0.15);
+  color: #f1c40f;
+  border: 1px solid #f1c40f;
+}
+
+/* Statuts annulés (Rouge) */
+.badge.Annulé, .badge.ANNULE, .badge.CANCELLED, .badge.annule {
+  background: rgba(231, 76, 60, 0.15);
+  color: #e74c3c;
+  border: 1px solid #e74c3c;
+}
