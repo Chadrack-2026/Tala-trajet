@@ -136,29 +136,24 @@
           body: JSON.stringify(pendingReservation)
         });
 
-        if (response.ok) {
-          const result = await response.json();
-          if (result.success) {
-            pendingReservation.ticket_number = result.ticket_number || "TALA-" + Math.floor(100000 + Math.random() * 900000);
-            localStorage.setItem("reservationInfo", JSON.stringify(pendingReservation));
-            window.location.href = `confirmation.html?ticket=${pendingReservation.ticket_number}`;
-            return;
-          }
-        }
+        const result = await response.json();
         
-        throw new Error("Paiement refusé par le serveur.");
+        if (result.success) {
+          pendingReservation.ticket_number = result.ticket_number;
+          localStorage.setItem("reservationInfo", JSON.stringify(pendingReservation));
+          window.location.href = `confirmation.html?ticket=${result.ticket_number}`;
+          return;
+        }
+
+        alert(result.message || "Paiement refusé.");
+        btn.disabled = false;
+        btn.textContent = "Confirmer et payer 🔒";
 
       } catch (error) {
-        console.warn("Mode simulation activé (Edge Function non joignable ou erreur réseau) :", error);
-        
-        const simulatedTicket = "TALA-" + Math.floor(100000 + Math.random() * 900000);
-        pendingReservation.ticket_number = simulatedTicket;
-        
-        localStorage.setItem("reservationInfo", JSON.stringify(pendingReservation));
-        
-        setTimeout(() => {
-          window.location.href = `confirmation.html?ticket=${simulatedTicket}`;
-        }, 1000);
+        console.error("Erreur réseau :", error);
+        alert("Impossible de contacter le serveur de paiement.");
+        btn.disabled = false;
+        btn.textContent = "Confirmer et payer 🔒";
       }
     });
   </script>
