@@ -354,7 +354,7 @@
   async function handleLogout() {
     await supabaseClient.auth.signOut();
     localStorage.removeItem("reservationInfo");
-    window.location.href = "index.html";
+    window.location.href = "search.html";
   }
 
   function handleResetLocal() {
