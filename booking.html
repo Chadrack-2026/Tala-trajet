@@ -106,17 +106,24 @@
       return;
     }
 
+    // 1. Vérifier obligatoirement la session de l'utilisateur
     const { data: { session } } = await supabaseClient.auth.getSession();
-    if (session && session.user) {
-      currentUserId = session.user.id;
-      if (session.user.user_metadata?.full_name) {
-        document.getElementById("name").value = session.user.user_metadata.full_name;
-      }
-      if (session.user.email) {
-        document.getElementById("email").value = session.user.email;
-      }
+    if (!session || !session.user) {
+      alert("Vous devez être connecté à votre compte pour réserver un trajet.");
+      window.location.href = "auth.html";
+      return;
     }
 
+    // 2. Récupérer l'ID de l'utilisateur et pré-remplir le formulaire
+    currentUserId = session.user.id;
+    if (session.user.user_metadata?.full_name) {
+      document.getElementById("name").value = session.user.user_metadata.full_name;
+    }
+    if (session.user.email) {
+      document.getElementById("email").value = session.user.email;
+    }
+
+    // 3. Charger les détails du trajet depuis Supabase
     const { data, error } = await supabaseClient
       .from("trips")
       .select(`
@@ -140,6 +147,7 @@
 
     trajet = data;
 
+    // 4. Charger les sièges déjà réservés
     const { data: reservedData } = await supabaseClient
       .from("reservations")
       .select("seats")
@@ -162,6 +170,7 @@
     const capacity = trajet.places_totales ? Number(trajet.places_totales) : 57;
     const remainingSeats = trajet.places_disponibles !== null ? trajet.places_disponibles : (capacity - occupiedSeats.length);
 
+    // 5. Afficher le récapitulatif
     document.getElementById("tripDetails").innerHTML = `
       <h3 style="margin-top:0; color:#00d2ff; font-size:1.3rem;">${trajet.ville_depart} ➔ ${trajet.ville_arrivee}</h3>
       <p style="margin: 5px 0; color:#b0bcc9;">🏢 <strong>Compagnie :</strong> ${trajet.agency ? trajet.agency.nom : 'Agence Partenaire'}</p>
@@ -170,6 +179,7 @@
       <p style="margin: 5px 0; color:#2ecc71;">🪑 <strong>Places restantes :</strong> ${remainingSeats} sur ${capacity}</p>
     `;
 
+    // 6. Générer la carte des sièges
     generateSeats(capacity, occupiedSeats);
   }
 
