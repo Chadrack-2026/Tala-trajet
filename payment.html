@@ -49,7 +49,6 @@
   const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma2lma3N0YXRiYWR0em9zeGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3MTYzMTAsImV4cCI6MjEwMTI5MjMxMH0.xPzFtl_OET2asSc5iH3liRHnPyuUYAfbbjZISwfnaA8";
   const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
-  // Charger les données de réservation enregistrées dans booking.html
   const reservation = JSON.parse(localStorage.getItem("reservationInfo"));
 
   if (!reservation) {
@@ -64,20 +63,18 @@
       <div class="summary-item"><span>Passager:</span> <strong>${reservation.nom_client}</strong></div>
       <div class="summary-item"><span>Téléphone:</span> <strong>${reservation.telephone_client}</strong></div>
       <div class="summary-item"><span>Trajet:</span> <strong>${reservation.ville_depart} ➔ ${reservation.ville_arrivee}</strong></div>
-      <div class="summary-item"><span>Siège(s):</span> <strong>${reservation.seats.join(', ')}</strong></div>
+      <div class="summary-item"><span>Siège(s):</span> <strong>${reservation.seats ? reservation.seats.join(', ') : ''}</strong></div>
       <div class="total-price">Total : ${Number(reservation.total_price).toLocaleString('fr-FR')} FC</div>
     `;
   }
 
   async function lancerPaiement() {
     const payBtn = document.getElementById("payBtn");
-    const statusBox = document.getElementById("statusBox");
-
     payBtn.disabled = true;
     afficherStatut("Validation sur votre téléphone en cours...", "pending");
 
     try {
-      // 1. Appel de l'Edge Function Supabase qui communique avec Shwary
+      // 1. Initialisation via Edge Function
       const { data, error } = await supabaseClient.functions.invoke('initiate-payment', {
         body: {
           amount: reservation.total_price,
@@ -92,8 +89,8 @@
 
       const shwaryTxId = data.id;
 
-      // 2. Création de la ligne initiale dans la table payouts
-      await supabaseClient.from('payouts').insert({
+      // 2. Création du payout
+      const { error: payoutErr } = await supabaseClient.from('payouts').insert({
         shwary_transaction_id: shwaryTxId,
         user_id: reservation.user_id || null,
         amount: reservation.total_price,
@@ -102,9 +99,13 @@
         recipient_phone_number: reservation.telephone_client
       });
 
-      afficherStatut("Un message de confirmation USSD a été envoyé sur votre téléphone (+243...). Veuillez valider.", "pending");
+      if (payoutErr) {
+        console.error("Erreur insertion payout:", payoutErr);
+      }
 
-      // 3. Écoute Realtime sur la table payouts
+      afficherStatut("Un message de confirmation USSD a été envoyé sur votre téléphone. Veuillez valider.", "pending");
+
+      // 3. Écoute du paiement en Realtime
       ecouterStatutPaiement(shwaryTxId);
 
     } catch (err) {
@@ -127,23 +128,24 @@
         },
         async (payload) => {
           const row = payload.new;
+          console.log("Mise à jour statut reçue :", row.status);
 
-          if (row.status === 'completed') {
+          // Vérification de plusieurs variantes courantes pour le statut "réussi"
+          if (['completed', 'success', 'successful', 'PAID'].includes(row.status?.toLowerCase())) {
             afficherStatut("Paiement réussi ! Enregistrement du billet...", "success");
 
-            // Génération d'un numéro de ticket unique
             const ticketNum = "TALA-" + Math.random().toString(36).substring(2, 8).toUpperCase();
 
-            // Insérer la réservation avec les colonnes exactes de la table
+            // Insérer la réservation
             const { error: resError } = await supabaseClient
               .from('reservations')
               .insert({
                 trip_id: reservation.trip_id,
                 nom_client: reservation.nom_client,
-                email: reservation.email,
+                email: reservation.email || null,
                 telephone_client: reservation.telephone_client,
                 seats: reservation.seats,
-                seats_count: reservation.seats_count || reservation.seats.length,
+                seats_count: reservation.seats_count || (reservation.seats ? reservation.seats.length : 1),
                 total_price: reservation.total_price,
                 statut: 'CONFIRME',
                 mode_paiement: 'MOBILE_MONEY',
@@ -151,20 +153,27 @@
               });
 
             if (resError) {
-              console.error("Erreur lors de l'enregistrement de la réservation:", resError);
+              console.error("Erreur enregistrement réservation:", resError);
               afficherStatut("Erreur enregistrement : " + resError.message, "error");
               document.getElementById("payBtn").disabled = false;
               return;
             }
 
-            localStorage.removeItem("reservationInfo");
+            // Sauvegarder les données complètes avec le ticket_number pour confirmation.html
+            const confirmedData = {
+              ...reservation,
+              ticket_number: ticketNum,
+              status: 'CONFIRME'
+            };
+            localStorage.setItem("confirmedReservation", JSON.stringify(confirmedData));
+
             setTimeout(() => {
-              window.location.href = "confirmation.html";
-            }, 1500);
+              window.location.href = `confirmation.html?ticket=${ticketNum}`;
+            }, 1000);
 
             supabaseClient.removeChannel(channel);
 
-          } else if (row.status === 'failed' || row.status === 'cancelled') {
+          } else if (['failed', 'cancelled', 'error', 'REJECTED'].includes(row.status?.toLowerCase())) {
             afficherStatut(`Paiement échoué ou annulé (${row.failure_reason || ''}).`, "error");
             document.getElementById("payBtn").disabled = false;
             supabaseClient.removeChannel(channel);
