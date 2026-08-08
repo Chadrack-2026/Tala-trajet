@@ -131,23 +131,36 @@
           if (row.status === 'completed') {
             afficherStatut("Paiement réussi ! Enregistrement du billet...", "success");
 
-            // Insérer la réservation définitive dans la table 'reservations'
-            await supabaseClient.from('reservations').insert({
-              trip_id: reservation.trip_id,
-              user_id: reservation.user_id || null,
-              client_name: reservation.nom_client,
-              client_email: reservation.email,
-              client_phone: reservation.telephone_client,
-              seats: reservation.seats,
-              total_price: reservation.total_price,
-              status: 'CONFIRME'
-            });
+            // Génération d'un numéro de ticket unique
+            const ticketNum = "TALA-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+
+            // Insérer la réservation avec les colonnes exactes de la table
+            const { error: resError } = await supabaseClient
+              .from('reservations')
+              .insert({
+                trip_id: reservation.trip_id,
+                nom_client: reservation.nom_client,
+                email: reservation.email,
+                telephone_client: reservation.telephone_client,
+                seats: reservation.seats,
+                seats_count: reservation.seats_count || reservation.seats.length,
+                total_price: reservation.total_price,
+                statut: 'CONFIRME',
+                mode_paiement: 'MOBILE_MONEY',
+                ticket_number: ticketNum
+              });
+
+            if (resError) {
+              console.error("Erreur lors de l'enregistrement de la réservation:", resError);
+              afficherStatut("Erreur enregistrement : " + resError.message, "error");
+              document.getElementById("payBtn").disabled = false;
+              return;
+            }
 
             localStorage.removeItem("reservationInfo");
             setTimeout(() => {
-              alert("Votre réservation a été confirmée !");
               window.location.href = "confirmation.html";
-            }, 2000);
+            }, 1500);
 
             supabaseClient.removeChannel(channel);
 
