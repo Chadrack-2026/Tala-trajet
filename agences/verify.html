@@ -37,7 +37,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const card = document.getElementById("status-card");
     const textEl = document.getElementById("status-text");
 
-    // Récupérer le numéro de billet depuis l'URL (ex: verify.html?ticket=TALA-2026-XXXX)
+    // Récupérer le numéro de billet depuis l'URL (ex: verify.html?ticket=TALA-XXXXXX)
     const urlParams = new URLSearchParams(window.location.search);
     const ticketNumber = urlParams.get('ticket');
 
@@ -48,12 +48,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     try {
-        // 1. Rechercher le billet dans Supabase
+        // 1. Rechercher le billet et les détails du trajet lié dans Supabase
         const { data, error } = await supabase
             .from('reservations')
-            .select('*')
+            .select(`*, trips (ville_depart, ville_arrivee, date_depart, heure_depart)`)
             .eq('ticket_number', ticketNumber)
-            .single();
+            .maybeSingle();
 
         if (error || !data) {
             card.className = "p-6 rounded-2xl mb-6 shadow-inner bg-red-950/40 border border-red-800/50";
@@ -61,20 +61,42 @@ document.addEventListener("DOMContentLoaded", async () => {
             return;
         }
 
+        // Formater les sièges
+        const seatsFormatted = Array.isArray(data.seats) ? data.seats.join(', ') : (data.seats || 'Non spécifié');
+        const villeDepart = data.trips?.ville_depart || 'Départ';
+        const villeArrivee = data.trips?.ville_arrivee || 'Arrivée';
+        const dateDepart = data.trips?.date_depart || 'Non spécifiée';
+
         // 2. Vérifier si le billet a déjà été utilisé
         if (data.statut === 'USED' || data.statut === 'utilisé') {
             card.className = "p-6 rounded-2xl mb-6 shadow-inner bg-amber-950/40 border border-amber-800/50";
             textEl.innerHTML = `
                 <span class="text-amber-400 font-bold text-lg">⚠️ Billet Déjà Utilisé !</span>
+                <p class="text-xs text-amber-300/80 mt-1">Ce billet a déjà été scanné à l'embarquement.</p>
                 <div class="text-left text-sm text-slate-300 mt-3 space-y-1 bg-slate-900/60 p-3 rounded-lg border border-slate-800">
                     <p><strong>Client :</strong> ${data.nom_client || 'Non spécifié'}</p>
-                    <p><strong>Siège(s) :</strong> ${data.seats}</p>
+                    <p><strong>Trajet :</strong> ${villeDepart} ➔ ${villeArrivee}</p>
+                    <p><strong>Siège(s) :</strong> ${seatsFormatted}</p>
                 </div>
             `;
             return;
         }
 
-        // 3. Mettre à jour le statut du billet à 'USED' (Validé pour l'embarquement)
+        // 3. Vérifier si le billet est valide / confirmé
+        if (!['CONFIRME', 'PAID', 'SUCCESS', 'completed'].includes(data.statut)) {
+            card.className = "p-6 rounded-2xl mb-6 shadow-inner bg-red-950/40 border border-red-800/50";
+            textEl.innerHTML = `
+                <span class="text-red-400 font-bold text-lg">🚫 Billet Non Valide</span>
+                <p class="text-xs text-red-300 mt-1">Statut actuel : <strong>${data.statut || 'INCONNU'}</strong></p>
+                <div class="text-left text-sm text-slate-300 mt-3 space-y-1 bg-slate-900/60 p-3 rounded-lg border border-slate-800">
+                    <p><strong>Client :</strong> ${data.nom_client || 'Non spécifié'}</p>
+                    <p><strong>Téléphone :</strong> ${data.telephone_client || 'N/A'}</p>
+                </div>
+            `;
+            return;
+        }
+
+        // 4. Valider le billet en passant le statut à 'USED'
         const { error: updateError } = await supabase
             .from('reservations')
             .update({ statut: 'USED' })
@@ -89,10 +111,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         textEl.innerHTML = `
             <span class="text-emerald-400 font-bold text-xl">✅ ACCÈS AUTORISÉ</span>
             <div class="text-left text-sm text-slate-200 mt-4 space-y-2 bg-slate-900/80 p-4 rounded-xl border border-emerald-900/50">
-                <p><strong>N° Billet :</strong> ${data.ticket_number}</p>
-                <p><strong>Client :</strong> ${data.nom_client || 'Non spécifié'}</p>
-                <p><strong>Siège(s) :</strong> ${data.seats}</p>
-                <p><strong>Téléphone :</strong> ${data.telephone_client}</p>
+                <p><strong>N° Billet :</strong> <span class="font-mono text-cyan-300">${data.ticket_number}</span></p>
+                <p><strong>Passager :</strong> ${data.nom_client || 'Non spécifié'}</p>
+                <p><strong>Trajet :</strong> ${villeDepart} ➔ ${villeArrivee}</p>
+                <p><strong>Date départ :</strong> ${dateDepart}</p>
+                <p><strong>Siège(s) :</strong> ${seatsFormatted}</p>
+                <p><strong>Téléphone :</strong> ${data.telephone_client || 'N/A'}</p>
             </div>
         `;
 
