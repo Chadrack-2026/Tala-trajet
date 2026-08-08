@@ -1,161 +1,173 @@
 <!DOCTYPE html>
-<html lang="fr">    
-<head>    
-  <meta charset="UTF-8">    
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">    
-  <title>TALA Trajet — Paiement</title>    
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">    
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>    
-  <style>    
-    :root {    
-      --primary-blue: #00d2ff;    
-      --accent-green: #2ecc71;    
-      --bg-dark: #0c0f13;    
-      --card-dark: #171b22;    
-      --text-light: #e7edf3;    
-      --input-bg: #1c2129;    
-      --input-border: #2a313b;    
-    }    
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TALA Trajet — Paiement Shwary</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --primary-blue: #00d2ff;
+      --accent-green: #2ecc71;
+      --seat-occupied: #e74c3c;
+      --bg-dark: #0c0f13;
+      --card-dark: #171b22;
+      --text-light: #e7edf3;
+      --input-border: #2a313b;
+    }
     body { font-family: 'Poppins', sans-serif; background-color: var(--bg-dark); color: var(--text-light); margin: 0; }
-    header.site-header { background: var(--card-dark); padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--input-border); }
-    .brand { font-weight: 700; font-size: 1.4rem; color: var(--primary-blue); }
-    .brand span { color: #ffffff; }
-    .container { max-width: 600px; margin: 30px auto; padding: 0 24px; }
-    .card { background: var(--card-dark); border: 1px solid var(--input-border); border-radius: 16px; padding: 24px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
-    .summary-box { background: #0c0f13; border: 1px solid var(--input-border); border-radius: 12px; padding: 16px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; }
-    .price { color: var(--primary-blue); font-size: 1.3rem; font-weight: 700; }    
-    .form input { width: 100%; box-sizing: border-box; padding: 14px 16px; margin-bottom: 18px; border: 1px solid var(--input-border); border-radius: 12px; background: var(--input-bg); color: var(--text-light); font-size: 15px; }
-    .form label { display: block; font-size: 0.85rem; color: #b0bcc9; margin-bottom: 8px; }
-    button { width: 100%; padding: 15px; background: var(--primary-blue); color: #0c0f13; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; margin-top: 10px; font-size: 1rem; transition: all 0.3s ease; }
-    button:hover { opacity: 0.9; transform: translateY(-2px); }
-    button:disabled { background: #444; color: #888; cursor: not-allowed; transform: none; }
-  </style>  
+    .container { max-width: 500px; margin: 40px auto; padding: 0 20px; }
+    .card { background: var(--card-dark); border: 1px solid var(--input-border); border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+    .summary-item { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px; border-bottom: 1px dashed var(--input-border); padding-bottom: 8px; }
+    .total-price { color: var(--primary-blue); font-size: 1.4rem; font-weight: 700; text-align: right; margin-top: 10px; }
+    button { width: 100%; padding: 15px; background: var(--primary-blue); color: #0c0f13; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; margin-top: 20px; font-size: 1rem; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .status-box { margin-top: 20px; padding: 15px; border-radius: 10px; text-align: center; display: none; font-weight: 600; }
+    .status-box.pending { background: rgba(0, 210, 255, 0.1); border: 1px solid var(--primary-blue); color: var(--primary-blue); }
+    .status-box.success { background: rgba(46, 204, 113, 0.1); border: 1px solid var(--accent-green); color: var(--accent-green); }
+    .status-box.error { background: rgba(231, 76, 60, 0.1); border: 1px solid var(--seat-occupied); color: var(--seat-occupied); }
+  </style>
 </head>
+<body>
 
-<body>  
-  <header class="site-header">    
-    <div class="brand">TALA<span>Trajet</span></div>    
-    <a href="booking.html" style="color: #b0bcc9; text-decoration: none; font-size: 0.9rem;">← Modifier les sièges</a>    
-  </header>  
+<main class="container">
+  <div class="card">
+    <h2 style="margin-top:0; color: var(--primary-blue);">Récapitulatif de votre réservation</h2>
+    
+    <div id="summary"></div>
 
-  <main class="container">    
-    <section class="card">    
-      <h2 style="margin-top: 0; color: #ffffff; font-size: 1.3rem;">💳 Paiement Mobile Money</h2>    
-      <p style="color: #b0bcc9; font-size: 0.9rem; margin-bottom: 24px;">Entrez votre numéro pour régler votre voyage.</p>  
-      
-      <div class="summary-box">    
-        <div>    
-          <span style="font-size: 0.8rem; color: #b0bcc9; display: block;">Trajet</span>    
-          <strong id="summaryRoute" style="color: #ffffff; font-size: 0.95rem;">Chargement...</strong>    
-        </div>    
-        <div style="text-align: right;">    
-          <span style="font-size: 0.8rem; color: #b0bcc9; display: block;">Montant total</span>    
-          <span id="summaryPrice" class="price">0 FC</span>    
-        </div>    
-      </div>    
+    <div id="statusBox" class="status-box"></div>
 
-      <form id="paymentForm" class="form" style="margin-top:20px;">    
-        <div>    
-          <label for="paymentPhone">Numéro Mobile Money (ex: 243XXXXXXXXX ou 08XXXXXXXX)</label>    
-          <input type="tel" id="paymentPhone" placeholder="243XXXXXXXXX" inputmode="numeric" autocomplete="tel" required>    
-        </div>      
-        <button type="submit" id="payBtn">Confirmer et payer 🔒</button>    
-      </form>    
-    </section>    
-  </main>    
+    <button id="payBtn" onclick="lancerPaiement()">Payer avec Mobile Money 📱</button>
+  </div>
+</main>
 
-  <script>    
-    const { createClient } = window.supabase;    
-    const supabaseUrl = "https://kfkifkstatbadtzosxai.supabase.co";     
-    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma2lma3N0YXRiYWR0em9zeGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3MTYzMTAsImV4cCI6MjEwMTI5MjMxMH0.xPzFtl_OET2asSc5iH3liRHnPyuUYAfbbjZISwfnaA8";    
-    const supabaseClient = createClient(supabaseUrl, supabaseKey);  
+<script>
+  const { createClient } = window.supabase;
+  const supabaseUrl = "https://kfkifkstatbadtzosxai.supabase.co"; 
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma2lma3N0YXRiYWR0em9zeGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3MTYzMTAsImV4cCI6MjEwMTI5MjMxMH0.xPzFtl_OET2asSc5iH3liRHnPyuUYAfbbjZISwfnaA8";
+  const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
-    let pendingReservation = null;  
+  // Charger les données de réservation enregistrées dans booking.html
+  const reservation = JSON.parse(localStorage.getItem("reservationInfo"));
 
-    document.addEventListener("DOMContentLoaded", () => {
-      const storedData = localStorage.getItem("reservationInfo");
-      if (!storedData) {
-        alert("Aucune réservation en cours.");
-        window.location.href = "search.html";
-        return;
-      }
+  if (!reservation) {
+    alert("Aucune réservation trouvée.");
+    window.location.href = "search.html";
+  } else {
+    afficherRecapitulatif();
+  }
 
-      pendingReservation = JSON.parse(storedData);
-      document.getElementById("summaryRoute").textContent = `${pendingReservation.ville_depart} ➔ ${pendingReservation.ville_arrivee}`;
+  function afficherRecapitulatif() {
+    document.getElementById("summary").innerHTML = `
+      <div class="summary-item"><span>Passager:</span> <strong>${reservation.nom_client}</strong></div>
+      <div class="summary-item"><span>Téléphone:</span> <strong>${reservation.telephone_client}</strong></div>
+      <div class="summary-item"><span>Trajet:</span> <strong>${reservation.ville_depart} ➔ ${reservation.ville_arrivee}</strong></div>
+      <div class="summary-item"><span>Siège(s):</span> <strong>${reservation.seats.join(', ')}</strong></div>
+      <div class="total-price">Total : ${Number(reservation.total_price).toLocaleString('fr-FR')} FC</div>
+    `;
+  }
 
-      const priceDisplay = document.getElementById("summaryPrice");
-      const currentPrice = Number(pendingReservation.total_price) || 0;
+  async function lancerPaiement() {
+    const payBtn = document.getElementById("payBtn");
+    const statusBox = document.getElementById("statusBox");
 
-      if (priceDisplay) {
-        priceDisplay.textContent = currentPrice.toLocaleString('fr-FR') + " FC";
-      }
+    payBtn.disabled = true;
+    afficherStatut("Validation sur votre téléphone en cours...", "pending");
 
-      if (pendingReservation.telephone_client) {
-        document.getElementById("paymentPhone").value = pendingReservation.telephone_client;
-      }
-    });
-
-    document.getElementById("paymentForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-
-      let phone = document.getElementById("paymentPhone").value.trim();
-      if (!phone) {
-        alert("Veuillez entrer votre numéro de téléphone pour le paiement.");
-        return;
-      }
-
-      if (phone.startsWith("243")) {
-        phone = "+" + phone;
-      } else if (phone.startsWith("0")) {
-        phone = "+243" + phone.substring(1);
-      } else if (!phone.startsWith("+")) {
-        phone = "+243" + phone;
-      }
-
-      const finalPrice = Number(pendingReservation.total_price);
-      if (isNaN(finalPrice) || finalPrice <= 0) {
-        alert("Montant invalide.");
-        return;
-      }
-
-      const btn = document.getElementById("payBtn");
-      btn.disabled = true;
-      btn.textContent = "Validation du paiement en cours...";
-
-      pendingReservation.telephone_client = phone;
-      pendingReservation.mode_paiement = "Mobile Money";
-      pendingReservation.total_price = finalPrice;
-
-      try {
-        const response = await fetch(`${supabaseUrl}/functions/v1/process-payment`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${supabaseKey}`
-          },
-          body: JSON.stringify(pendingReservation)
-        });
-
-        const result = await response.json();
-        
-        if (result.success) {
-          pendingReservation.ticket_number = result.ticket_number;
-          localStorage.setItem("reservationInfo", JSON.stringify(pendingReservation));
-          window.location.href = `confirmation.html?ticket=${result.ticket_number}`;
-          return;
+    try {
+      // 1. Appel de l'Edge Function Supabase qui communique avec Shwary
+      const { data, error } = await supabaseClient.functions.invoke('initiate-payment', {
+        body: {
+          amount: reservation.total_price,
+          clientPhoneNumber: reservation.telephone_client,
+          countryCode: 'DRC'
         }
+      });
 
-        alert(result.message || "Paiement refusé.");
-        btn.disabled = false;
-        btn.textContent = "Confirmer et payer 🔒";
-
-      } catch (error) {
-        console.error("Erreur réseau :", error);
-        alert("Impossible de contacter le serveur de paiement.");
-        btn.disabled = false;
-        btn.textContent = "Confirmer et payer 🔒";
+      if (error || !data || !data.id) {
+        throw new Error(error?.message || "Erreur lors de l'initialisation du paiement.");
       }
-    });
-  </script>
-</body>    
+
+      const shwaryTxId = data.id;
+
+      // 2. Création de la ligne initiale dans la table payouts
+      await supabaseClient.from('payouts').insert({
+        shwary_transaction_id: shwaryTxId,
+        user_id: reservation.user_id || null,
+        amount: reservation.total_price,
+        currency: 'CDF',
+        status: 'pending',
+        recipient_phone_number: reservation.telephone_client
+      });
+
+      afficherStatut("Un message de confirmation USSD a été envoyé sur votre téléphone (+243...). Veuillez valider.", "pending");
+
+      // 3. Écoute Realtime sur la table payouts
+      ecouterStatutPaiement(shwaryTxId);
+
+    } catch (err) {
+      console.error(err);
+      afficherStatut("Échec : " + err.message, "error");
+      payBtn.disabled = false;
+    }
+  }
+
+  function ecouterStatutPaiement(shwaryTxId) {
+    const channel = supabaseClient
+      .channel('suivi-paiement-payouts')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'payouts',
+          filter: `shwary_transaction_id=eq.${shwaryTxId}`
+        },
+        async (payload) => {
+          const row = payload.new;
+
+          if (row.status === 'completed') {
+            afficherStatut("Paiement réussi ! Enregistrement du billet...", "success");
+
+            // Insérer la réservation définitive dans la table 'reservations'
+            await supabaseClient.from('reservations').insert({
+              trip_id: reservation.trip_id,
+              user_id: reservation.user_id || null,
+              client_name: reservation.nom_client,
+              client_email: reservation.email,
+              client_phone: reservation.telephone_client,
+              seats: reservation.seats,
+              total_price: reservation.total_price,
+              status: 'CONFIRME'
+            });
+
+            localStorage.removeItem("reservationInfo");
+            setTimeout(() => {
+              alert("Votre réservation a été confirmée !");
+              window.location.href = "confirmation.html";
+            }, 2000);
+
+            supabaseClient.removeChannel(channel);
+
+          } else if (row.status === 'failed' || row.status === 'cancelled') {
+            afficherStatut(`Paiement échoué ou annulé (${row.failure_reason || ''}).`, "error");
+            document.getElementById("payBtn").disabled = false;
+            supabaseClient.removeChannel(channel);
+          }
+        }
+      )
+      .subscribe();
+  }
+
+  function afficherStatut(message, type) {
+    const box = document.getElementById("statusBox");
+    box.style.display = "block";
+    box.className = `status-box ${type}`;
+    box.textContent = message;
+  }
+</script>
+
+</body>
 </html>
