@@ -141,7 +141,7 @@
               Se déconnecter
             </button>
             <button onclick="handleResetLocal()" class="btn-secondary-lg" style="width: 100%; font-size: 0.85rem; padding: 10px; cursor: pointer; text-align: center; border-color: #e74c3c; color: #e74c3c; background: rgba(231, 76, 60, 0.05);">
-              Réinitialiser les données
+              Réinitialiser les données locales
             </button>
           </div>
         </div>
@@ -214,11 +214,11 @@
     const accountActions = document.getElementById("accountActions");
     const accountLink = document.getElementById("userAccountLink");
 
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+    const { data: { user } } = await supabaseClient.auth.getUser();
     const lastReservation = JSON.parse(localStorage.getItem("reservationInfo"));
     
-    let clientPhone = user?.phone || user?.user_metadata?.phone || lastReservation?.téléphone_client || lastReservation?.client_phone || lastReservation?.telephone;
-    let clientName = user?.user_metadata?.full_name || lastReservation?.nom_client || lastReservation?.client_name || lastReservation?.nom;
+    let clientPhone = user?.phone || user?.user_metadata?.phone || lastReservation?.telephone_client;
+    let clientName = user?.user_metadata?.full_name || lastReservation?.nom_client;
     let clientEmail = user?.email || lastReservation?.email;
 
     if (user || clientPhone || clientName || clientEmail) {
@@ -236,28 +236,37 @@
       accountInfo.innerHTML = `
         <div style="background: rgba(231, 76, 60, 0.1); border: 1px solid #e74c3c; border-radius: 10px; padding: 15px; text-align: center;">
           <p style="color: #e74c3c; font-size: 0.85rem; margin-bottom: 10px;">Aucune session active trouvée.</p>
-          <a href="auth.html" class="btn-primary-lg" style="font-size: 0.8rem; padding: 8px 16px; display: inline-block; text-decoration: none;">Se connecter / S'inscrire</a>
+          <a href="login.html" class="btn-primary-lg" style="font-size: 0.8rem; padding: 8px 16px; display: inline-block; text-decoration: none;">Se connecter / S'inscrire</a>
         </div>
       `;
       document.getElementById("reservationHistory").innerHTML = `<p style="color: #b0bcc9; font-size: 0.9rem;">Connectez-vous ou effectuez une réservation pour consulter vos billets.</p>`;
       return;
     }
 
-    if (clientPhone) {
-      const cleanPhone = clientPhone.trim();
-      const { data, error } = await supabaseClient
+    // Récupération intelligente des réservations dans Supabase
+    try {
+      let query = supabaseClient
         .from("reservations")
-        .select(`*, trips (ville_depart, ville_arrivee, date_depart, heure_depart, agence, agencies(nom))`)
-        .or(`téléphone_client.eq.${cleanPhone},téléphone_client.eq.${cleanPhone.replace('+','')}`)
+        .select(`*, trips (ville_depart, ville_arrivee, date_depart, heure_depart)`)
         .order("id", { ascending: false });
+
+      if (user?.id) {
+        query = query.eq('user_id', user.id);
+      } else if (clientPhone) {
+        const cleanPhone = clientPhone.trim();
+        query = query.or(`telephone_client.eq.${cleanPhone},telephone_client.eq.${cleanPhone.replace('+','')}`);
+      }
+
+      const { data, error } = await query;
 
       if (!error && data && data.length > 0) {
         allReservations = data;
       } else if (lastReservation) {
         allReservations = [lastReservation];
       }
-    } else if (lastReservation) {
-      allReservations = [lastReservation];
+    } catch (err) {
+      console.error("Erreur chargement réservations:", err);
+      if (lastReservation) allReservations = [lastReservation];
     }
 
     renderReservations();
@@ -277,7 +286,7 @@
     const today = new Date().toISOString().split('T')[0];
 
     const filtered = allReservations.filter(r => {
-      const tripDate = r.trips?.date_depart || r.date || today;
+      const tripDate = r.trips?.date_depart || r.date_depart || r.date || today;
       return currentTab === 'upcoming' ? tripDate >= today : tripDate < today;
     });
 
@@ -288,15 +297,13 @@
 
     filtered.forEach(r => {
       const ticketNum = r.ticket_number || r.id || "TL-N/A";
-      
-      // Récupération directe et exacte de la colonne statut depuis la base de données
-      const rawStatus = r.statut || "En attente";
+      const rawStatus = r.statut || "EN_ATTENTE";
       const badgeClass = rawStatus.replace(/\s+/g, '_');
 
       const seatsCount = r.seats_count || (Array.isArray(r.seats) ? r.seats.length : 1);
       const villeDepart = r.trips?.ville_depart || r.ville_depart || 'Départ';
       const villeArrivee = r.trips?.ville_arrivee || r.ville_arrivee || 'Arrivée';
-      const tripDate = r.trips?.date_depart || r.date || 'N/A';
+      const tripDate = r.trips?.date_depart || r.date_depart || r.date || 'N/A';
 
       container.innerHTML += `
         <div class="history-card">
@@ -335,7 +342,7 @@
 
   async function downloadQuickPDF(ticketNum) {
     const item = allReservations.find(r => (r.ticket_number || r.id) == ticketNum);
-    if (!item) return alert("Données du billet introuvables");
+    if (!item) return alert("Données du billet introuvables.");
 
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
@@ -351,8 +358,8 @@
     doc.text(`N° Billet : ${ticketNum}`, 20, 45);
     doc.text(`Trajet : ${item.trips?.ville_depart || item.ville_depart || 'N/A'} -> ${item.trips?.ville_arrivee || item.ville_arrivee || 'N/A'}`, 20, 55);
     doc.text(`Passager : ${item.nom_client || 'N/A'}`, 20, 65);
-    doc.text(`Téléphone : ${item.téléphone_client || 'N/A'}`, 20, 75);
-    doc.text(`Date : ${item.trips?.date_depart || item.date || 'N/A'}`, 20, 85);
+    doc.text(`Téléphone : ${item.telephone_client || 'N/A'}`, 20, 75);
+    doc.text(`Date : ${item.trips?.date_depart || item.date_depart || item.date || 'N/A'}`, 20, 85);
 
     doc.save(`Billet_${ticketNum}.pdf`);
   }
