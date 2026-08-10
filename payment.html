@@ -127,7 +127,10 @@
        total_price: reservation.total_price,
        statut: 'CONFIRMED',
        mode_paiement: 'TEST_MODE',
-       ticket_number: ticketNum
+       ticket_number: ticketNum,
+       // 📌 Ajout des villes pour l'historique
+       ville_depart: reservation.ville_depart,
+       ville_arrivee: reservation.ville_arrivee
      });
 
    if (resError) {
@@ -179,7 +182,10 @@
                total_price: reservation.total_price,
                statut: 'CONFIRMED',
                mode_paiement: 'MOBILE_MONEY',
-               ticket_number: ticketNum
+               ticket_number: ticketNum,
+               // 📌 Ajout des villes pour l'historique
+               ville_depart: reservation.ville_depart,
+               ville_arrivee: reservation.ville_arrivee
              });
 
            if (resError) {
