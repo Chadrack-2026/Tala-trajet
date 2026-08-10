@@ -3,12 +3,101 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TALA Trajet — Connexion & Inscription</title>
+  <title>Authentification — TALA Trajet</title>
   
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
-
+  
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <style>
+    .auth-container {
+      max-width: 480px;
+      margin: 60px auto;
+      padding: 0 20px;
+    }
+    .auth-card {
+      background: #171b22;
+      border: 1px solid #2a313b;
+      border-radius: 16px;
+      padding: 35px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .auth-tabs {
+      display: flex;
+      margin-bottom: 25px;
+      border-bottom: 1px solid #2a313b;
+    }
+    .auth-tab {
+      flex: 1;
+      background: none;
+      border: none;
+      color: #b0bcc9;
+      font-weight: 600;
+      font-size: 1rem;
+      padding: 12px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.3s ease;
+    }
+    .auth-tab.active {
+      color: #00d2ff;
+      border-bottom-color: #00d2ff;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-group label {
+      display: block;
+      color: #b0bcc9;
+      font-size: 0.85rem;
+      margin-bottom: 8px;
+    }
+    .google-btn {
+      width: 100%;
+      background: #ffffff;
+      color: #0f1216;
+      border: 1px solid #2a313b;
+      padding: 12px;
+      border-radius: 8px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      margin-bottom: 20px;
+    }
+    .google-btn:hover {
+      background: #f1f5f9;
+    }
+    .divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      color: #6b7a90;
+      font-size: 0.85rem;
+      margin: 20px 0;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid #2a313b;
+    }
+    .divider::before { margin-right: 15px; }
+    .divider::after { margin-left: 15px; }
+    .error-msg {
+      background: rgba(231, 76, 60, 0.1);
+      border: 1px solid #e74c3c;
+      color: #e74c3c;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      margin-bottom: 20px;
+      display: none;
+    }
+  </style>
 </head>
 <body>
 
@@ -16,89 +105,68 @@
 <header class="site-header">
   <div class="brand">TALA<span>Trajet</span></div>
   <nav class="main-nav" id="navMenu">
-    <a href="search.html">Accueil</a>
+    <a href="index.html">Accueil</a>
+    <a href="search.html">Rechercher</a>
     <a href="about.html">À propos</a>
     <a href="contact.html">Contact</a>
-    <a href="auth.html" class="nav-auth-btn">Se connecter / S'inscrire</a>
+    <a href="auth.html" class="active nav-auth-btn">Connexion</a>
   </nav>
   <button class="menu-btn" id="menuToggle" aria-label="Ouvrir le menu">☰</button>
 </header>
 
 <!-- MAIN -->
-<main style="padding: 40px 0 60px;">
-  <div class="container" style="max-width: 440px;">
-    <div class="card" style="padding: 30px 24px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);">
+<main>
+  <div class="auth-container">
+    <div class="auth-card">
       
-      <div style="text-align: center; margin-bottom: 24px;">
-        <h2 id="authTitle" style="font-size: 1.5rem; margin-bottom: 6px; color: #ffffff;">Bienvenue sur TALA Trajet</h2>
-        <p id="authSubtitle" style="color: #b0bcc9; font-size: 0.88rem; margin: 0;">Connectez-vous pour gérer vos réservations</p>
+      <div style="text-align: center; margin-bottom: 25px;">
+        <h1 style="color: #ffffff; font-size: 1.8rem; margin-bottom: 6px;" id="formTitle">Connexion</h1>
+        <p style="color: #b0bcc9; font-size: 0.9rem;" id="formSubtitle">Accédez à votre espace personnel TALA Trajet.</p>
       </div>
 
-      <div style="display: flex; background: #0c0f13; border-radius: 10px; padding: 4px; margin-bottom: 24px; border: 1px solid #2a313b;">
-        <button type="button" class="auth-tab active" id="tabLogin" onclick="switchTab('login')" style="flex: 1; padding: 10px; background: #2f7cf0; border: none; color: #ffffff; font-weight: 600; font-size: 0.9rem; cursor: pointer; border-radius: 8px;">Connexion</button>
-        <button type="button" class="auth-tab" id="tabRegister" onclick="switchTab('register')" style="flex: 1; padding: 10px; background: none; border: none; color: #b0bcc9; font-weight: 600; font-size: 0.9rem; cursor: pointer; border-radius: 8px;">Inscription</button>
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tabLogin" onclick="switchMode('login')">Se connecter</button>
+        <button class="auth-tab" id="tabRegister" onclick="switchMode('register')">S'inscrire</button>
       </div>
 
-      <div id="authAlert" style="display: none; padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 0.85rem; text-align: center;"></div>
+      <div class="error-msg" id="errorAlert"></div>
 
-      <!-- FORMULAIRE CONNEXION -->
-      <div id="loginForm" class="auth-form-content">
-        <form onsubmit="handleLogin(event)" class="search-form">
-          <div style="text-align: left;">
-            <label for="loginEmail" style="display: block; margin-bottom: 8px; font-size: 0.85rem; color: #e7edf3;">E-mail</label>
-            <input type="email" id="loginEmail" placeholder="exemple@mail.com" required>
-          </div>
+      <!-- BOUTON GOOGLE OAUTH -->
+      <button type="button" class="google-btn" onclick="loginWithGoogle()">
+        <svg width="18" height="18" viewBox="0 0 24 24">
+          <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
+          <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.13 0-5.78-2.11-6.73-4.96H1.19v3.15C3.17 21.31 7.22 24 12 24z"/>
+          <path fill="#FBBC05" d="M5.27 14.24c-.25-.72-.38-1.49-.38-2.24s.13-1.52.38-2.24V6.61H1.19C.43 8.15 0 9.89 0 11.75s.43 3.6 1.19 5.14l4.08-2.65z"/>
+          <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.22 0 3.17 2.69 1.19 6.61l4.08 3.15c.95-2.85 3.6-4.96 6.73-4.96z"/>
+        </svg>
+        Continuer avec Google
+      </button>
 
-          <div style="text-align: left; margin-top: 14px;">
-            <label for="loginPassword" style="display: block; margin-bottom: 8px; font-size: 0.85rem; color: #e7edf3;">Mot de passe</label>
-            <div style="position: relative;">
-              <input type="password" id="loginPassword" placeholder="••••••••" required>
-              <button type="button" onclick="togglePassword('loginPassword', this)" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #b0bcc9; cursor: pointer; font-size: 0.85rem; padding: 0;">Voir</button>
-            </div>
-          </div>
+      <div class="divider">ou avec votre email</div>
 
-          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; margin: 16px 0;">
-            <label style="display: flex; align-items: center; gap: 6px; color: #b0bcc9; cursor: pointer;">
-              <input type="checkbox" style="width: auto; cursor: pointer;"> Se souvenir de moi
-            </label>
-            <a href="#" style="color: #2f7cf0; font-size: 0.82rem;">Mot de passe oublié ?</a>
-          </div>
+      <!-- FORMULAIRE EMAIL / PASSWORD -->
+      <form id="authForm" onsubmit="handleAuth(event)">
+        
+        <div class="form-group" id="nameGroup" style="display: none;">
+          <label for="fullName">Nom complet</label>
+          <input type="text" id="fullName" placeholder="Ex: Jean Mukendi">
+        </div>
 
-          <button type="submit" id="btnLoginSubmit" class="btn-primary-lg" style="width: 100%; text-align: center; margin-top: 10px;">Se connecter</button>
-        </form>
-      </div>
+        <div class="form-group">
+          <label for="email">Adresse email</label>
+          <input type="email5" id="email" required placeholder="nom@exemple.com">
+        </div>
 
-      <!-- FORMULAIRE INSCRIPTION -->
-      <div id="registerForm" class="auth-form-content" style="display: none;">
-        <form onsubmit="handleRegister(event)" class="search-form">
-          <div style="text-align: left;">
-            <label for="regFullName" style="display: block; margin-bottom: 8px; font-size: 0.85rem; color: #e7edf3;">Nom et Prénom</label>
-            <input type="text" id="regFullName" placeholder="ex: Chadrack Nsuka" required>
-          </div>
+        <div class="form-group">
+          <label for="password">Mot de passe</label>
+          <input type="password" id="password" required placeholder="••••••••">
+        </div>
 
-          <div style="text-align: left; margin-top: 14px;">
-            <label for="regPhone" style="display: block; margin-bottom: 8px; font-size: 0.85rem; color: #e7edf3;">Numéro de Téléphone (Mobile Money)</label>
-            <input type="tel" id="regPhone" placeholder="+243 812 345 678" required>
-          </div>
+        <button type="submit" class="btn-primary-lg" style="width: 100%; border: none; cursor: pointer; padding: 14px;" id="submitBtn">
+          Se connecter
+        </button>
 
-          <div style="text-align: left; margin-top: 14px;">
-            <label for="regEmail" style="display: block; margin-bottom: 8px; font-size: 0.85rem; color: #e7edf3;">Adresse e-mail</label>
-            <input type="email" id="regEmail" placeholder="nom@exemple.com" required>
-          </div>
-
-          <div style="text-align: left; margin-top: 14px;">
-            <label for="regPassword" style="display: block; margin-bottom: 8px; font-size: 0.85rem; color: #e7edf3;">Créer un mot de passe</label>
-            <div style="position: relative;">
-              <input type="password" id="regPassword" placeholder="Minimum 6 caractères" minlength="6" required>
-              <button type="button" onclick="togglePassword('regPassword', this)" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #b0bcc9; cursor: pointer; font-size: 0.85rem; padding: 0;">Voir</button>
-            </div>
-          </div>
-
-          <button type="submit" id="btnRegisterSubmit" class="btn-primary-lg" style="width: 100%; text-align: center; margin-top: 20px;">Créer mon compte</button>
-        </form>
-      </div>
-
-      <a href="search.html" style="display: block; text-align: center; margin-top: 20px; font-size: 0.85rem; color: #b0bcc9;">Retourner à l'accueil</a>
+      </form>
 
     </div>
   </div>
@@ -124,11 +192,7 @@
 </footer>
 
 <script>
-  const { createClient } = window.supabase;
-  const supabaseUrl = "https://kfkifkstatbadtzosxai.supabase.co"; 
-  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma2lma3N0YXRiYWR0em9zeGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3MTYzMTAsImV4cCI6MjEwMTI5MjMxMH0.xPzFtl_OET2asSc5iH3liRHnPyuUYAfbbjZISwfnaA8";
-  const supabaseClient = createClient(supabaseUrl, supabaseKey);
-
+  // Menu mobile
   const menuToggle = document.getElementById('menuToggle');
   const navMenu = document.getElementById('navMenu');
   if (menuToggle && navMenu) {
@@ -138,118 +202,83 @@
     });
   }
 
-  function showAlert(message, isSuccess = false) {
-    const alertBox = document.getElementById('authAlert');
-    alertBox.style.display = 'block';
-    alertBox.style.background = isSuccess ? 'rgba(46, 204, 113, 0.15)' : 'rgba(231, 76, 60, 0.15)';
-    alertBox.style.color = isSuccess ? '#2ecc71' : '#e74c3c';
-    alertBox.style.border = `1px solid ${isSuccess ? '#2ecc71' : '#e74c3c'}`;
-    alertBox.textContent = message;
+  // Supabase Initialisation
+  const { createClient } = window.supabase;
+  const supabaseUrl = "https://kfkifkstatbadtzosxai.supabase.co"; 
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma2lma3N0YXRiYWR0em9zeGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3MTYzMTAsImV4cCI6MjEwMTI5MjMxMH0.xPzFtl_OET2asSc5iH3liRHnPyuUYAfbbjZISwfnaA8";
+  const supabaseClient = createClient(supabaseUrl, supabaseKey);
+
+  let isRegisterMode = false;
+
+  function switchMode(mode) {
+    isRegisterMode = (mode === 'register');
+    
+    document.getElementById('tabLogin').classList.toggle('active', !isRegisterMode);
+    document.getElementById('tabRegister').classList.toggle('active', isRegisterMode);
+    
+    document.getElementById('formTitle').textContent = isRegisterMode ? "Créer un compte" : "Connexion";
+    document.getElementById('formSubtitle').textContent = isRegisterMode ? "Inscrivez-vous pour gérer vos voyages." : "Accédez à votre espace personnel TALA Trajet.";
+    document.getElementById('submitBtn').textContent = isRegisterMode ? "S'inscrire" : "Se connecter";
+    document.getElementById('nameGroup').style.display = isRegisterMode ? "block" : "none";
+    document.getElementById('errorAlert').style.display = "none";
   }
 
-  function switchTab(tab) {
-    document.getElementById('authAlert').style.display = 'none';
-    const tabLogin = document.getElementById('tabLogin');
-    const tabRegister = document.getElementById('tabRegister');
-    const loginForm = document.getElementById('loginForm');
-    const registerForm = document.getElementById('registerForm');
-    const authTitle = document.getElementById('authTitle');
-    const authSubtitle = document.getElementById('authSubtitle');
-
-    if (tab === 'login') {
-      tabLogin.style.background = '#2f7cf0';
-      tabLogin.style.color = '#ffffff';
-      tabRegister.style.background = 'none';
-      tabRegister.style.color = '#b0bcc9';
-      
-      loginForm.style.display = 'block';
-      registerForm.style.display = 'none';
-      
-      authTitle.textContent = "Bienvenue sur TALA Trajet";
-      authSubtitle.textContent = "Connectez-vous pour gérer vos réservations";
-    } else {
-      tabRegister.style.background = '#2f7cf0';
-      tabRegister.style.color = '#ffffff';
-      tabLogin.style.background = 'none';
-      tabLogin.style.color = '#b0bcc9';
-
-      registerForm.style.display = 'block';
-      loginForm.style.display = 'none';
-
-      authTitle.textContent = "Créer un compte";
-      authSubtitle.textContent = "Rejoignez-nous pour réserver plus rapidement";
-    }
-  }
-
-  function togglePassword(inputId, btn) {
-    const input = document.getElementById(inputId);
-    if (input.type === "password") {
-      input.type = "text";
-      btn.textContent = "Masquer";
-    } else {
-      input.type = "password";
-      btn.textContent = "Voir";
-    }
-  }
-
-  async function handleLogin(e) {
-    e.preventDefault();
-    const email = document.getElementById('loginEmail').value.trim();
-    const password = document.getElementById('loginPassword').value;
-    const btn = document.getElementById('btnLoginSubmit');
-
-    btn.disabled = true;
-    btn.textContent = "Connexion...";
-
-    const { data, error } = await supabaseClient.auth.signInWithPassword({
-      email: email,
-      password: password
-    });
-
-    if (error) {
-      showAlert("Échec de connexion : " + error.message);
-      btn.disabled = false;
-      btn.textContent = "Se connecter";
-    } else {
-      showAlert("Connexion réussie ! Redirection...", true);
-      setTimeout(() => {
-        window.location.href = "account.html";
-      }, 1200);
-    }
-  }
-
-  async function handleRegister(e) {
-    e.preventDefault();
-    const fullName = document.getElementById('regFullName').value.trim();
-    const phone = document.getElementById('regPhone').value.trim();
-    const email = document.getElementById('regEmail').value.trim();
-    const password = document.getElementById('regPassword').value;
-    const btn = document.getElementById('btnRegisterSubmit');
-
-    btn.disabled = true;
-    btn.textContent = "Création du compte...";
-
-    const { data, error } = await supabaseClient.auth.signUp({
-      email: email,
-      password: password,
+  // Connexion Google OAuth
+  async function loginWithGoogle() {
+    const { data, error } = await supabaseClient.auth.signInWithOAuth({
+      provider: 'google',
       options: {
-        data: {
-          full_name: fullName,
-          phone: phone
-        }
+        redirectTo: window.location.origin + '/account.html'
       }
     });
 
     if (error) {
-      showAlert("Erreur lors de l'inscription : " + error.message);
-      btn.disabled = false;
-      btn.textContent = "Créer mon compte";
-    } else {
-      showAlert("Compte créé avec succès ! Redirection...", true);
-      setTimeout(() => {
-        window.location.href = "account.html";
-      }, 1200);
+      showError(error.message);
     }
+  }
+
+  // Soumission Formulaire Email / Password
+  async function handleAuth(e) {
+    e.preventDefault();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const fullName = document.getElementById('fullName').value.trim();
+    const errorAlert = document.getElementById('errorAlert');
+    errorAlert.style.display = "none";
+
+    if (isRegisterMode) {
+      const { data, error } = await supabaseClient.auth.signUp({
+        email: email,
+        password: password,
+        options: {
+          data: { full_name: fullName }
+        }
+      });
+
+      if (error) {
+        showError(error.message);
+      } else {
+        alert("Inscription réussie ! Vérifiez vos emails si une confirmation est requise, ou connectez-vous.");
+        switchMode('login');
+      }
+    } else {
+      const { data, error } = await supabaseClient.auth.signInWithPassword({
+        email: email,
+        password: password
+      });
+
+      if (error) {
+        showError("Identifiants incorrects ou compte introuvable.");
+      } else {
+        window.location.href = "account.html";
+      }
+    }
+  }
+
+  function showError(message) {
+    const errorAlert = document.getElementById('errorAlert');
+    errorAlert.textContent = message;
+    errorAlert.style.display = "block";
   }
 </script>
 
