@@ -80,7 +80,7 @@
 
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px;">
         <button onclick="downloadTicket()" class="btn-primary-lg" style="border: none; cursor: pointer; padding: 14px; font-size: 0.9rem;">📥 Télécharger en PDF</button>
-        <button onclick="window.location.href='search.html'" class="btn-secondary-lg" style="padding: 14px; font-size: 0.9rem; text-align: center;">🏠 Retour à l'accueil</button>
+        <button onclick="window.location.href='search.html'" class="btn-secondary-lg" style="padding: 14px; font-size: 0.9rem; text-align: center; cursor: pointer;">🏠 Retour à l'accueil</button>
       </div>
     </div>
   </div>
@@ -168,7 +168,7 @@
     if (tripId) {
       const { data: tData } = await supabaseClient
         .from("trips")
-        .select(`ville_depart, ville_arrivee, date_depart, heure_depart, agence, agency:agencies!agency_id ( nom )`)
+        .select(`ville_depart, ville_arrivee, date_depart, heure_depart, agence, agency:agencies!left ( nom )`)
         .eq("id", tripId)
         .maybeSingle();
 
