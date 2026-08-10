@@ -122,13 +122,20 @@
   let currentReservation = null;
 
   document.addEventListener("DOMContentLoaded", async () => {
-    // Vérification de la session pour adapter dynamiquement le lien du menu "Mon Compte"
+    // Vérification de la session pour afficher dynamiquement le prénom dans le menu
     const { data: { session } } = await supabaseClient.auth.getSession();
     const accountLink = document.getElementById("userAccountLink");
+    
     if (accountLink) {
-      if (session) {
+      if (session && session.user) {
         accountLink.href = "account.html";
-        accountLink.textContent = "Mon Compte";
+        const fullName = session.user.user_metadata?.full_name || session.user.user_metadata?.name;
+        if (fullName) {
+          const firstName = fullName.split(' ')[0];
+          accountLink.textContent = firstName;
+        } else {
+          accountLink.textContent = "Mon Compte";
+        }
       } else {
         accountLink.href = "auth.html";
         accountLink.textContent = "Connexion";
