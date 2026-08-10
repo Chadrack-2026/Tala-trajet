@@ -106,7 +106,6 @@
   <div class="brand">TALA<span>Trajet</span></div>
   <nav class="main-nav" id="navMenu">
     <a href="index.html">Accueil</a>
-    <a href="search.html">Rechercher</a>
     <a href="about.html">À propos</a>
     <a href="contact.html">Contact</a>
     <a href="auth.html" class="active nav-auth-btn">Connexion</a>
@@ -149,17 +148,17 @@
         
         <div class="form-group" id="nameGroup" style="display: none;">
           <label for="fullName">Nom complet</label>
-          <input type="text" id="fullName" placeholder="Ex: Jean Mukendi">
+          <input type="text" id="fullName" placeholder="Ex: Jean Mukendi" style="width: 100%; padding: 12px; border-radius: 8px; background: #0c0f13; border: 1px solid #2a313b; color: #ffffff; font-family: 'Poppins', sans-serif;">
         </div>
 
         <div class="form-group">
           <label for="email">Adresse email</label>
-          <input type="email5" id="email" required placeholder="nom@exemple.com">
+          <input type="email" id="email" required placeholder="nom@exemple.com" style="width: 100%; padding: 12px; border-radius: 8px; background: #0c0f13; border: 1px solid #2a313b; color: #ffffff; font-family: 'Poppins', sans-serif;">
         </div>
 
         <div class="form-group">
           <label for="password">Mot de passe</label>
-          <input type="password" id="password" required placeholder="••••••••">
+          <input type="password" id="password" required placeholder="••••••••" style="width: 100%; padding: 12px; border-radius: 8px; background: #0c0f13; border: 1px solid #2a313b; color: #ffffff; font-family: 'Poppins', sans-serif;">
         </div>
 
         <button type="submit" class="btn-primary-lg" style="width: 100%; border: none; cursor: pointer; padding: 14px;" id="submitBtn">
@@ -223,20 +222,20 @@
     document.getElementById('errorAlert').style.display = "none";
   }
 
-  // Connexion Google OAuth
+  // Connexion Google OAuth -> Redirection vers index.html
   async function loginWithGoogle() {
-  const { data, error } = await supabaseClient.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: 'https://tala-trajet-ivory.vercel.app/account.html'
+    const { data, error } = await supabaseClient.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        // Redirige vers l'index au lieu de account.html
+        redirectTo: window.location.origin + '/index.html'
+      }
+    });
+
+    if (error) {
+      showError(error.message);
     }
-  });
-
-  if (error) {
-    showError(error.message);
   }
-}
-
 
   // Soumission Formulaire Email / Password
   async function handleAuth(e) {
@@ -259,8 +258,8 @@
       if (error) {
         showError(error.message);
       } else {
-        alert("Inscription réussie ! Vérifiez vos emails si une confirmation est requise, ou connectez-vous.");
-        switchMode('login');
+        // Après inscription réussie, on connecte directement ou on redirige vers index.html
+        window.location.href = "index.html";
       }
     } else {
       const { data, error } = await supabaseClient.auth.signInWithPassword({
@@ -271,6 +270,7 @@
       if (error) {
         showError("Identifiants incorrects ou compte introuvable.");
       } else {
+        // Redirection directe vers index.html après connexion réussie
         window.location.href = "index.html";
       }
     }
