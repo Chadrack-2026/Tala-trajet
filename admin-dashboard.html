@@ -10,6 +10,8 @@
   
   <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Chart.js pour les graphiques -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
     :root {
@@ -81,6 +83,15 @@
     .stat-card .title { font-size: 0.85rem; color: var(--text-muted); }
     .stat-card .value { font-size: 1.6rem; font-weight: 700; color: var(--primary-blue); margin-top: 5px; }
 
+    /* Section Graphique */
+    .chart-container {
+      background: var(--card-dark);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 30px;
+    }
+
     /* Layout Sections */
     .section-grid {
       display: grid;
@@ -106,9 +117,10 @@
       display: flex;
       align-items: center;
       gap: 10px;
+      justify-content: space-between;
     }
 
-    /* Formulaires */
+    /* Formulaires & Filtres */
     .form-group { margin-bottom: 15px; }
     .form-group label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 6px; }
     .form-group input, .form-group select {
@@ -122,6 +134,17 @@
       font-family: inherit;
     }
 
+    .search-input {
+      padding: 6px 12px;
+      background: #0c0f13;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      color: #fff;
+      font-size: 0.8rem;
+      font-family: inherit;
+      width: 200px;
+    }
+
     .btn-submit {
       width: 100%;
       padding: 12px;
@@ -131,7 +154,9 @@
       border-radius: 8px;
       font-weight: 700;
       cursor: pointer;
+      transition: opacity 0.2s;
     }
+    .btn-submit:hover { opacity: 0.9; }
 
     /* Zone Lien Généré */
     .invite-result {
@@ -184,7 +209,9 @@
       border-radius: 6px;
       cursor: pointer;
       font-size: 0.8rem;
+      transition: background 0.2s;
     }
+    .btn-action:hover { background: #2a313b; }
   </style>
 </head>
 <body>
@@ -221,6 +248,12 @@
     </div>
   </div>
 
+  <!-- GRAPHIQUE D'ÉVOLUTION -->
+  <div class="chart-container">
+    <h3 style="margin-top:0; color:#fff; font-size:1.1rem; margin-bottom:15px;">📊 Tendance du Volume d'Affaires</h3>
+    <canvas id="revenueChart" height="80"></canvas>
+  </div>
+
   <div class="section-grid">
     
     <!-- 2. GENERATEUR D'INVITATION AGENCE -->
@@ -253,7 +286,7 @@
 
     <!-- 3. DEMANDES DE RETRAIT DES AGENCES (PAYOUTS) -->
     <div class="card-box">
-      <h3>💸 Demandes de Reversement (Gain Agences)</h3>
+      <h3>💸 Demandes de Reversement</h3>
       <div class="table-responsive">
         <table>
           <thead>
@@ -275,7 +308,10 @@
 
   <!-- 4. GESTION DES AGENCES & CONTROLE D'ACCES -->
   <div class="card-box" style="margin-bottom: 30px;">
-    <h3>🏢 Agences Enregistrées & Statuts d'Accès</h3>
+    <h3>
+      🏢 Agences Enregistrées & Statuts
+      <input type="text" id="searchAgency" class="search-input" placeholder="Rechercher une agence..." onkeyup="filterAgencies()">
+    </h3>
     <div class="table-responsive">
       <table>
         <thead>
@@ -298,35 +334,34 @@
 
 <script>
   const { createClient } = window.supabase;
-  // Correction : Utilisation des bons identifiants du projet actif
   const supabaseUrl = "https://kfkifkstatbadtzosxai.supabase.co";
   const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma2lma3N0YXRiYWR0em9zeGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3MTYzMTAsImV4cCI6MjEwMTI5MjMxMH0.xPzFtl_OET2asSc5iH3liRHnPyuUYAfbbjZISwfnaA8";
   const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
-  const COMMISSION_RATE = 0.10; // 10% prélevés par TALA Trajet
+  const COMMISSION_RATE = 0.10;
+  let allAgenciesData = []; // Stockage local pour la recherche dynamique
+  let revenueChartInstance = null;
 
-  /* --- SÉCURITÉ : VÉRIFICATION DE SESSION AU CHARGEMENT --- */
   document.addEventListener("DOMContentLoaded", async () => {
     const { data: { session }, error } = await supabaseClient.auth.getSession();
     
     if (!session || error) {
       alert("Accès non autorisé. Veuillez vous connecter.");
-      window.location.href = "login.html"; // Assurez-vous que le fichier de connexion s'appelle bien ainsi, ou adaptez le nom
+      window.location.href = "login.html";
       return;
     }
 
-    // Si authentifié, chargement des données
     loadAdminStats();
     loadAgencies();
     loadPayouts();
   });
 
-  /* --- CHARGEMENT DES STATS GLOBALES --- */
+  /* --- CHARGEMENT DES STATS GLOBALES & GRAPHIQUE --- */
   async function loadAdminStats() {
     const { count: agenciesCount } = await supabaseClient.from("agencies").select("*", { count: 'exact', head: true });
     document.getElementById("totalAgencies").textContent = agenciesCount || 0;
 
-    const { data: reservations } = await supabaseClient.from("reservations").select("total_price, montant_total");
+    const { data: reservations } = await supabaseClient.from("reservations").select("total_price, montant_total, created_at");
     if (reservations) {
       document.getElementById("totalTickets").textContent = reservations.length;
       const totalVolume = reservations.reduce((sum, r) => sum + (r.total_price || r.montant_total || 0), 0);
@@ -334,7 +369,50 @@
 
       document.getElementById("totalVolume").textContent = totalVolume.toLocaleString('fr-FR') + " FC";
       document.getElementById("netCommission").textContent = netCommission.toLocaleString('fr-FR') + " FC";
+
+      // Génération du graphique simple basé sur les données
+      renderChart(reservations);
     }
+  }
+
+  function renderChart(reservations) {
+    const ctx = document.getElementById('revenueChart').getContext('2d');
+    
+    // Grouper par mois (approximatif ou par date)
+    const datesMap = {};
+    reservations.forEach(r => {
+      if(!r.created_at) return;
+      const date = r.created_at.split('T')[0];
+      datesMap[date] = (datesMap[date] || 0) + (r.total_price || r.montant_total || 0);
+    });
+
+    const sortedDates = Object.keys(datesMap).sort().slice(-7); // Derniers 7 jours actifs
+    const dataValues = sortedDates.map(d => datesMap[d]);
+
+    if(revenueChartInstance) revenueChartInstance.destroy();
+
+    revenueChartInstance = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: sortedDates,
+        datasets: [{
+          label: 'Volume (FC)',
+          data: dataValues,
+          borderColor: '#00d2ff',
+          backgroundColor: 'rgba(0, 210, 255, 0.1)',
+          fill: true,
+          tension: 0.3
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { color: '#2a313b' }, ticks: { color: '#b0bcc9' } },
+          y: { grid: { color: '#2a313b' }, ticks: { color: '#b0bcc9' } }
+        }
+      }
+    });
   }
 
   /* --- GENERATION DE LIEN D'INVITATION --- */
@@ -431,6 +509,11 @@
       .select("*")
       .order("created_at", { ascending: false });
 
+    allAgenciesData = agencies || [];
+    displayAgencies(allAgenciesData);
+  }
+
+  function displayAgencies(agencies) {
     const tbody = document.getElementById("agenciesTableBody");
     tbody.innerHTML = "";
 
@@ -454,8 +537,17 @@
         `;
       });
     } else {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Aucune agence enregistrée.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Aucune agence trouvée.</td></tr>';
     }
+  }
+
+  function filterAgencies() {
+    const query = document.getElementById("searchAgency").value.toLowerCase();
+    const filtered = allAgenciesData.filter(a => 
+      (a.nom && a.nom.toLowerCase().includes(query)) || 
+      (a.email && a.email.toLowerCase().includes(query))
+    );
+    displayAgencies(filtered);
   }
 
   async function toggleAgencyStatus(agencyId, currentStatus) {
