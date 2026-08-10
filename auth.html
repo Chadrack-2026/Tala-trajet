@@ -225,17 +225,18 @@
 
   // Connexion Google OAuth
   async function loginWithGoogle() {
-    const { data, error } = await supabaseClient.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.origin + '/account.html'
-      }
-    });
-
-    if (error) {
-      showError(error.message);
+  const { data, error } = await supabaseClient.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: 'https://tala-trajet-ivory.vercel.app/account.html'
     }
+  });
+
+  if (error) {
+    showError(error.message);
   }
+}
+
 
   // Soumission Formulaire Email / Password
   async function handleAuth(e) {
