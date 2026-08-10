@@ -94,27 +94,16 @@
     document.getElementById("userName").textContent = user.user_metadata?.full_name || "Voyageur TALA";
     document.getElementById("userEmail").textContent = user.email;
 
-    // 2. Récupération des réservations avec jointure sur la table 'trips' via 'trip_id'
+    // 2. Récupération directe des réservations de l'utilisateur
     const { data: reservations, resError } = await supabaseClient
       .from("reservations")
-      .select(`
-        *,
-        trips (
-          departure,
-          arrival,
-          ville_depart,
-          ville_arrivee,
-          departure_city,
-          arrival_city
-        )
-      `)
+      .select("*")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
 
     const container = document.getElementById("reservationsList");
 
     if (resError) {
-      console.error(resError);
       container.innerHTML = `<p style="color: #e74c3c; text-align: center;">Erreur lors du chargement de l'historique.</p>`;
       return;
     }
@@ -127,7 +116,7 @@
     // 3. Affichage des réservations
     container.innerHTML = "";
     reservations.forEach(r => {
-      const rawStatus = r.statut || r.status || "PENDING";
+      const rawStatus = r.statut || "PENDING";
       
       let displayStatus = rawStatus;
       if (rawStatus.toUpperCase() === "CONFIRMED" || rawStatus.toUpperCase() === "CONFIRME") {
@@ -139,24 +128,23 @@
       const badgeClass = rawStatus.trim().replace(/\s+/g, '_');
       const seatsFormatted = Array.isArray(r.seats) ? r.seats.join(', ') : (r.seats || 'N/A');
 
-      // Récupération sécurisée des villes depuis l'objet joint "trips" (ou directement si stocké par sécurité)
-      const tripData = r.trips || {};
-      const depCity = tripData.ville_depart || tripData.departure_city || tripData.departure || r.ville_depart || r.departure || 'Départ';
-      const arrCity = tripData.ville_arrivee || tripData.arrival_city || tripData.arrival || r.ville_arrivee || r.arrival || 'Arrivée';
+      // Lecture directe des nouvelles colonnes
+      const depart = r.ville_depart || 'Départ';
+      const arrivee = r.ville_arrivee || 'Arrivée';
 
       const item = document.createElement("div");
       item.className = "reservation-item";
       item.innerHTML = `
         <div>
-          <h4 style="margin: 0 0 5px 0; color: #ffffff; font-size: 1rem;">${depCity} ➔ ${arrCity}</h4>
-          <p style="margin: 0 0 4px 0; color: #b0bcc9; font-size: 0.85rem;">🎫 Billet : <strong>${r.ticket_number || r.id || 'N/A'}</strong></p>
+          <h4 style="margin: 0 0 5px 0; color: #ffffff; font-size: 1rem;">${depart} ➔ ${arrivee}</h4>
+          <p style="margin: 0 0 4px 0; color: #b0bcc9; font-size: 0.85rem;">🎫 Billet : <strong>${r.ticket_number || 'N/A'}</strong></p>
           <p style="margin: 0 0 4px 0; color: #b0bcc9; font-size: 0.85rem;">🪑 Siège(s) : ${seatsFormatted}</p>
-          <p style="margin: 0; color: #b0bcc9; font-size: 0.85rem;">💰 Montant : ${Number(r.total_price || r.price || 0).toLocaleString('fr-FR')} FC</p>
+          <p style="margin: 0; color: #b0bcc9; font-size: 0.85rem;">💰 Montant : ${Number(r.total_price || 0).toLocaleString('fr-FR')} FC</p>
         </div>
         <div style="text-align: right;">
           <span class="badge ${badgeClass}">${displayStatus}</span>
           <br>
-          <a href="confirmation.html?ticket=${r.ticket_number || r.id}" style="color: var(--primary-blue); font-size: 0.8rem; text-decoration: none; display: inline-block; margin-top: 8px;">Voir le billet ➔</a>
+          <a href="confirmation.html?ticket=${r.ticket_number}" style="color: var(--primary-blue); font-size: 0.8rem; text-decoration: none; display: inline-block; margin-top: 8px;">Voir le billet ➔</a>
         </div>
       `;
       container.appendChild(item);
