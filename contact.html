@@ -1,128 +1,350 @@
-<!DOCTYPE html>
-<html lang="fr">
+<!DOCTYPE html><html lang="fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Contact — TALA Trajet</title>
+  <title>Contact — TALA Trajet</title>  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">  <!-- Lucide Icons -->  <script src="https://unpkg.com/lucide@latest"></script>  <style>
+    /* ==============================
+       ICÔNES TALA TRAJET
+       ============================== */
+
+    .icon {
+      width: 18px;
+      height: 18px;
+      stroke-width: 2;
+      vertical-align: middle;
+    }
+
+    .nav-icon {
+      width: 17px;
+      height: 17px;
+      margin-right: 5px;
+      vertical-align: -3px;
+    }
+
+    .hero-icon {
+      width: 17px;
+      height: 17px;
+      vertical-align: -3px;
+    }
+
+    .field-label {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 8px;
+      font-size: 0.85rem;
+      color: #e7edf3;
+    }
+
+    .field-label svg {
+      width: 16px;
+      height: 16px;
+      stroke-width: 2;
+    }
+
+    .submit-icon {
+      width: 19px;
+      height: 19px;
+      vertical-align: -4px;
+      margin-left: 5px;
+      transition: transform 0.2s ease;
+    }
+
+    .btn-primary-lg:hover .submit-icon {
+      transform: translateX(4px);
+    }
+
+    .footer-icon {
+      width: 16px;
+      height: 16px;
+      margin-right: 5px;
+      vertical-align: -3px;
+    }
+
+    .menu-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .menu-btn svg {
+      width: 22px;
+      height: 22px;
+    }
+  </style></head><body><!-- HEADER --><header class="site-header">  <div class="brand">
+    TALA<span>Trajet</span>
+  </div>  <nav class="main-nav" id="navMenu"><a href="search.html">
+  <i data-lucide="house" class="nav-icon"></i>
+  Accueil
+</a>
+
+<a href="about.html">
+  <i data-lucide="info" class="nav-icon"></i>
+  À propos
+</a>
+
+<a href="contact.html" class="active">
+  <i data-lucide="headphones" class="nav-icon"></i>
+  Contact
+</a>
+
+  </nav>  <button class="menu-btn" id="menuToggle" aria-label="Ouvrir le menu">
+    <i data-lucide="menu"></i>
+  </button></header><!-- MAIN --><main>  <!-- HERO CONTACT -->  <section class="hero-showcase"><div class="hero-content">
+
+  <span class="badge-hero">
+    <i data-lucide="life-buoy" class="hero-icon"></i>
+    Besoin d'aide ?
+  </span>
+
+  <h1 class="hero-title">
+    Contactez l'équipe <span>TALA Trajet</span>
+  </h1>
+
+  <p class="hero-sub">
+    Une question sur votre billet, un trajet ou une agence partenaire ?
+    Notre équipe est à votre disposition pour vous assister.
+  </p>
+
+</div>
+
+  </section>  <!-- FORMULAIRE ET INFOS -->  <section class="features-section" style="padding-top: 20px;"><div class="container" style="max-width: 900px;">
   
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
+  <div
+    class="routes-grid"
+    style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); margin-bottom: 40px;"
+  >
 
-<!-- HEADER -->
-<header class="site-header">
-  <div class="brand">TALA<span>Trajet</span></div>
-  <nav class="main-nav" id="navMenu">
-    <a href="search.html">Accueil</a>
-    <a href="about.html">À propos</a>
-    <a href="contact.html" class="active">Contact</a>
-  </nav>
-  <button class="menu-btn" id="menuToggle" aria-label="Ouvrir le menu">☰</button>
-</header>
+    <!-- Formulaire de contact -->
+    <div class="card" style="padding: 30px 24px; border-radius: 16px;">
 
-<!-- MAIN -->
-<main>
-  
-  <!-- HERO CONTACT -->
-  <section class="hero-showcase">
-    <div class="hero-content">
-      <span class="badge-hero">Besoin d'aide ?</span>
-      <h1 class="hero-title">Contactez l'équipe <span>TALA Trajet</span></h1>
-      <p class="hero-sub">
-        Une question sur votre billet, un trajet ou une agence partenaire ? Notre équipe est à votre disposition pour vous assister.
-      </p>
-    </div>
-  </section>
+      <div class="section-header" style="margin-bottom: 30px;">
 
-  <!-- FORMULAIRE ET INFOS -->
-  <section class="features-section" style="padding-top: 20px;">
-    <div class="container" style="max-width: 900px;">
-      
-      <div class="routes-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); margin-bottom: 40px;">
-        
+        <h2 style="font-size: 1.6rem;">
+          <i data-lucide="message-circle" class="icon"></i>
+          Envoyez-nous un message
+        </h2>
 
-      <!-- Formulaire de contact -->
-      <div class="card" style="padding: 30px 24px; border-radius: 16px;">
-        <div class="section-header" style="margin-bottom: 30px;">
-          <h2 style="font-size: 1.6rem;">Envoyez-nous un message</h2>
-          <p>Remplissez ce formulaire et nous vous répondrons dans les plus brefs délais.</p>
-        </div>
+        <p>
+          Remplissez ce formulaire et nous vous répondrons dans les plus brefs délais.
+        </p>
 
-        <form onsubmit="handleContactSubmit(event)" class="search-form">
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;">
-            <div style="text-align: left;">
-              <label for="contactName" style="display: block; margin-bottom: 8px; font-size: 0.85rem; color: #e7edf3;">Nom complet</label>
-              <input type="text" id="contactName" placeholder="Votre nom et prénom" required>
-            </div>
-
-            <div style="text-align: left;">
-              <label for="contactPhone" style="display: block; margin-bottom: 8px; font-size: 0.85rem; color: #e7edf3;">Téléphone / WhatsApp</label>
-              <input type="tel" id="contactPhone" placeholder="+243..." required>
-            </div>
-          </div>
-
-          <div style="text-align: left; margin-top: 16px;">
-            <label for="contactSubject" style="display: block; margin-bottom: 8px; font-size: 0.85rem; color: #e7edf3;">Sujet de votre demande</label>
-            <select id="contactSubject" required>
-              <option value="">Sélectionnez un sujet</option>
-              <option value="reservation">Problème avec une réservation</option>
-              <option value="payment">Question sur un paiement Mobile Money</option>
-              <option value="partnership">Devenir une agence partenaire</option>
-              <option value="other">Autre demande</option>
-            </select>
-          </div>
-
-          <div style="text-align: left; margin-top: 16px;">
-            <label for="contactMessage" style="display: block; margin-bottom: 8px; font-size: 0.85rem; color: #e7edf3;">Message</label>
-            <textarea id="contactMessage" rows="5" placeholder="Expliquez-nous votre demande en détail..." required></textarea>
-          </div>
-
-          <button type="submit" class="btn-primary-lg" style="margin-top: 20px; border: none; cursor: pointer; width: 100%;">Envoyer le message →</button>
-        </form>
       </div>
 
-    </div>
-  </section>
 
-</main>
+      <form onsubmit="handleContactSubmit(event)" class="search-form">
 
-<!-- FOOTER -->
-<footer>
-  <div class="container footer-inner">
-    <div class="footer-brand">
-      <div class="brand">TALA<span>Trajet</span></div>
-      <p>La plateforme intelligente de réservation de billets de transport en République Démocratique du Congo.</p>
+        <!-- NOM + TELEPHONE -->
+        <div
+          style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;"
+        >
+
+          <!-- NOM -->
+          <div style="text-align: left;">
+
+            <label for="contactName" class="field-label">
+              <i data-lucide="user"></i>
+              Nom complet
+            </label>
+
+            <input
+              type="text"
+              id="contactName"
+              placeholder="Votre nom et prénom"
+              required
+            >
+
+          </div>
+
+
+          <!-- TELEPHONE -->
+          <div style="text-align: left;">
+
+            <label for="contactPhone" class="field-label">
+              <i data-lucide="phone"></i>
+              Téléphone / WhatsApp
+            </label>
+
+            <input
+              type="tel"
+              id="contactPhone"
+              placeholder="+243..."
+              required
+            >
+
+          </div>
+
+        </div>
+
+
+        <!-- SUJET -->
+        <div style="text-align: left; margin-top: 16px;">
+
+          <label for="contactSubject" class="field-label">
+            <i data-lucide="list-filter"></i>
+            Sujet de votre demande
+          </label>
+
+          <select id="contactSubject" required>
+
+            <option value="">
+              Sélectionnez un sujet
+            </option>
+
+            <option value="reservation">
+              Problème avec une réservation
+            </option>
+
+            <option value="payment">
+              Question sur un paiement Mobile Money
+            </option>
+
+            <option value="partnership">
+              Devenir une agence partenaire
+            </option>
+
+            <option value="other">
+              Autre demande
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <!-- MESSAGE -->
+        <div style="text-align: left; margin-top: 16px;">
+
+          <label for="contactMessage" class="field-label">
+            <i data-lucide="message-square"></i>
+            Message
+          </label>
+
+          <textarea
+            id="contactMessage"
+            rows="5"
+            placeholder="Expliquez-nous votre demande en détail..."
+            required
+          ></textarea>
+
+        </div>
+
+
+        <!-- BOUTON ENVOYER -->
+        <button
+          type="submit"
+          class="btn-primary-lg"
+          style="margin-top: 20px; border: none; cursor: pointer; width: 100%;"
+        >
+          Envoyer le message
+          <i data-lucide="send" class="submit-icon"></i>
+        </button>
+
+      </form>
+
     </div>
-    
-    <div class="footer-links">
-      <a href="about.html">À propos</a>
-      <a href="contact.html">Contact</a>
-      <a href="terms.html">Conditions d'utilisation</a>
-      <a href="privacy.html">Politique de confidentialité</a>
-    </div>
+
   </div>
-  <div class="footer-bottom">
-    <p>© 2026 TALA Trajet — Tous droits réservés.</p>
-  </div>
-</footer>
 
-<script>
+</div>
+
+  </section></main><!-- FOOTER --><footer>  <div class="container footer-inner"><div class="footer-brand">
+
+  <div class="brand">
+    TALA<span>Trajet</span>
+  </div>
+
+  <p>
+    La plateforme intelligente de réservation de billets de transport
+    en République Démocratique du Congo.
+  </p>
+
+</div>
+
+
+<div class="footer-links">
+
+  <a href="about.html">
+    <i data-lucide="info" class="footer-icon"></i>
+    À propos
+  </a>
+
+  <a href="contact.html">
+    <i data-lucide="headphones" class="footer-icon"></i>
+    Contact
+  </a>
+
+  <a href="terms.html">
+    <i data-lucide="file-text" class="footer-icon"></i>
+    Conditions d'utilisation
+  </a>
+
+  <a href="privacy.html">
+    <i data-lucide="shield-check" class="footer-icon"></i>
+    Politique de confidentialité
+  </a>
+
+</div>
+
+  </div>  <div class="footer-bottom"><p>
+  © 2026 TALA Trajet — Tous droits réservés.
+</p>
+
+  </div></footer><script>
+
+  /* ==============================
+     INITIALISATION DES ICÔNES
+     ============================== */
+
+  lucide.createIcons();
+
+
+  /* ==============================
+     MENU MOBILE
+     ============================== */
+
   const menuToggle = document.getElementById('menuToggle');
   const navMenu = document.getElementById('navMenu');
+
   if (menuToggle && navMenu) {
+
     menuToggle.addEventListener('click', () => {
+
       navMenu.classList.toggle('open');
-      menuToggle.textContent = navMenu.classList.contains('open') ? '✕' : '☰';
+
+      if (navMenu.classList.contains('open')) {
+
+        menuToggle.innerHTML = '<i data-lucide="x"></i>';
+
+      } else {
+
+        menuToggle.innerHTML = '<i data-lucide="menu"></i>';
+
+      }
+
+      lucide.createIcons();
+
     });
+
   }
+
+
+  /* ==============================
+     FORMULAIRE DE CONTACT
+     ============================== */
 
   function handleContactSubmit(e) {
-    e.preventDefault();
-    alert("Merci ! Votre message a été envoyé avec succès. Notre équipe va vous recontacter.");
-    e.target.reset();
-  }
-</script>
 
-</body>
+    e.preventDefault();
+
+    alert(
+      "Merci ! Votre message a été envoyé avec succès. Notre équipe va vous recontacter."
+    );
+
+    e.target.reset();
+
+  }
+
+</script></body>
 </html>
