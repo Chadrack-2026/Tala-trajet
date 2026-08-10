@@ -7,6 +7,9 @@
   
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  
+  <!-- Inclusion SDK Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -17,28 +20,49 @@
     <a href="index.html" class="active">Accueil</a>
     <a href="about.html">À propos</a>
     <a href="contact.html">Contact</a>
-    <a href="auth.html" class="nav-auth-btn">Se connecter / S'inscrire</a>
+    <a href="auth.html" id="userAccountLink" class="nav-auth-btn">Se connecter / S'inscrire</a>
   </nav>
   <button class="menu-btn" id="menuToggle" aria-label="Ouvrir le menu">☰</button>
 </header>
 
 <main>
-  <!-- HERO SECTION -->
+  <!-- HERO SECTION AVEC FORMULAIRE DE RECHERCHE INTÉGRÉ -->
   <section class="hero-showcase">
     <div class="container hero-content">
       <span class="badge-hero">🚀 La révolution du transport en RDC</span>
       <h1 class="hero-title">Voyagez à travers le pays en toute <span>sérénité.</span></h1>
       <p class="hero-sub">
-        Comparez les compagnies, sélectionnez vos sièges et achetez vos billets de bus ou train instantanément par Mobile Money.
+        Comparez les compagnies, sélectionnez vos sièges et achetez vos billets instantanément par Mobile Money.
       </p>
       
-      <div class="hero-actions">
-        <a href="auth.html" class="btn-primary-lg">Réserver mon voyage</a>
-        <a href="#how-it-works" class="btn-secondary-lg">Découvrir le service</a>
+      <!-- BARRE DE RECHERCHE RAPIDE INTÉGRÉE DANS LA VITRINE -->
+      <div class="card" style="padding: 24px; border-radius: 16px; margin-top: 30px; background: #171b22; border: 1px solid #2a313b; text-align: left; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+        <form id="searchForm" onsubmit="handleSearch(event)" class="search-form">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px;">
+            
+            <div>
+              <label for="departureCity" style="display: block; margin-bottom: 8px; font-size: 0.85rem; color: #e7edf3; font-weight: 500;">Ville de départ</label>
+              <input type="text" id="departureCity" name="departure" placeholder="Ex: Kinshasa..." required style="width: 100%; padding: 12px; border-radius: 8px; background: #0c0f13; border: 1px solid #2a313b; color: #ffffff; font-family: 'Poppins', sans-serif;">
+            </div>
+
+            <div>
+              <label for="arrivalCity" style="display: block; margin-bottom: 8px; font-size: 0.85rem; color: #e7edf3; font-weight: 500;">Ville d'arrivée</label>
+              <input type="text" id="arrivalCity" name="arrival" placeholder="Ex: Matadi..." required style="width: 100%; padding: 12px; border-radius: 8px; background: #0c0f13; border: 1px solid #2a313b; color: #ffffff; font-family: 'Poppins', sans-serif;">
+            </div>
+
+            <div>
+              <label for="travelDate" style="display: block; margin-bottom: 8px; font-size: 0.85rem; color: #e7edf3; font-weight: 500;">Date de voyage</label>
+              <input type="date" id="travelDate" name="date" required style="width: 100%; padding: 12px; border-radius: 8px; background: #0c0f13; border: 1px solid #2a313b; color: #ffffff; font-family: 'Poppins', sans-serif;">
+            </div>
+
+          </div>
+
+          <button type="submit" class="btn-primary-lg" style="margin-top: 20px; width: 100%; border: none; cursor: pointer; text-align: center;">🔍 Rechercher un trajet</button>
+        </form>
       </div>
 
       <!-- Statistiques d'impact -->
-      <div class="hero-stats">
+      <div class="hero-stats" style="margin-top: 40px;">
         <div class="stat-item">
           <h3>100%</h3>
           <p>Billet Sécurisé</p>
@@ -144,7 +168,7 @@
             <span class="route-tag">Populaire</span>
           </div>
           <p class="route-info">Liaison quotidienne • Bus & Minibus</p>
-          <a href="auth.html" class="route-link">Voir les horaires →</a>
+          <a href="results.html?departure=Matadi&arrival=Kinshasa" class="route-link">Voir les horaires →</a>
         </div>
 
         <div class="route-card">
@@ -153,7 +177,7 @@
             <span class="route-tag">Direct</span>
           </div>
           <p class="route-info">Trajet confort • Climatisation disponible</p>
-          <a href="auth.html" class="route-link">Voir les horaires →</a>
+          <a href="results.html?departure=Kinshasa&arrival=Moanda" class="route-link">Voir les horaires →</a>
         </div>
 
         <div class="route-card">
@@ -162,7 +186,7 @@
             <span class="route-tag">Quotidien</span>
           </div>
           <p class="route-info">Départs matin & soir</p>
-          <a href="auth.html" class="route-link">Voir les horaires →</a>
+          <a href="results.html?departure=Kinshasa&arrival=Boma" class="route-link">Voir les horaires →</a>
         </div>
       </div>
     </div>
@@ -198,18 +222,14 @@
   </div>
 </footer>
 
-<!-- Inclusion du SDK Supabase -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <script>
+  // Initialisation Supabase
   const { createClient } = window.supabase;
-
-  // Tes identifiants Supabase
   const supabaseUrl = "https://kfkifkstatbadtzosxai.supabase.co"; 
   const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma2lma3N0YXRiYWR0em9zeGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3MTYzMTAsImV4cCI6MjEwMTI5MjMxMH0.xPzFtl_OET2asSc5iH3liRHnPyuUYAfbbjZISwfnaA8";
-
   const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
+  // Menu Mobile Toggle
   const menuToggle = document.getElementById('menuToggle');
   const navMenu = document.getElementById('navMenu');
   if (menuToggle && navMenu) {
@@ -217,6 +237,78 @@
       navMenu.classList.toggle('open');
       menuToggle.textContent = navMenu.classList.contains('open') ? '✕' : '☰';
     });
+  }
+
+  // Initialisation au chargement de la page
+  document.addEventListener('DOMContentLoaded', async () => {
+    // 1. Définir la date minimale du formulaire à aujourd'hui
+    const dateInput = document.getElementById('travelDate');
+    if (dateInput) {
+      const today = new Date().toISOString().split('T')[0];
+      dateInput.min = today;
+      dateInput.value = today;
+    }
+
+    // 2. Restaurer une recherche en suspens si l'utilisateur vient de se connecter
+    const pendingSearch = localStorage.getItem('pendingSearch');
+    if (pendingSearch) {
+      try {
+        const searchData = JSON.parse(pendingSearch);
+        if (searchData.departure) document.getElementById('departureCity').value = searchData.departure;
+        if (searchData.arrival) document.getElementById('arrivalCity').value = searchData.arrival;
+        if (searchData.date) document.getElementById('travelDate').value = searchData.date;
+        
+        // On nettoie le localStorage après restauration
+        localStorage.removeItem('pendingSearch');
+      } catch (e) {
+        console.error("Erreur lors de la lecture de la recherche en suspens", e);
+      }
+    }
+
+    // 3. Vérifier la session utilisateur Supabase pour personnaliser le bouton "Mon Compte" / "Connexion"
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    const accountLink = document.getElementById('userAccountLink');
+
+    if (session && session.user) {
+      const userName = session.user.user_metadata?.full_name || "Mon Compte";
+      accountLink.textContent = `👤 ${userName.split(' ')[0]}`;
+      accountLink.href = "account.html"; 
+    } else {
+      accountLink.textContent = "Se connecter";
+      accountLink.href = "auth.html";
+    }
+  });
+
+  // Gestion de la recherche avec contrôle de connexion
+  async function handleSearch(e) {
+    e.preventDefault();
+    
+    const dep = document.getElementById('departureCity').value.trim();
+    const arr = document.getElementById('arrivalCity').value.trim();
+    const date = document.getElementById('travelDate').value;
+
+    if (dep.toLowerCase() === arr.toLowerCase()) {
+      alert("La ville de départ et la ville d'arrivée doivent être différentes.");
+      return;
+    }
+
+    // Vérification de la session en cours
+    const { data: { session } } = await supabaseClient.auth.getSession();
+
+    const searchParams = new URLSearchParams({
+      departure: dep,
+      arrival: arr,
+      date: date
+    });
+
+    if (!session) {
+      // Si l'utilisateur n'est PAS connecté, on sauvegarde sa recherche et on l'envoie à la page auth
+      localStorage.setItem('pendingSearch', JSON.stringify({ departure: dep, arrival: arr, date: date }));
+      window.location.href = `auth.html?redirect=index`;
+    } else {
+      // S'il est connecté, on l'envoie directement vers les résultats
+      window.location.href = `results.html?${searchParams.toString()}`;
+    }
   }
 </script>
 
