@@ -40,158 +40,185 @@
     <div id="statusBox" class="status-box"></div>
 
     <button id="payBtn" onclick="lancerPaiement()">Payer avec Mobile Money 📱</button>
+    
+    <!-- Bouton de secours pour tester sans API Shwary -->
+    <button id="testBtn" style="background: #2ecc71; color: #fff; margin-top: 10px;" onclick="forcerValidationTest()">Mode Test : Valider sans payer 🚀</button>
   </div>
 </main>
 
 <script>
  const { createClient } = window.supabase;
-const supabaseUrl = "https://kfkifkstatbadtzosxai.supabase.co"; 
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma2lma3N0YXRiYWR0em9zeGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3MTYzMTAsImV4cCI6MjEwMTI5MjMxMH0.xPzFtl_OET2asSc5iH3liRHnPyuUYAfbbjZISwfnaA8";
-const supabaseClient = createClient(supabaseUrl, supabaseKey);
+ const supabaseUrl = "https://kfkifkstatbadtzosxai.supabase.co"; 
+ const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma2lma3N0YXRiYWR0em9zeGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3MTYzMTAsImV4cCI6MjEwMTI5MjMxMH0.xPzFtl_OET2asSc5iH3liRHnPyuUYAfbbjZISwfnaA8";
+ const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
-const reservation = JSON.parse(localStorage.getItem("reservationInfo"));
+ const reservation = JSON.parse(localStorage.getItem("reservationInfo"));
 
-if (!reservation) {
-  alert("Aucune réservation trouvée.");
-  window.location.href = "search.html";
-} else {
-  afficherRecapitulatif();
-}
+ if (!reservation) {
+   alert("Aucune réservation trouvée.");
+   window.location.href = "search.html";
+ } else {
+   afficherRecapitulatif();
+ }
 
-function afficherRecapitulatif() {
-  document.getElementById("summary").innerHTML = `
-    <div class="summary-item"><span>Passager:</span> <strong>${reservation.nom_client || 'Passager'}</strong></div>
-    <div class="summary-item"><span>Téléphone:</span> <strong>${reservation.telephone_client || 'N/A'}</strong></div>
-    <div class="summary-item"><span>Trajet:</span> <strong>${reservation.ville_depart || 'Départ'} ➔ ${reservation.ville_arrivee || 'Arrivée'}</strong></div>
-    <div class="summary-item"><span>Siège(s):</span> <strong>${reservation.seats ? reservation.seats.join(', ') : ''}</strong></div>
-    <div class="total-price">Total : ${Number(reservation.total_price || 0).toLocaleString('fr-FR')} FC</div>
-  `;
-}
+ function afficherRecapitulatif() {
+   document.getElementById("summary").innerHTML = `
+     <div class="summary-item"><span>Passager:</span> <strong>${reservation.nom_client || 'Passager'}</strong></div>
+     <div class="summary-item"><span>Téléphone:</span> <strong>${reservation.telephone_client || 'N/A'}</strong></div>
+     <div class="summary-item"><span>Trajet:</span> <strong>${reservation.ville_depart || 'Départ'} ➔ ${reservation.ville_arrivee || 'Arrivée'}</strong></div>
+     <div class="summary-item"><span>Siège(s):</span> <strong>${reservation.seats ? reservation.seats.join(', ') : ''}</strong></div>
+     <div class="total-price">Total : ${Number(reservation.total_price || 0).toLocaleString('fr-FR')} FC</div>
+   `;
+ }
 
-async function lancerPaiement() {
-  const payBtn = document.getElementById("payBtn");
-  payBtn.disabled = true;
-  afficherStatut("Validation sur votre téléphone en cours...", "pending");
+ async function lancerPaiement() {
+   const payBtn = document.getElementById("payBtn");
+   payBtn.disabled = true;
+   afficherStatut("Validation sur votre téléphone en cours...", "pending");
 
-  try {
-    // 1. Initialisation via Edge Function (API Shwary)
-    const { data, error } = await supabaseClient.functions.invoke('initiate-payment', {
-      body: {
-        amount: reservation.total_price,
-        clientPhoneNumber: reservation.telephone_client,
-        countryCode: 'DRC'
-      }
-    });
+   try {
+     const { data, error } = await supabaseClient.functions.invoke('initiate-payment', {
+       body: {
+         amount: reservation.total_price,
+         clientPhoneNumber: reservation.telephone_client,
+         countryCode: 'DRC'
+       }
+     });
 
-    if (error || !data || !data.id) {
-      throw new Error(error?.message || "Erreur lors de l'initialisation du paiement.");
-    }
+     if (error || !data || !data.id) {
+       throw new Error(error?.message || "Erreur lors de l'initialisation du paiement.");
+     }
 
-    const shwaryTxId = data.id;
+     const shwaryTxId = data.id;
 
-    // 2. Création du suivi de transaction dans 'payouts'
-    const { error: payoutErr } = await supabaseClient.from('payouts').insert({
-      shwary_transaction_id: shwaryTxId,
-      user_id: reservation.user_id || null,
-      amount: reservation.total_price,
-      currency: 'CDF',
-      status: 'pending',
-      recipient_phone_number: reservation.telephone_client
-    });
+     await supabaseClient.from('payouts').insert({
+       shwary_transaction_id: shwaryTxId,
+       user_id: reservation.user_id || null,
+       amount: reservation.total_price,
+       currency: 'CDF',
+       status: 'pending',
+       recipient_phone_number: reservation.telephone_client
+     });
 
-    if (payoutErr) {
-      console.error("Erreur insertion payout:", payoutErr);
-    }
+     afficherStatut("Un message de confirmation USSD a été envoyé sur votre téléphone. Veuillez valider avec votre code PIN.", "pending");
+     ecouterStatutPaiement(shwaryTxId);
 
-    afficherStatut("Un message de confirmation USSD a été envoyé sur votre téléphone. Veuillez valider avec votre code PIN.", "pending");
+   } catch (err) {
+     console.error("Erreur au lancement du paiement:", err);
+     afficherStatut("Échec : " + err.message, "error");
+     payBtn.disabled = false;
+   }
+ }
 
-    // 3. Écoute Realtime de la réponse Mobile Money
-    ecouterStatutPaiement(shwaryTxId);
+ async function forcerValidationTest() {
+   const ticketNum = "TALA-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+   afficherStatut("Validation test en cours...", "pending");
 
-  } catch (err) {
-    console.error("Erreur au lancement du paiement:", err);
-    afficherStatut("Échec : " + err.message, "error");
-    payBtn.disabled = false;
-  }
-}
+   const { error: resError } = await supabaseClient
+     .from('reservations')
+     .insert({
+       trip_id: reservation.trip_id,
+       user_id: reservation.user_id || null,
+       nom_client: reservation.nom_client,
+       email: reservation.email || null,
+       telephone_client: reservation.telephone_client,
+       seats: reservation.seats,
+       seats_count: reservation.seats_count || (reservation.seats ? reservation.seats.length : 1),
+       total_price: reservation.total_price,
+       statut: 'CONFIRMED',
+       mode_paiement: 'TEST_MODE',
+       ticket_number: ticketNum
+     });
 
-function ecouterStatutPaiement(shwaryTxId) {
-  const channel = supabaseClient
-    .channel('suivi-paiement-payouts')
-    .on(
-      'postgres_changes',
-      {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'payouts',
-        filter: `shwary_transaction_id=eq.${shwaryTxId}`
-      },
-      async (payload) => {
-        const row = payload.new;
-        console.log("Mise à jour statut reçue :", row.status);
+   if (resError) {
+     afficherStatut("Erreur : " + resError.message, "error");
+   } else {
+     afficherStatut("Réservation enregistrée avec succès !", "success");
+     
+     const updatedReservation = {
+       ...reservation,
+       ticket_number: ticketNum,
+       status: 'CONFIRMED'
+     };
+     localStorage.setItem("reservationInfo", JSON.stringify(updatedReservation));
 
-        if (['completed', 'success', 'successful', 'PAID'].includes(row.status?.toLowerCase())) {
-          afficherStatut("Paiement réussi ! Génération de votre billet...", "success");
+     setTimeout(() => {
+       window.location.href = `confirmation.html?ticket=${ticketNum}`;
+     }, 1000);
+   }
+ }
 
-          const ticketNum = "TALA-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+ function ecouterStatutPaiement(shwaryTxId) {
+   const channel = supabaseClient
+     .channel('suivi-paiement-payouts')
+     .on(
+       'postgres_changes',
+       {
+         event: 'UPDATE',
+         schema: 'public',
+         table: 'payouts',
+         filter: `shwary_transaction_id=eq.${shwaryTxId}`
+       },
+       async (payload) => {
+         const row = payload.new;
+         if (['completed', 'success', 'successful', 'PAID'].includes(row.status?.toLowerCase())) {
+           afficherStatut("Paiement réussi ! Génération de votre billet...", "success");
 
-          // Insérer la réservation confirmée dans Supabase
-          const { error: resError } = await supabaseClient
-            .from('reservations')
-            .insert({
-              trip_id: reservation.trip_id,
-              user_id: reservation.user_id || null, // Transmet l'ID utilisateur si connecté
-              nom_client: reservation.nom_client,
-              email: reservation.email || null,
-              telephone_client: reservation.telephone_client,
-              seats: reservation.seats,
-              seats_count: reservation.seats_count || (reservation.seats ? reservation.seats.length : 1),
-              total_price: reservation.total_price,
-              statut: 'CONFIRME',
-              mode_paiement: 'MOBILE_MONEY',
-              ticket_number: ticketNum
-            });
+           const ticketNum = "TALA-" + Math.random().toString(36).substring(2, 8).toUpperCase();
 
-          if (resError) {
-            console.error("Erreur enregistrement réservation:", resError);
-            afficherStatut("Erreur enregistrement : " + resError.message, "error");
-            document.getElementById("payBtn").disabled = false;
-            return;
-          }
+           const { error: resError } = await supabaseClient
+             .from('reservations')
+             .insert({
+               trip_id: reservation.trip_id,
+               user_id: reservation.user_id || null,
+               nom_client: reservation.nom_client,
+               email: reservation.email || null,
+               telephone_client: reservation.telephone_client,
+               seats: reservation.seats,
+               seats_count: reservation.seats_count || (reservation.seats ? reservation.seats.length : 1),
+               total_price: reservation.total_price,
+               statut: 'CONFIRMED',
+               mode_paiement: 'MOBILE_MONEY',
+               ticket_number: ticketNum
+             });
 
-          // Mettre à jour 'reservationInfo' dans localStorage (clé attendue par confirmation.html)
-          const updatedReservation = {
-            ...reservation,
-            ticket_number: ticketNum,
-            status: 'CONFIRME'
-          };
-          localStorage.setItem("reservationInfo", JSON.stringify(updatedReservation));
+           if (resError) {
+             afficherStatut("Erreur enregistrement : " + resError.message, "error");
+             document.getElementById("payBtn").disabled = false;
+             return;
+           }
 
-          // Redirection vers la page de confirmation
-          setTimeout(() => {
-            window.location.href = `confirmation.html?ticket=${ticketNum}`;
-          }, 1000);
+           const updatedReservation = {
+             ...reservation,
+             ticket_number: ticketNum,
+             status: 'CONFIRMED'
+           };
+           localStorage.setItem("reservationInfo", JSON.stringify(updatedReservation));
 
-          supabaseClient.removeChannel(channel);
+           setTimeout(() => {
+             window.location.href = `confirmation.html?ticket=${ticketNum}`;
+           }, 1000);
 
-        } else if (['failed', 'cancelled', 'error', 'REJECTED'].includes(row.status?.toLowerCase())) {
-          afficherStatut(`Paiement échoué ou annulé (${row.failure_reason || 'Transaction rejetée'}).`, "error");
-          document.getElementById("payBtn").disabled = false;
-          supabaseClient.removeChannel(channel);
-        }
-      }
-    )
-    .subscribe();
-}
+           supabaseClient.removeChannel(channel);
 
-function afficherStatut(message, type) {
-  const box = document.getElementById("statusBox");
-  if (box) {
-    box.style.display = "block";
-    box.className = `status-box ${type}`;
-    box.textContent = message;
-  }
-}
+         } else if (['failed', 'cancelled', 'error', 'REJECTED'].includes(row.status?.toLowerCase())) {
+           afficherStatut(`Paiement échoué ou annulé.`, "error");
+           document.getElementById("payBtn").disabled = false;
+           supabaseClient.removeChannel(channel);
+         }
+       }
+     )
+     .subscribe();
+ }
+
+ function afficherStatut(message, type) {
+   const box = document.getElementById("statusBox");
+   if (box) {
+     box.style.display = "block";
+     box.className = `status-box ${type}`;
+     box.textContent = message;
+   }
+ }
 </script>
 
 </body>
