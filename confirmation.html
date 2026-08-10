@@ -32,7 +32,7 @@
     <a href="search.html">Rechercher</a>
     <a href="about.html">À propos</a>
     <a href="contact.html">Contact</a>
-    <a href="auth.html" id="userAccountLink" class="nav-auth-btn">Mon Compte</a>
+    <a href="account.html" id="userAccountLink" class="nav-auth-btn">Mon Compte</a>
   </nav>
   <button class="menu-btn" id="menuToggle" aria-label="Ouvrir le menu">☰</button>
 </header>
@@ -122,6 +122,19 @@
   let currentReservation = null;
 
   document.addEventListener("DOMContentLoaded", async () => {
+    // Vérification de la session pour adapter dynamiquement le lien du menu "Mon Compte"
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    const accountLink = document.getElementById("userAccountLink");
+    if (accountLink) {
+      if (session) {
+        accountLink.href = "account.html";
+        accountLink.textContent = "Mon Compte";
+      } else {
+        accountLink.href = "auth.html";
+        accountLink.textContent = "Connexion";
+      }
+    }
+
     const params = new URLSearchParams(window.location.search);
     const ticketParam = params.get("ticket");
 
