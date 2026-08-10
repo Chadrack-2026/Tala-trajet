@@ -35,7 +35,7 @@
         Comparez les compagnies, sélectionnez vos sièges et achetez vos billets instantanément par Mobile Money.
       </p>
       
-      <!-- BARRE DE RECHERCHE RAPIDE INTÉGRÉE DANS LA VITRINE -->
+      <!-- BARRE DE RECHERCHE RAPIDE INTÉGRÉE -->
       <div class="card" style="padding: 24px; border-radius: 16px; margin-top: 30px; background: #171b22; border: 1px solid #2a313b; text-align: left; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
         <form id="searchForm" onsubmit="handleSearch(event)" class="search-form">
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px;">
@@ -168,7 +168,8 @@
             <span class="route-tag">Populaire</span>
           </div>
           <p class="route-info">Liaison quotidienne • Bus & Minibus</p>
-          <a href="results.html?departure=Matadi&arrival=Kinshasa" class="route-link">Voir les horaires →</a>
+          <!-- Utilisation d'un attribut de données pour intercepter le clic si non connecté -->
+          <a href="#" onclick="handleRouteClick(event, 'Matadi', 'Kinshasa')" class="route-link">Voir les horaires →</a>
         </div>
 
         <div class="route-card">
@@ -177,7 +178,7 @@
             <span class="route-tag">Direct</span>
           </div>
           <p class="route-info">Trajet confort • Climatisation disponible</p>
-          <a href="results.html?departure=Kinshasa&arrival=Moanda" class="route-link">Voir les horaires →</a>
+          <a href="#" onclick="handleRouteClick(event, 'Kinshasa', 'Moanda')" class="route-link">Voir les horaires →</a>
         </div>
 
         <div class="route-card">
@@ -186,7 +187,7 @@
             <span class="route-tag">Quotidien</span>
           </div>
           <p class="route-info">Départs matin & soir</p>
-          <a href="results.html?departure=Kinshasa&arrival=Boma" class="route-link">Voir les horaires →</a>
+          <a href="#" onclick="handleRouteClick(event, 'Kinshasa', 'Boma')" class="route-link">Voir les horaires →</a>
         </div>
       </div>
     </div>
@@ -258,7 +259,6 @@
         if (searchData.arrival) document.getElementById('arrivalCity').value = searchData.arrival;
         if (searchData.date) document.getElementById('travelDate').value = searchData.date;
         
-        // On nettoie le localStorage après restauration
         localStorage.removeItem('pendingSearch');
       } catch (e) {
         console.error("Erreur lors de la lecture de la recherche en suspens", e);
@@ -279,7 +279,7 @@
     }
   });
 
-  // Gestion de la recherche avec contrôle de connexion
+  // Gestion de la recherche principale avec contrôle de connexion
   async function handleSearch(e) {
     e.preventDefault();
     
@@ -292,7 +292,6 @@
       return;
     }
 
-    // Vérification de la session en cours
     const { data: { session } } = await supabaseClient.auth.getSession();
 
     const searchParams = new URLSearchParams({
@@ -302,12 +301,27 @@
     });
 
     if (!session) {
-      // Si l'utilisateur n'est PAS connecté, on sauvegarde sa recherche et on l'envoie à la page auth
       localStorage.setItem('pendingSearch', JSON.stringify({ departure: dep, arrival: arr, date: date }));
       window.location.href = `auth.html?redirect=index`;
     } else {
-      // S'il est connecté, on l'envoie directement vers les résultats
       window.location.href = `results.html?${searchParams.toString()}`;
+    }
+  }
+
+  // Gestion spécifique pour les clics sur les "Lignes populaires"
+  async function handleRouteClick(e, departure, arrival) {
+    e.preventDefault();
+
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    const today = new Date().toISOString().split('T')[0];
+
+    if (!session) {
+      // Si non connecté, on stocke la recherche du trajet populaire et on redirige vers auth
+      localStorage.setItem('pendingSearch', JSON.stringify({ departure: departure, arrival: arrival, date: today }));
+      window.location.href = `auth.html?redirect=index`;
+    } else {
+      // Si connecté, on autorise l'accès direct aux résultats
+      window.location.href = `results.html?departure=${encodeURIComponent(departure)}&arrival=${encodeURIComponent(arrival)}&date=${today}`;
     }
   }
 </script>
