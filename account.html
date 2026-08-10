@@ -94,8 +94,7 @@
     document.getElementById("userName").textContent = user.user_metadata?.full_name || "Voyageur TALA";
     document.getElementById("userEmail").textContent = user.email;
 
-    // 2. Récupération des réservations avec jointure sur la table des trajets (trips) via trip_id
-    // Note : Si votre table s'appelle autrement que "trips" (ex: "trajets"), remplacez "trips" par le nom exact de votre table dans .select()
+    // 2. Récupération des réservations avec jointure sur la table 'trips' via 'trip_id'
     const { data: reservations, resError } = await supabaseClient
       .from("reservations")
       .select(`
@@ -140,7 +139,7 @@
       const badgeClass = rawStatus.trim().replace(/\s+/g, '_');
       const seatsFormatted = Array.isArray(r.seats) ? r.seats.join(', ') : (r.seats || 'N/A');
 
-      // Récupération sécurisée des villes depuis l'objet joint "trips" ou directement si présent
+      // Récupération sécurisée des villes depuis l'objet joint "trips" (ou directement si stocké par sécurité)
       const tripData = r.trips || {};
       const depCity = tripData.ville_depart || tripData.departure_city || tripData.departure || r.ville_depart || r.departure || 'Départ';
       const arrCity = tripData.ville_arrivee || tripData.arrival_city || tripData.arrival || r.ville_arrivee || r.arrival || 'Arrivée';
@@ -171,7 +170,6 @@
 
   checkUserAndLoadData();
 </script>
-
 
 </body>
 </html>
