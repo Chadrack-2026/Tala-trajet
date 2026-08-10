@@ -1,113 +1,308 @@
-<!DOCTYPE html>
-<html lang="fr">
+<!DOCTYPE html><html lang="fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>À propos — TALA Trajet</title>
-  
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
+  <title>À propos — TALA Trajet</title>  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">  <!-- Lucide Icons -->  <script src="https://unpkg.com/lucide@latest"></script>  <style>
+    /* ==============================
+       ICÔNES TALA TRAJET
+       ============================== */
 
-<!-- HEADER -->
-<header class="site-header">
-  <div class="brand">TALA<span>Trajet</span></div>
-  <nav class="main-nav" id="navMenu">
-    <a href="search.html">Accueil</a>
-    <a href="about.html" class="active">À propos</a>
-    <a href="contact.html">Contact</a>
-  </nav>
-  <button class="menu-btn" id="menuToggle" aria-label="Ouvrir le menu">☰</button>
-</header>
+    .icon {
+      width: 18px;
+      height: 18px;
+      stroke-width: 2;
+      vertical-align: middle;
+    }
 
-<!-- MAIN -->
-<main>
-  
-  <!-- HERO A PROPOS -->
-  <section class="hero-showcase">
-    <div class="hero-content">
-      <span class="badge-hero">Notre Mission</span>
-      <h1 class="hero-title">Moderniser le voyage en <span>République Démocratique du Congo</span></h1>
-      <p class="hero-sub">
-        TALA Trajet facilite la réservation de vos billets de bus et de train à travers tout le pays.
-        Fini les files d'attente interminables aux agences : réservez vos places en quelques clics et payez en toute sécurité via Mobile Money.
+    /* Icônes navigation */
+    .nav-icon {
+      width: 17px;
+      height: 17px;
+      margin-right: 5px;
+      vertical-align: -3px;
+    }
+
+    /* Icône du badge Hero */
+    .hero-icon {
+      width: 17px;
+      height: 17px;
+      vertical-align: -3px;
+      margin-right: 5px;
+    }
+
+    /* Icônes des cartes */
+    .feature-icon {
+      width: 58px;
+      height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 18px;
+      border-radius: 14px;
+    }
+
+    .feature-icon svg {
+      width: 30px;
+      height: 30px;
+      stroke-width: 2;
+    }
+
+    /* Icône du bouton CTA */
+    .cta-icon {
+      width: 19px;
+      height: 19px;
+      margin-left: 6px;
+      vertical-align: -4px;
+      transition: transform 0.2s ease;
+    }
+
+    .btn-primary-lg:hover .cta-icon {
+      transform: translateX(4px);
+    }
+
+    /* Icônes du footer */
+    .footer-icon {
+      width: 16px;
+      height: 16px;
+      margin-right: 5px;
+      vertical-align: -3px;
+    }
+
+    /* Menu mobile */
+    .menu-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .menu-btn svg {
+      width: 22px;
+      height: 22px;
+    }
+  </style></head><body><!-- HEADER --><header class="site-header">  <div class="brand">
+    TALA<span>Trajet</span>
+  </div>  <nav class="main-nav" id="navMenu"><a href="search.html">
+  <i data-lucide="house" class="nav-icon"></i>
+  Accueil
+</a>
+
+<a href="about.html" class="active">
+  <i data-lucide="info" class="nav-icon"></i>
+  À propos
+</a>
+
+<a href="contact.html">
+  <i data-lucide="headphones" class="nav-icon"></i>
+  Contact
+</a>
+
+  </nav><button
+class="menu-btn"
+id="menuToggle"
+aria-label="Ouvrir le menu"
+
+«»
+
+<i data-lucide="menu"></i>
+
+  </button></header><!-- MAIN --><main>  <!-- HERO A PROPOS -->  <section class="hero-showcase"><div class="hero-content">
+
+  <span class="badge-hero">
+    <i data-lucide="target" class="hero-icon"></i>
+    Notre Mission
+  </span>
+
+  <h1 class="hero-title">
+    Moderniser le voyage en
+    <span>République Démocratique du Congo</span>
+  </h1>
+
+  <p class="hero-sub">
+    TALA Trajet facilite la réservation de vos billets de bus et de train
+    à travers tout le pays. Fini les files d'attente interminables aux
+    agences : réservez vos places en quelques clics et payez en toute
+    sécurité via Mobile Money.
+  </p>
+
+</div>
+
+  </section>  <!-- VALEURS ET ENGAGEMENTS -->  <section class="features-section"><div class="container">
+
+  <div class="section-header">
+
+    <h2>
+      Pourquoi choisir
+      <span>TALA Trajet ?</span>
+    </h2>
+
+    <p>
+      Une solution conçue pour offrir simplicité, transparence et fiabilité
+      à tous les voyageurs.
+    </p>
+
+  </div>
+
+
+  <div class="features-grid">
+
+    <!-- SIMPLICITÉ -->
+    <div class="feature-card">
+
+      <div class="feature-icon">
+        <i data-lucide="rocket"></i>
+      </div>
+
+      <h3>
+        Simplicité & Rapidité
+      </h3>
+
+      <p>
+        Recherchez vos itinéraires, choisissez votre siège sur plan
+        interactif et obtenez votre billet instantanément.
       </p>
-    </div>
-  </section>
 
-  <!-- VALEURS ET ENGAGEMENTS -->
-  <section class="features-section">
-    <div class="container">
-      <div class="section-header">
-        <h2>Pourquoi choisir <span>TALA Trajet ?</span></h2>
-        <p>Une solution conçue pour offrir simplicité, transparence et fiabilité à tous les voyageurs.</p>
+    </div>
+
+
+    <!-- PAIEMENT -->
+    <div class="feature-card">
+
+      <div class="feature-icon">
+        <i data-lucide="smartphone"></i>
       </div>
 
-      <div class="features-grid">
-        <div class="feature-card">
-          <div class="feature-icon">🚀</div>
-          <h3>Simplicité & Rapidité</h3>
-          <p>Recherchez vos itinéraires, choisissez votre siège sur plan interactif et obtenez votre billet instantanément.</p>
-        </div>
+      <h3>
+        Paiement Local Sécurisé
+      </h3>
 
-        <div class="feature-card">
-          <div class="feature-icon">📱</div>
-          <h3>Paiement Local Sécurisé</h3>
-          <p>Intégration directe des solutions Mobile Money (M-Pesa, Orange Money, Airtel Money) pour des transactions rapides et sûres.</p>
-        </div>
+      <p>
+        Intégration directe des solutions Mobile Money
+        (M-Pesa, Orange Money, Airtel Money) pour des transactions
+        rapides et sûres.
+      </p>
 
-        <div class="feature-card">
-          <div class="feature-icon">🤝</div>
-          <h3>Partenariats de Confiance</h3>
-          <p>Nous collaborons avec les meilleures compagnies de transport agréées pour vous garantir un voyage en toute sérénité.</p>
-        </div>
+    </div>
+
+
+    <!-- PARTENARIATS -->
+    <div class="feature-card">
+
+      <div class="feature-icon">
+        <i data-lucide="handshake"></i>
       </div>
-    </div>
-  </section>
 
-  <!-- BANNIÈRE ACTION -->
-  <section class="cta-banner">
-    <div class="container cta-content">
-      <h2>Prêt à voyager autrement ?</h2>
-      <p>Rejoignez les milliers de passagers qui gagnent du temps au quotidien.</p>
-      <a href="auth.html" class="btn-primary-lg">Réserver un billet</a>
-    </div>
-  </section>
+      <h3>
+        Partenariats de Confiance
+      </h3>
 
-</main>
+      <p>
+        Nous collaborons avec les meilleures compagnies de transport
+        agréées pour vous garantir un voyage en toute sérénité.
+      </p>
 
-<!-- FOOTER -->
-<footer>
-  <div class="container footer-inner">
-    <div class="footer-brand">
-      <div class="brand">TALA<span>Trajet</span></div>
-      <p>La plateforme intelligente de réservation de billets de transport en République Démocratique du Congo.</p>
     </div>
-    
-    <div class="footer-links">
-      <a href="about.html">À propos</a>
-      <a href="contact.html">Contact</a>
-      <a href="terms.html">Conditions d'utilisation</a>
-      <a href="privacy.html">Politique de confidentialité</a>
-    </div>
+
   </div>
-  <div class="footer-bottom">
-    <p>© 2026 TALA Trajet — Tous droits réservés.</p>
-  </div>
-</footer>
 
-<script>
-  // Menu Mobile Toggle
+</div>
+
+  </section>  <!-- BANNIÈRE ACTION -->  <section class="cta-banner"><div class="container cta-content">
+
+  <h2>
+    Prêt à voyager autrement ?
+  </h2>
+
+  <p>
+    Rejoignez les milliers de passagers qui gagnent du temps au quotidien.
+  </p>
+
+  <a href="auth.html" class="btn-primary-lg">
+    Réserver un billet
+    <i data-lucide="ticket" class="cta-icon"></i>
+  </a>
+
+</div>
+
+  </section></main><!-- FOOTER --><footer>  <div class="container footer-inner"><div class="footer-brand">
+
+  <div class="brand">
+    TALA<span>Trajet</span>
+  </div>
+
+  <p>
+    La plateforme intelligente de réservation de billets de transport
+    en République Démocratique du Congo.
+  </p>
+
+</div>
+
+
+<div class="footer-links">
+
+  <a href="about.html">
+    <i data-lucide="info" class="footer-icon"></i>
+    À propos
+  </a>
+
+  <a href="contact.html">
+    <i data-lucide="headphones" class="footer-icon"></i>
+    Contact
+  </a>
+
+  <a href="terms.html">
+    <i data-lucide="file-text" class="footer-icon"></i>
+    Conditions d'utilisation
+  </a>
+
+  <a href="privacy.html">
+    <i data-lucide="shield-check" class="footer-icon"></i>
+    Politique de confidentialité
+  </a>
+
+</div>
+
+  </div>  <div class="footer-bottom"><p>
+  © 2026 TALA Trajet — Tous droits réservés.
+</p>
+
+  </div></footer><script>
+
+  /* ==============================
+     INITIALISATION LUCIDE
+     ============================== */
+
+  lucide.createIcons();
+
+
+  /* ==============================
+     MENU MOBILE
+     ============================== */
+
   const menuToggle = document.getElementById('menuToggle');
   const navMenu = document.getElementById('navMenu');
-  if (menuToggle && navMenu) {
-    menuToggle.addEventListener('click', () => {
-      navMenu.classList.toggle('open');
-      menuToggle.textContent = navMenu.classList.contains('open') ? '✕' : '☰';
-    });
-  }
-</script>
 
-</body>
+  if (menuToggle && navMenu) {
+
+    menuToggle.addEventListener('click', () => {
+
+      navMenu.classList.toggle('open');
+
+      if (navMenu.classList.contains('open')) {
+
+        menuToggle.innerHTML = '<i data-lucide="x"></i>';
+
+      } else {
+
+        menuToggle.innerHTML = '<i data-lucide="menu"></i>';
+
+      }
+
+      lucide.createIcons();
+
+    });
+
+  }
+
+</script></body>
 </html>
