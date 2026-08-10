@@ -84,7 +84,7 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     }
     .stat-card .title { font-size: 0.85rem; color: var(--text-muted); }
-    .stat-card .value { font-size: 1.6rem; font-weight: 700; color: var(--primary-blue); margin-top: 5px; }
+    .stat-card .value { font-size: 1.5rem; font-weight: 700; color: var(--primary-blue); margin-top: 5px; }
 
     /* Layout Sections */
     .section-grid {
@@ -102,6 +102,7 @@
       border: 1px solid var(--border-color);
       border-radius: 16px;
       padding: 24px;
+      margin-bottom: 30px;
     }
     .card-box h3 {
       margin-top: 0;
@@ -110,6 +111,7 @@
       color: #fff;
       display: flex;
       align-items: center;
+      justify-content: space-between;
       gap: 10px;
     }
 
@@ -157,26 +159,44 @@
       border-radius: 12px;
       font-size: 0.75rem;
       font-weight: 600;
+      display: inline-block;
+      cursor: pointer;
     }
     .badge-success { background: rgba(46, 204, 113, 0.2); color: var(--green); }
     .badge-warning { background: rgba(243, 156, 18, 0.2); color: var(--orange); }
+    .badge-danger  { background: rgba(231, 76, 60, 0.2); color: var(--red); }
 
-    .search-bar {
+    .filter-bar {
+      display: flex;
+      gap: 15px;
+      align-items: center;
       margin-bottom: 15px;
-      padding: 10px 14px;
-      width: 100%;
-      max-width: 350px;
+      flex-wrap: wrap;
+    }
+    .filter-bar input {
+      max-width: 250px;
+      padding: 8px 12px;
       background: #0c0f13;
       border: 1px solid var(--border-color);
       border-radius: 8px;
       color: #fff;
-      box-sizing: border-box;
     }
 
     .btn-print {
       background: #1c2129;
       color: var(--primary-blue);
       border: 1px solid var(--primary-blue);
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      margin-right: 5px;
+    }
+
+    .btn-delete {
+      background: rgba(231, 76, 60, 0.15);
+      color: var(--red);
+      border: 1px solid var(--red);
       padding: 5px 10px;
       border-radius: 6px;
       cursor: pointer;
@@ -196,19 +216,19 @@
 
 <main class="container">
 
-  <!-- 1. STATISTIQUES EN UN COUP D'ŒIL -->
+  <!-- 1. STATISTIQUES EN UN COUP D'ŒIL (Avec CA du jour) -->
   <div class="stats-grid">
     <div class="stat-card">
       <div class="title">Chiffre d'Affaires Total</div>
       <div class="value" id="statRevenue">0 FC</div>
     </div>
     <div class="stat-card">
-      <div class="title">Réservations Totales</div>
-      <div class="value" id="statBookings">0</div>
+      <div class="title">CA du Jour 📅</div>
+      <div class="value" id="statDayRevenue">0 FC</div>
     </div>
     <div class="stat-card">
-      <div class="title">Bus Actifs</div>
-      <div class="value" id="statBuses">0</div>
+      <div class="title">Réservations Totales</div>
+      <div class="value" id="statBookings">0</div>
     </div>
     <div class="stat-card">
       <div class="title">Passagers Embarqués</div>
@@ -218,7 +238,7 @@
 
   <div class="section-grid">
     <!-- 2. GESTION DE LA FLOTTE (BUS) -->
-    <div class="card-box">
+    <div class="card-box" style="margin-bottom:0;">
       <h3>🚌 Gestion de la Flotte</h3>
       <form id="busForm" onsubmit="handleAddBus(event)">
         <div class="form-group">
@@ -249,7 +269,7 @@
     </div>
 
     <!-- 3. PROGRAMMATION DES TRAJETS -->
-    <div class="card-box">
+    <div class="card-box" style="margin-bottom:0;">
       <h3>🛣️ Programmer un Trajet</h3>
       <form id="tripForm" onsubmit="handleAddTrip(event)">
         <div style="display: flex; gap: 10px;">
@@ -286,9 +306,15 @@
     </div>
   </div>
 
-  <!-- 4. LISTE DES TRAJETS PROGRAMMÉS ET MANIFESTE -->
-  <div class="card-box" style="margin-bottom: 30px;">
-    <h3>📋 Trajets Programmés & Manifeste de bord</h3>
+  <!-- 4. LISTE DES TRAJETS PROGRAMMÉS (Avec Filtre par date) -->
+  <div class="card-box">
+    <h3>
+      <span>📋 Trajets Programmés</span>
+      <div style="font-size: 0.85rem; font-weight: normal; display: flex; align-items: center; gap: 8px;">
+        Filtrer par date : <input type="date" id="tripDateFilter" onchange="loadTrips()" style="padding: 5px; background: #0c0f13; border: 1px solid var(--border-color); color: #fff; border-radius: 6px;">
+        <button onclick="document.getElementById('tripDateFilter').value=''; loadTrips();" style="background:none; border:none; color:var(--primary-blue); cursor:pointer;">Tout voir</button>
+      </div>
+    </h3>
     <div class="table-responsive">
       <table>
         <thead>
@@ -297,7 +323,7 @@
             <th>Date & Heure</th>
             <th>Bus</th>
             <th>Prix</th>
-            <th>Manifeste Passagers</th>
+            <th>Actions & Manifeste</th>
           </tr>
         </thead>
         <tbody id="tripsTableBody">
@@ -307,10 +333,12 @@
     </div>
   </div>
 
-  <!-- 5. SUIVI ET RECHERCHE RAPIDE DES PASSAGERS -->
+  <!-- 5. SUIVI ET RECHERCHE DES PASSAGERS (Avec Statut Modifiable) -->
   <div class="card-box">
     <h3>🎟️ Suivi des Réservations Client</h3>
-    <input type="text" id="searchInput" class="search-bar" placeholder="🔍 Rechercher par Nom ou Ticket..." onkeyup="filterReservations()">
+    <div class="filter-bar">
+      <input type="text" id="searchInput" placeholder="🔍 Rechercher par Nom ou Ticket..." onkeyup="filterReservations()">
+    </div>
 
     <div class="table-responsive">
       <table>
@@ -320,8 +348,8 @@
             <th>Passager</th>
             <th>Téléphone</th>
             <th>Sièges</th>
-            <th>Paiement</th>
-            <th>Embarquement</th>
+            <th>Paiement (Cliquer pour changer)</th>
+            <th>Embarquement (Cliquer)</th>
           </tr>
         </thead>
         <tbody id="reservationsTableBody">
@@ -334,7 +362,6 @@
 </main>
 
 <script>
-  // Initialisation Supabase avec les bons identifiants actifs
   const { createClient } = window.supabase;
   const supabaseUrl = "https://kfkifkstatbadtzosxai.supabase.co"; 
   const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma2lma3N0YXRiYWR0em9zeGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3MTYzMTAsImV4cCI6MjEwMTI5MjMxMH0.xPzFtl_OET2asSc5iH3liRHnPyuUYAfbbjZISwfnaA8";
@@ -343,6 +370,7 @@
   let currentAgency = null;
   let allReservations = [];
   let busesList = [];
+  let allTrips = [];
 
   document.addEventListener("DOMContentLoaded", async () => {
     const storedAgency = localStorage.getItem("currentAgency");
@@ -373,10 +401,7 @@
       .select("*")
       .eq("agence_id", currentAgency.id);
 
-    if (error) {
-      console.error("Erreur chargement bus:", error);
-      return;
-    }
+    if (error) { console.error("Erreur bus:", error); return; }
 
     busesList = buses || [];
     const tbody = document.getElementById("busesTableBody");
@@ -386,16 +411,13 @@
     if (select) select.innerHTML = '<option value="">Sélectionner un bus</option>';
 
     if (busesList.length > 0) {
-      const statBuses = document.getElementById("statBuses");
-      if (statBuses) statBuses.textContent = busesList.length;
-
       busesList.forEach(b => {
         if (tbody) {
           tbody.innerHTML += `
             <tr>
               <td><strong>${b.immatriculation}</strong></td>
               <td>${b.capacite} places</td>
-              <td><button class="btn-print" onclick="deleteBus(${b.id})" style="color:var(--red); border-color:var(--red);">Supprimer</button></td>
+              <td><button class="btn-delete" onclick="deleteBus(${b.id})">Supprimer</button></td>
             </tr>
           `;
         }
@@ -404,8 +426,6 @@
         }
       });
     } else {
-      const statBuses = document.getElementById("statBuses");
-      if (statBuses) statBuses.textContent = "0";
       if (tbody) tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: var(--text-muted);">Aucun bus enregistré.</td></tr>';
     }
   }
@@ -415,47 +435,45 @@
     const immatriculation = document.getElementById("busNumber").value.trim();
     const capacite = parseInt(document.getElementById("busCapacity").value);
 
-    const { error } = await supabaseClient
-      .from("buses")
-      .insert([{ agence_id: currentAgency.id, immatriculation, capacite }]);
-
+    const { error } = await supabaseClient.from("buses").insert([{ agence_id: currentAgency.id, immatriculation, capacite }]);
     if (error) alert("Erreur: " + error.message);
-    else {
-      document.getElementById("busForm").reset();
-      loadBuses();
-    }
+    else { document.getElementById("busForm").reset(); loadBuses(); }
   }
 
   async function deleteBus(busId) {
     if(confirm("Voulez-vous vraiment supprimer ce bus ?")) {
       const { error } = await supabaseClient.from("buses").delete().eq("id", busId);
-      if (error) {
-        alert("Impossible de supprimer ce bus : il est probablement lié à des trajets programmés.");
-      } else {
-        loadBuses();
-      }
+      if (error) alert("Impossible de supprimer : lié à des trajets.");
+      else loadBuses();
     }
   }
 
-  /* --- GESTION DES TRAJETS --- */
+  /* --- GESTION DES TRAJETS (Avec Filtre par date) --- */
   async function loadTrips() {
-    const { data: trips, error } = await supabaseClient
+    let query = supabaseClient
       .from("trips")
       .select("*, buses!bus_id(immatriculation)")
       .eq("agency_id", currentAgency.id)
       .order("date_depart", { ascending: true });
 
-    if (error) {
-      console.error("Erreur chargement trajets:", error);
-      return;
+    const dateFilterVal = document.getElementById("tripDateFilter").value;
+    if (dateFilterVal) {
+      // Filtrer pour la journée choisie
+      const startOfDay = `${dateFilterVal}T00:00:00`;
+      const endOfDay = `${dateFilterVal}T23:59:59`;
+      query = query.gte("date_depart", startOfDay).lte("date_depart", endOfDay);
     }
 
+    const { data: trips, error } = await query;
+    if (error) { console.error("Erreur trajets:", error); return; }
+
+    allTrips = trips || [];
     const tbody = document.getElementById("tripsTableBody");
     if (!tbody) return;
     tbody.innerHTML = "";
 
-    if (trips && trips.length > 0) {
-      trips.forEach(t => {
+    if (allTrips.length > 0) {
+      allTrips.forEach(t => {
         const dateStr = new Date(t.date_depart).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" });
         const busImmat = t.buses && t.buses.immatriculation ? t.buses.immatriculation : 'N/A';
         const prixFormat = t.prix ? t.prix.toLocaleString() : '0';
@@ -466,12 +484,15 @@
             <td>${dateStr}</td>
             <td>${busImmat}</td>
             <td>${prixFormat} FC</td>
-            <td><button class="btn-print" onclick="printManifest(${t.id})">🖨️ Imprimer la liste</button></td>
+            <td>
+              <button class="btn-print" onclick="printManifest(${t.id})">🖨️ Manifeste</button>
+              <button class="btn-delete" onclick="deleteTrip(${t.id})">🗑️ Supprimer</button>
+            </td>
           </tr>
         `;
       });
     } else {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Aucun trajet programmé.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Aucun trajet trouvé.</td></tr>';
     }
   }
 
@@ -482,7 +503,7 @@
     const capacity = parseInt(selectedOption.getAttribute("data-capacity") || "0");
 
     const tripData = {
-      agency_id: currentAgency.id, // Corrigé ici pour correspondre à la colonne agency_id de la table trips
+      agency_id: currentAgency.id,
       ville_depart: document.getElementById("depCity").value.trim(),
       ville_arrivee: document.getElementById("arrCity").value.trim(),
       date_depart: document.getElementById("departureDate").value,
@@ -493,11 +514,15 @@
     };
 
     const { error } = await supabaseClient.from("trips").insert([tripData]);
-
     if (error) alert("Erreur: " + error.message);
-    else {
-      document.getElementById("tripForm").reset();
-      loadTrips();
+    else { document.getElementById("tripForm").reset(); loadTrips(); }
+  }
+
+  async function deleteTrip(tripId) {
+    if(confirm("Attention : Supprimer ce trajet effacera l'historique associé. Continuer ?")) {
+      const { error } = await supabaseClient.from("trips").delete().eq("id", tripId);
+      if (error) alert("Erreur : " + error.message);
+      else { loadTrips(); loadReservationsAndStats(); }
     }
   }
 
@@ -505,31 +530,41 @@
   async function loadReservationsAndStats() {
     const { data: res, error } = await supabaseClient
       .from("reservations")
-      .select("*")
-      .eq("agence_id", currentAgency.id)
+      .select("*, trips!trip_id(agency_id)")
       .order("created_at", { ascending: false });
 
-    if (error) {
-      console.error("Erreur chargement réservations:", error);
-      return;
-    }
+    if (error) { console.error("Erreur réservations:", error); return; }
 
-    allReservations = res || [];
+    allReservations = (res || []).filter(r => r.trips && r.trips.agency_id === currentAgency.id);
     renderReservations(allReservations);
 
     let totalRevenue = 0;
+    let dayRevenue = 0;
     let boardedCount = 0;
+    
+    const todayStr = new Date().toISOString().split('T')[0];
 
     allReservations.forEach(r => {
-      totalRevenue += (r.montant_total || 0);
-      if (r.statut_reservation === "EMBARQUE") boardedCount++;
+      const amount = (r.total_price || r.montant_total || 0);
+      totalRevenue += amount;
+
+      // CA du jour basé sur la date de création ou du trajet
+      const resDate = r.created_at ? r.created_at.split('T')[0] : '';
+      if (resDate === todayStr) {
+        dayRevenue += amount;
+      }
+
+      const statusBoard = r.statut_reservation || '';
+      if (statusBoard === "EMBARQUE") boardedCount++;
     });
 
     const statRevenue = document.getElementById("statRevenue");
+    const statDayRevenue = document.getElementById("statDayRevenue");
     const statBookings = document.getElementById("statBookings");
     const statBoarded = document.getElementById("statBoarded");
 
     if (statRevenue) statRevenue.textContent = totalRevenue.toLocaleString() + " FC";
+    if (statDayRevenue) statDayRevenue.textContent = dayRevenue.toLocaleString() + " FC";
     if (statBookings) statBookings.textContent = allReservations.length;
     if (statBoarded) statBoarded.textContent = boardedCount;
   }
@@ -543,21 +578,30 @@
       list.forEach(r => {
         let seats = "N/A";
         try {
-          seats = typeof r.passengers_list === "string" ? JSON.parse(r.passengers_list).join(", ") : (Array.isArray(r.passengers_list) ? r.passengers_list.join(", ") : r.passengers_list);
+          seats = Array.isArray(r.seats) ? r.seats.join(", ") : (typeof r.seats === "string" ? JSON.parse(r.seats).join(", ") : r.seats);
         } catch(e) {
-          seats = r.passengers_list || "N/A";
+          seats = r.seats || "N/A";
         }
 
-        const isBoarded = r.statut_reservation === "EMBARQUE";
+        const clientName = r.nom_client || r.client_name || 'Passager';
+        const clientPhone = r.telephone_client || r.client_phone || 'N/A';
+        const ticketNum = r.ticket_number || r.id || 'N/A';
+        
+        const payStatus = r.statut || r.statut_paiement || 'CONFIRMED';
+        const boardStatus = r.statut_reservation || 'EN_ATTENTE';
 
         tbody.innerHTML += `
           <tr>
-            <td><strong>${r.ticket_number}</strong></td>
-            <td>${r.client_name}</td>
-            <td>${r.client_phone}</td>
+            <td><strong>${ticketNum}</strong></td>
+            <td>${clientName}</td>
+            <td>${clientPhone}</td>
             <td>N° ${seats}</td>
-            <td><span class="badge badge-success">${r.statut_paiement || 'PAID'}</span></td>
-            <td><span class="badge ${isBoarded ? 'badge-success' : 'badge-warning'}">${r.statut_reservation || 'EN_ATTENTE'}</span></td>
+            <td>
+              <span class="badge badge-success" onclick="togglePaymentStatus(${r.id}, '${payStatus}')" title="Cliquer pour modifier">${payStatus}</span>
+            </td>
+            <td>
+              <span class="badge ${boardStatus === 'EMBARQUE' ? 'badge-success' : 'badge-warning'}" onclick="toggleBoardStatus(${r.id}, '${boardStatus}')" title="Cliquer pour basculer">${boardStatus}</span>
+            </td>
           </tr>
         `;
       });
@@ -566,23 +610,51 @@
     }
   }
 
+  // Permet de modifier le statut de paiement au clic
+  async function togglePaymentStatus(reservationId, currentStatus) {
+    const newStatus = prompt("Modifier le statut du paiement (Ex: PAYE, EN_ATTENTE, ANNULE) :", currentStatus);
+    if (!newStatus) return;
+
+    const { error } = await supabaseClient
+      .from("reservations")
+      .update({ statut: newStatus.toUpperCase() })
+      .eq("id", reservationId);
+
+    if (error) alert("Erreur mise à jour : " + error.message);
+    else loadReservationsAndStats();
+  }
+
+  // Permet de basculer l'état d'embarquement au clic
+  async function toggleBoardStatus(reservationId, currentBoard) {
+    const nextStatus = currentBoard === "EMBARQUE" ? "EN_ATTENTE" : "EMBARQUE";
+    if(!confirm(`Changer le statut d'embarquement à : ${nextStatus} ?`)) return;
+
+    const { error } = await supabaseClient
+      .from("reservations")
+      .update({ statut_reservation: nextStatus })
+      .eq("id", reservationId);
+
+    if (error) alert("Erreur mise à jour : " + error.message);
+    else loadReservationsAndStats();
+  }
+
   function filterReservations() {
-    const searchInput = document.getElementById("searchInput");
-    if (!searchInput) return;
-    const query = searchInput.value.toLowerCase();
+    const query = document.getElementById("searchInput").value.toLowerCase();
     const filtered = allReservations.filter(r => 
-      (r.client_name && r.client_name.toLowerCase().includes(query)) || 
-      (r.ticket_number && r.ticket_number.toLowerCase().includes(query))
+      ((r.nom_client || r.client_name) && (r.nom_client || r.client_name).toLowerCase().includes(query)) || 
+      ((r.ticket_number) && r.ticket_number.toLowerCase().includes(query))
     );
     renderReservations(filtered);
   }
 
   /* --- MANIFESTE PASSAGERS IMPRIMABLE --- */
   async function printManifest(tripId) {
-    const { data: passengers } = await supabaseClient
+    const { data: passengers, error } = await supabaseClient
       .from("reservations")
       .select("*")
-      .eq("trajet_id", tripId);
+      .eq("trip_id", tripId);
+
+    if (error) { alert("Erreur chargement manifeste."); return; }
 
     const printWindow = window.open("", "_blank");
     let html = `
@@ -590,12 +662,12 @@
       <head>
         <title>Manifeste de bord — TALA Trajet</title>
         <style>
-          body { font-family: sans-serif; padding: 20px; }
-          h2 { color: #333; margin-bottom: 5px; }
-          p { margin-top: 0; color: #666; }
+          body { font-family: sans-serif; padding: 20px; color: #000; }
+          h2 { color: #000; margin-bottom: 5px; }
+          p { margin-top: 0; color: #555; }
           table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-          th, td { border: 1px solid #ccc; padding: 10px; text-align: left; font-size: 0.9rem; }
-          th { background: #f4f4f4; }
+          th, td { border: 1px solid #333; padding: 10px; text-align: left; font-size: 0.9rem; }
+          th { background: #eee; }
         </style>
       </head>
       <body>
@@ -612,30 +684,34 @@
       passengers.forEach(p => {
         let seats = "N/A";
         try {
-          seats = typeof p.passengers_list === "string" ? JSON.parse(p.passengers_list).join(", ") : (Array.isArray(p.passengers_list) ? p.passengers_list.join(", ") : p.passengers_list);
+          seats = Array.isArray(p.seats) ? p.seats.join(", ") : (typeof p.seats === "string" ? JSON.parse(p.seats).join(", ") : p.seats);
         } catch(e) {
-          seats = p.passengers_list || "N/A";
+          seats = p.seats || "N/A";
         }
 
-        html += `<tr><td>${p.ticket_number}</td><td>${p.client_name}</td><td>${p.client_phone}</td><td>${seats}</td><td>${p.statut_reservation || 'EN_ATTENTE'}</td></tr>`;
+        html += `<tr><td>${p.ticket_number || 'N/A'}</td><td>${p.nom_client || p.client_name}</td><td>${p.telephone_client || p.client_phone}</td><td>${seats}</td><td>${p.statut || 'CONFIRMED'}</td></tr>`;
       });
     } else {
-      html += `<tr><td colspan="5" style="text-align:center;">Aucun passager inscrit pour ce trajet.</td></tr>`;
+      html += `<tr><td colspan="5" style="text-align: center;">Aucun passager pour ce trajet.</td></tr>`;
     }
 
-    html += `</tbody></table></body></html>`;
+    html += `
+          </tbody>
+        </table>
+        <script>window.onload = function() { window.print(); }<\/script>
+      </body>
+      </html>
+    `;
+
     printWindow.document.write(html);
     printWindow.document.close();
-    printWindow.print();
   }
 
   function logout() {
     localStorage.removeItem("currentAgency");
-    supabaseClient.auth.signOut();
     window.location.href = "agency-login.html";
   }
 </script>
-
 
 </body>
 </html>
