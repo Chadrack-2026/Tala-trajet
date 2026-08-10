@@ -32,7 +32,6 @@
 
     .reservation-item { background: #1c2129; border: 1px solid var(--input-border); border-radius: 12px; padding: 16px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
     
-    /* Styles des badges mis à jour pour supporter CONFIRMED */
     .badge { padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; display: inline-block; }
     .badge.CONFIRMED, .badge.CONFIRME, .badge.PAID, .badge.paye, .badge.Confirmé, .badge.payé {
       background: rgba(46, 204, 113, 0.15);
@@ -96,9 +95,20 @@
     document.getElementById("userEmail").textContent = user.email;
 
     // 2. Récupération des réservations de l'utilisateur
+    // On utilise une jointure (syntaxe Supabase) pour récupérer les infos de la table 'trips' si les villes y sont stockées
     const { data: reservations, resError } = await supabaseClient
       .from("reservations")
-      .select("*")
+      .select(`
+        *,
+        trips (
+          departure_city,
+          arrival_city,
+          departure,
+          arrival,
+          ville_depart,
+          ville_arrivee
+        )
+      `)
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
 
@@ -117,9 +127,9 @@
     // 3. Affichage des réservations
     container.innerHTML = "";
     reservations.forEach(r => {
-      const rawStatus = r.statut || "PENDING";
+      const rawStatus = r.statut || r.status || "PENDING";
       
-      // Normalisation du texte d'affichage
+      // Normalisation du texte d'affichage du statut
       let displayStatus = rawStatus;
       if (rawStatus.toUpperCase() === "CONFIRMED" || rawStatus.toUpperCase() === "CONFIRME") {
         displayStatus = "Confirmé";
@@ -128,21 +138,25 @@
       }
 
       const badgeClass = rawStatus.trim().replace(/\s+/g, '_');
-      const seatsFormatted = Array.isArray(r.seats) ? r.seats.join(', ') : r.seats;
+      const seatsFormatted = Array.isArray(r.seats) ? r.seats.join(', ') : (r.seats || 'N/A');
+
+      // Recherche intelligente des noms de villes (prend en charge plusieurs variantes de noms de colonnes possibles)
+      const depCity = r.ville_depart || r.departure_city || r.departure || (r.trips ? (r.trips.ville_depart || r.trips.departure_city || r.trips.departure) : null) || 'Départ';
+      const arrCity = r.ville_arrivee || r.arrival_city || r.arrival || (r.trips ? (r.trips.ville_arrivee || r.trips.arrival_city || r.trips.arrival) : null) || 'Arrivée';
 
       const item = document.createElement("div");
       item.className = "reservation-item";
       item.innerHTML = `
         <div>
-          <h4 style="margin: 0 0 5px 0; color: #ffffff; font-size: 1rem;">${r.ville_depart || 'Départ'} ➔ ${r.ville_arrivee || 'Arrivée'}</h4>
-          <p style="margin: 0 0 4px 0; color: #b0bcc9; font-size: 0.85rem;">🎫 Billet : <strong>${r.ticket_number || 'N/A'}</strong></p>
+          <h4 style="margin: 0 0 5px 0; color: #ffffff; font-size: 1rem;">${depCity} ➔ ${arrCity}</h4>
+          <p style="margin: 0 0 4px 0; color: #b0bcc9; font-size: 0.85rem;">🎫 Billet : <strong>${r.ticket_number || r.id || 'N/A'}</strong></p>
           <p style="margin: 0 0 4px 0; color: #b0bcc9; font-size: 0.85rem;">🪑 Siège(s) : ${seatsFormatted}</p>
-          <p style="margin: 0; color: #b0bcc9; font-size: 0.85rem;">💰 Montant : ${Number(r.total_price || 0).toLocaleString('fr-FR')} FC</p>
+          <p style="margin: 0; color: #b0bcc9; font-size: 0.85rem;">💰 Montant : ${Number(r.total_price || r.price || 0).toLocaleString('fr-FR')} FC</p>
         </div>
         <div style="text-align: right;">
           <span class="badge ${badgeClass}">${displayStatus}</span>
           <br>
-          <a href="confirmation.html?ticket=${r.ticket_number}" style="color: var(--primary-blue); font-size: 0.8rem; text-decoration: none; display: inline-block; margin-top: 8px;">Voir le billet ➔</a>
+          <a href="confirmation.html?ticket=${r.ticket_number || r.id}" style="color: var(--primary-blue); font-size: 0.8rem; text-decoration: none; display: inline-block; margin-top: 8px;">Voir le billet ➔</a>
         </div>
       `;
       container.appendChild(item);
