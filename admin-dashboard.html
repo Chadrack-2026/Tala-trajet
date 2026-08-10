@@ -60,6 +60,12 @@
       margin-left: 10px;
     }
 
+    .header-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
     .container {
       max-width: 1200px;
       margin: 30px auto;
@@ -142,7 +148,7 @@
       color: #fff;
       font-size: 0.8rem;
       font-family: inherit;
-      width: 200px;
+      width: 180px;
     }
 
     .btn-submit {
@@ -221,7 +227,8 @@
     TALA<span>Trajet</span> 
     <span class="badge-admin">SUPER ADMIN</span>
   </div>
-  <div>
+  <div class="header-actions">
+    <button class="btn-action" onclick="exportFinancialData()" style="color:var(--primary-blue); border-color:var(--primary-blue);">📥 Export CSV</button>
     <button class="btn-action" onclick="logout()" style="color:var(--red); border-color:var(--red);">Déconnexion 🚪</button>
   </div>
 </header>
@@ -235,7 +242,7 @@
       <div class="value" id="totalVolume">0 FC</div>
     </div>
     <div class="stat-card">
-      <div class="title">Net TALA Trajet (Commission ~10%)</div>
+      <div class="title" id="commissionTitle">Net TALA Trajet (Commission 10%)</div>
       <div class="value" id="netCommission" style="color: var(--green);">0 FC</div>
     </div>
     <div class="stat-card">
@@ -256,13 +263,24 @@
 
   <div class="section-grid">
     
-    <!-- 2. GENERATEUR D'INVITATION AGENCE -->
+    <!-- 2. CONFIGURATION & GESTION DES COMMISSIONS -->
     <div class="card-box">
-      <h3>✉️ Inviter une Nouvelle Agence</h3>
+      <h3>⚙️ Paramètres & Commission</h3>
       <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px;">
-        Générez un lien d'inscription unique sécurisé.
+        Ajustez le taux de commission prélevé par TALA Trajet.
       </p>
       
+      <div class="form-group">
+        <label>Taux de commission (%)</label>
+        <div style="display: flex; gap: 10px;">
+          <input type="number" id="commissionInput" value="10" min="0" max="100" step="0.5">
+          <button class="btn-action" onclick="updateCommissionRate()" style="background: var(--primary-blue); color: #000; font-weight:700; white-space:nowrap;">Appliquer</button>
+        </div>
+      </div>
+
+      <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 20px 0;">
+
+      <h3>✉️ Inviter une Nouvelle Agence</h3>
       <form id="inviteForm" onsubmit="generateInviteLink(event)">
         <div class="form-group">
           <label>Nom de la compagnie / Agence</label>
@@ -310,7 +328,7 @@
   <div class="card-box" style="margin-bottom: 30px;">
     <h3>
       🏢 Agences Enregistrées & Statuts
-      <input type="text" id="searchAgency" class="search-input" placeholder="Rechercher une agence..." onkeyup="filterAgencies()">
+      <input type="text" id="searchAgency" class="search-input" placeholder="Rechercher..." onkeyup="filterAgencies()">
     </h3>
     <div class="table-responsive">
       <table>
@@ -338,8 +356,9 @@
   const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma2lma3N0YXRiYWR0em9zeGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3MTYzMTAsImV4cCI6MjEwMTI5MjMxMH0.xPzFtl_OET2asSc5iH3liRHnPyuUYAfbbjZISwfnaA8";
   const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
-  const COMMISSION_RATE = 0.10;
-  let allAgenciesData = []; // Stockage local pour la recherche dynamique
+  let COMMISSION_RATE = localStorage.getItem('tala_commission') ? parseFloat(localStorage.getItem('tala_commission')) : 0.10;
+  let allAgenciesData = [];
+  let allReservationsData = [];
   let revenueChartInstance = null;
 
   document.addEventListener("DOMContentLoaded", async () => {
@@ -351,34 +370,80 @@
       return;
     }
 
+    // Initialiser l'input du taux de commission
+    document.getElementById("commissionInput").value = COMMISSION_RATE * 100;
+    document.getElementById("commissionTitle").textContent = `Net TALA Trajet (Commission ${COMMISSION_RATE * 100}%)`;
+
     loadAdminStats();
     loadAgencies();
     loadPayouts();
   });
+
+  /* --- MODIFICATION DU TAUX DE COMMISSION --- */
+  function updateCommissionRate() {
+    const val = parseFloat(document.getElementById("commissionInput").value);
+    if(isNaN(val) || val < 0 || val > 100) {
+      alert("Veuillez entrer un pourcentage valide entre 0 et 100.");
+      return;
+    }
+    COMMISSION_RATE = val / 100;
+    localStorage.setItem('tala_commission', COMMISSION_RATE);
+    document.getElementById("commissionTitle").textContent = `Net TALA Trajet (Commission ${val}%)`;
+    
+    if(allReservationsData.length > 0) {
+      calculateStats(allReservationsData);
+    }
+    alert("Taux de commission mis à jour avec succès !");
+  }
 
   /* --- CHARGEMENT DES STATS GLOBALES & GRAPHIQUE --- */
   async function loadAdminStats() {
     const { count: agenciesCount } = await supabaseClient.from("agencies").select("*", { count: 'exact', head: true });
     document.getElementById("totalAgencies").textContent = agenciesCount || 0;
 
-    const { data: reservations } = await supabaseClient.from("reservations").select("total_price, montant_total, created_at");
+    const { data: reservations } = await supabaseClient.from("reservations").select("total_price, montant_total, created_at, id");
     if (reservations) {
-      document.getElementById("totalTickets").textContent = reservations.length;
-      const totalVolume = reservations.reduce((sum, r) => sum + (r.total_price || r.montant_total || 0), 0);
-      const netCommission = totalVolume * COMMISSION_RATE;
-
-      document.getElementById("totalVolume").textContent = totalVolume.toLocaleString('fr-FR') + " FC";
-      document.getElementById("netCommission").textContent = netCommission.toLocaleString('fr-FR') + " FC";
-
-      // Génération du graphique simple basé sur les données
+      allReservationsData = reservations;
+      calculateStats(reservations);
       renderChart(reservations);
     }
   }
 
+  function calculateStats(reservations) {
+    document.getElementById("totalTickets").textContent = reservations.length;
+    const totalVolume = reservations.reduce((sum, r) => sum + (r.total_price || r.montant_total || 0), 0);
+    const netCommission = totalVolume * COMMISSION_RATE;
+
+    document.getElementById("totalVolume").textContent = totalVolume.toLocaleString('fr-FR') + " FC";
+    document.getElementById("netCommission").textContent = netCommission.toLocaleString('fr-FR') + " FC";
+  }
+
+  /* --- EXPORT CSV DES FINANCES --- */
+  function exportFinancialData() {
+    if(!allReservationsData || allReservationsData.length === 0) {
+      alert("Aucune donnée à exporter.");
+      return;
+    }
+
+    let csvContent = "data:text/csv;charset=utf-8,ID Reservation;Date;Montant Brut;Commission TALA\n";
+    allReservationsData.forEach(r => {
+      const amount = (r.total_price || r.montant_total || 0);
+      const comm = amount * COMMISSION_RATE;
+      const date = r.created_at ? r.created_at.split('T')[0] : 'N/A';
+      csvContent += `${r.id};${date};${amount};${comm}\n`;
+    });
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `tala_finances_export_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
   function renderChart(reservations) {
     const ctx = document.getElementById('revenueChart').getContext('2d');
-    
-    // Grouper par mois (approximatif ou par date)
     const datesMap = {};
     reservations.forEach(r => {
       if(!r.created_at) return;
@@ -386,7 +451,7 @@
       datesMap[date] = (datesMap[date] || 0) + (r.total_price || r.montant_total || 0);
     });
 
-    const sortedDates = Object.keys(datesMap).sort().slice(-7); // Derniers 7 jours actifs
+    const sortedDates = Object.keys(datesMap).sort().slice(-7);
     const dataValues = sortedDates.map(d => datesMap[d]);
 
     if(revenueChartInstance) revenueChartInstance.destroy();
