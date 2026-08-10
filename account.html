@@ -94,19 +94,19 @@
     document.getElementById("userName").textContent = user.user_metadata?.full_name || "Voyageur TALA";
     document.getElementById("userEmail").textContent = user.email;
 
-    // 2. Récupération des réservations de l'utilisateur
-    // On utilise une jointure (syntaxe Supabase) pour récupérer les infos de la table 'trips' si les villes y sont stockées
+    // 2. Récupération des réservations avec jointure sur la table des trajets (trips) via trip_id
+    // Note : Si votre table s'appelle autrement que "trips" (ex: "trajets"), remplacez "trips" par le nom exact de votre table dans .select()
     const { data: reservations, resError } = await supabaseClient
       .from("reservations")
       .select(`
         *,
         trips (
-          departure_city,
-          arrival_city,
           departure,
           arrival,
           ville_depart,
-          ville_arrivee
+          ville_arrivee,
+          departure_city,
+          arrival_city
         )
       `)
       .eq("user_id", user.id)
@@ -115,6 +115,7 @@
     const container = document.getElementById("reservationsList");
 
     if (resError) {
+      console.error(resError);
       container.innerHTML = `<p style="color: #e74c3c; text-align: center;">Erreur lors du chargement de l'historique.</p>`;
       return;
     }
@@ -129,7 +130,6 @@
     reservations.forEach(r => {
       const rawStatus = r.statut || r.status || "PENDING";
       
-      // Normalisation du texte d'affichage du statut
       let displayStatus = rawStatus;
       if (rawStatus.toUpperCase() === "CONFIRMED" || rawStatus.toUpperCase() === "CONFIRME") {
         displayStatus = "Confirmé";
@@ -140,9 +140,10 @@
       const badgeClass = rawStatus.trim().replace(/\s+/g, '_');
       const seatsFormatted = Array.isArray(r.seats) ? r.seats.join(', ') : (r.seats || 'N/A');
 
-      // Recherche intelligente des noms de villes (prend en charge plusieurs variantes de noms de colonnes possibles)
-      const depCity = r.ville_depart || r.departure_city || r.departure || (r.trips ? (r.trips.ville_depart || r.trips.departure_city || r.trips.departure) : null) || 'Départ';
-      const arrCity = r.ville_arrivee || r.arrival_city || r.arrival || (r.trips ? (r.trips.ville_arrivee || r.trips.arrival_city || r.trips.arrival) : null) || 'Arrivée';
+      // Récupération sécurisée des villes depuis l'objet joint "trips" ou directement si présent
+      const tripData = r.trips || {};
+      const depCity = tripData.ville_depart || tripData.departure_city || tripData.departure || r.ville_depart || r.departure || 'Départ';
+      const arrCity = tripData.ville_arrivee || tripData.arrival_city || tripData.arrival || r.ville_arrivee || r.arrival || 'Arrivée';
 
       const item = document.createElement("div");
       item.className = "reservation-item";
@@ -170,6 +171,7 @@
 
   checkUserAndLoadData();
 </script>
+
 
 </body>
 </html>
