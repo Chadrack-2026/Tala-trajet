@@ -1,8 +1,14 @@
-<!DOCTYPE html><html lang="fr">
+<!DOCTYPE html>
+<html lang="fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TALA Trajet — Réservation</title>  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>  <!-- Icônes Lucide -->  <script src="https://unpkg.com/lucide@latest"></script>  <style>
+  <title>TALA Trajet — Réservation</title>  
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">  
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>  
+  <!-- Icônes Lucide -->  
+  <script src="https://unpkg.com/lucide@latest"></script>  
+  <style>
     :root {
       --primary-blue: #00d2ff;
       --accent-green: #2ecc71;
@@ -100,11 +106,14 @@
       border: 1px solid #444;
     }
 
+    /* Grille de bus configurée pour 4 sièges par rangée + allée centrale */
     .seats-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr) 35px repeat(2, 1fr);
-      gap: 12px;
+      gap: 10px;
       align-items: center;
+      max-width: 320px;
+      margin: 0 auto;
     }
 
     .seat {
@@ -118,18 +127,18 @@
       cursor: pointer;
       font-weight: 600;
       transition: all 0.3s ease;
-      font-size: 14px;
+      font-size: 13px;
       color: var(--text-light);
     }
 
-    .seat:hover {
+    .seat:hover:not(.unavailable) {
       transform: scale(1.05);
       border-color: var(--primary-blue);
     }
 
     .seat.selected {
       background-color: var(--seat-selected);
-      color: white;
+      color: #0c0f13;
       border-color: var(--seat-selected);
     }
 
@@ -138,10 +147,12 @@
       color: white;
       cursor: not-allowed;
       border: none;
+      opacity: 0.7;
     }
 
     .aisle {
       grid-column: 3;
+      pointer-events: none;
     }
 
     .total-bar {
@@ -199,127 +210,91 @@
       box-shadow: 0 0 10px rgba(0, 210, 255, 0.3);
     }
 
-    /* Icônes */
-    .icon {
+    /* Classes Icônes */
+    .icon, .back-icon, .section-icon, .info-icon, .payment-icon {
       width: 18px;
       height: 18px;
       vertical-align: -4px;
       margin-right: 6px;
     }
+    .section-icon { color: var(--primary-blue); }
+  </style>
+</head>
+<body>
 
-    .back-icon {
-      width: 17px;
-      height: 17px;
-      vertical-align: -4px;
-      margin-right: 5px;
-    }
-
-    .section-icon {
-      width: 20px;
-      height: 20px;
-      vertical-align: -4px;
-      margin-right: 6px;
-      color: var(--primary-blue);
-    }
-
-    .info-icon {
-      width: 17px;
-      height: 17px;
-      vertical-align: -4px;
-      margin-right: 5px;
-    }
-
-    .payment-icon {
-      width: 19px;
-      height: 19px;
-      vertical-align: -5px;
-      margin-right: 6px;
-    }
-  </style></head><body><header class="site-header">
+<header class="site-header">
   <div class="brand">
     TALA<span>Trajet</span>
-  </div>  <a href="javascript:history.back()" style="color: #b0bcc9; text-decoration: none; font-size: 0.9rem;">
+  </div>  
+  <a href="javascript:history.back()" style="color: #b0bcc9; text-decoration: none; font-size: 0.9rem;">
     <i data-lucide="arrow-left" class="back-icon"></i>
     Retour
   </a>
-</header><main class="container">  <section id="tripDetails" class="card">
+</header>
+
+<main class="container">  
+  <section id="tripDetails" class="card">
     <p style="text-align: center; color: #b0bcc9;">
       <i data-lucide="loader-circle" class="icon"></i>
       Chargement des détails du voyage...
     </p>
-  </section>  <h3 style="color: #ffffff; font-size: 1.1rem; margin-top: 25px;">
+  </section>  
+
+  <h3 style="color: #ffffff; font-size: 1.1rem; margin-top: 25px;">
     <i data-lucide="armchair" class="section-icon"></i>
     Choisissez vos sièges
-  </h3>  <div class="bus-wrapper"><div class="legend">
+  </h3>  
 
-  <div class="legend-item">
-    <div class="dot free"></div>
-    <span>Libre</span>
-  </div>
+  <div class="bus-wrapper">
+    <div class="legend">
+      <div class="legend-item">
+        <div class="dot free"></div>
+        <span>Libre</span>
+      </div>
+      <div class="legend-item">
+        <div class="dot selected"></div>
+        <span>Choisi</span>
+      </div>
+      <div class="legend-item">
+        <div class="dot occupied"></div>
+        <span>Occupé</span>
+      </div>
+    </div>
 
-  <div class="legend-item">
-    <div class="dot selected"></div>
-    <span>Choisi</span>
-  </div>
+    <!-- Cabine avant du bus -->
+    <div style="text-align: center; font-size: 0.75rem; color: #b0bcc9; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px;">
+      Front (Chauffeur) ➔
+    </div>
 
-  <div class="legend-item">
-    <div class="dot occupied"></div>
-    <span>Occupé</span>
-  </div>
+    <div id="seatsContainer" class="seats-grid"></div>
+  </div>  
 
-</div>
+  <form id="bookingForm" class="form card">
+    <h3 style="color: #ffffff; font-size: 1.1rem; margin-top: 0; margin-bottom: 20px;">
+      <i data-lucide="user-round" class="section-icon"></i>
+      Vos informations de voyage
+    </h3>
 
-<div id="seatsContainer" class="seats-grid"></div>
+    <input type="text" id="name" name="name" placeholder="Nom et Prénom du passager" required>
+    <input type="email" id="email" name="email" placeholder="Adresse e-mail" required>
+    <input type="tel" id="phone" name="phone" placeholder="Numéro de téléphone (+243...)" required>
 
-  </div>  <form id="bookingForm" class="form card"><h3 style="color: #ffffff; font-size: 1.1rem; margin-top: 0; margin-bottom: 20px;">
-  <i data-lucide="user-round" class="section-icon"></i>
-  Vos informations de voyage
-</h3>
+    <div class="total-bar">
+      <span>
+        <i data-lucide="ticket" class="info-icon"></i>
+        Total : <span id="seatCount">0</span> siège(s)
+      </span>
+      <span id="totalPrice" class="price">0 FC</span>
+    </div>
 
-<input
-  type="text"
-  id="name"
-  name="name"
-  placeholder="Nom et Prénom du passager"
-  required
->
+    <button type="submit" id="submitBtn">
+      <i data-lucide="credit-card" class="payment-icon"></i>
+      Procéder au paiement
+    </button>
+  </form>
+</main>
 
-<input
-  type="email"
-  id="email"
-  name="email"
-  placeholder="Adresse e-mail"
-  required
->
-
-<input
-  type="tel"
-  id="phone"
-  name="phone"
-  placeholder="Numéro de téléphone (+243...)"
-  required
->
-
-<div class="total-bar">
-
-  <span>
-    <i data-lucide="ticket" class="info-icon"></i>
-    Total :
-    <span id="seatCount">0</span> siège(s)
-  </span>
-
-  <span id="totalPrice" class="price">
-    0 FC
-  </span>
-
-</div>
-
-<button type="submit" id="submitBtn">
-  <i data-lucide="credit-card" class="payment-icon"></i>
-  Procéder au paiement
-</button>
-
-  </form></main><script>
+<script>
   const { createClient } = window.supabase;
   const supabaseUrl = "https://kfkifkstatbadtzosxai.supabase.co";   
   const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma2lma3N0YXRiYWR0em9zeGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3MTYzMTAsImV4cCI6MjEwMTI5MjMxMH0.xPzFtl_OET2asSc5iH3liRHnPyuUYAfbbjZISwfnaA8";  
@@ -396,7 +371,7 @@
       });  
     }  
   
-    const capacity = trajet.places_totales ? Number(trajet.places_totales) : 57;  
+    const capacity = trajet.places_totales ? Number(trajet.places_totales) : 56;  
     const remainingSeats = trajet.places_disponibles !== null ? trajet.places_disponibles : (capacity - occupiedSeats.length);  
   
     document.getElementById("tripDetails").innerHTML = `  
@@ -429,6 +404,7 @@
   
       container.appendChild(seat);  
   
+      // Insérer un espace vide (allée centrale) tous les 2 sièges, mais uniquement sur les colonnes paires de la disposition globale à 4 colonnes
       if (i % 2 === 0 && i % 4 !== 0) {  
         const aisle = document.createElement("div");  
         aisle.classList.add("aisle");  
@@ -485,7 +461,12 @@
   });  
   
   loadTrip();
-</script><!-- Initialisation des icônes uniquement --><script>
+</script>
+
+<script>
+  // Initialisation sécurisée des icônes Lucide
   lucide.createIcons();
-</script></body>
+</script>
+
+</body>
 </html>
