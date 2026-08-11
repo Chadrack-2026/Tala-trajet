@@ -8,6 +8,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 
+  <!-- Icônes Lucide -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
   <style>
     .legal-content {
       max-width: 850px;
@@ -34,6 +37,12 @@
       align-items: center;
       gap: 10px;
     }
+    .legal-section h2 i {
+      width: 22px;
+      height: 22px;
+      stroke-width: 2;
+      flex-shrink: 0;
+    }
     .legal-section p, .legal-section ul {
       color: #b0bcc9;
       font-size: 0.95rem;
@@ -47,17 +56,28 @@
     .legal-section li {
       margin-bottom: 8px;
     }
+    .main-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .main-nav a i {
+      width: 16px;
+      height: 16px;
+    }
   </style>
 </head>
 <body>
 
-<!-- HEADER CORRIGÉ -->
+<!-- HEADER -->
 <header class="site-header">
   <div class="brand">TALA<span>Trajet</span></div>
   <nav class="main-nav" id="navMenu">
-    <a href="search.html">Accueil</a>
-    <a href="about.html">À propos</a>
-    <a href="contact.html">Contact</a>
+    <a href="index.html"><i data-lucide="home"></i>Accueil</a>
+    <a href="search.html"><i data-lucide="search"></i>Rechercher</a>
+    <a href="about.html"><i data-lucide="info"></i>À propos</a>
+    <a href="contact.html"><i data-lucide="mail"></i>Contact</a>
+    <a href="account.html" class="nav-auth-btn"><i data-lucide="user"></i>Mon Compte</a>
   </nav>
   <button class="menu-btn" id="menuToggle" aria-label="Ouvrir le menu">☰</button>
 </header>
@@ -65,19 +85,23 @@
 <!-- MAIN -->
 <main style="padding-bottom: 80px;">
   
+  <!-- HERO POLITIQUE -->
   <section class="hero-showcase" style="padding: 50px 20px 50px;">
     <div class="hero-content">
-      <span class="badge-hero">Protection des données</span>
+      <span class="badge-hero"><i data-lucide="shield-check"></i> Protection des données</span>
       <h1 class="hero-title">Politique de <span>confidentialité</span></h1>
       <p class="hero-sub">Comment nous collectons, protégeons et traitons vos données personnelles.</p>
     </div>
   </section>
 
+  <!-- CONTENU JURIDIQUE -->
   <div class="container legal-content">
     
     <div class="legal-section">
-      <h2>1. Collecte des données personnelles</h2>
-      <p>Dans le cadre de l'utilisation de nos services de réservation de transport, nous collectons les informations strictement nécessaires à la bonne exécution de votre commande :</p>
+      <h2><i data-lucide="database"></i>1. Collecte des données personnelles</h2>
+      <p>
+        Dans le cadre de l'utilisation de nos services de réservation de transport, nous collectons les informations strictement nécessaires à la bonne exécution de votre commande :
+      </p>
       <ul>
         <li><strong>Identité :</strong> Nom, prénom.</li>
         <li><strong>Coordonnées :</strong> Numéro de téléphone, adresse e-mail.</li>
@@ -87,8 +111,10 @@
     </div>
 
     <div class="legal-section">
-      <h2>2. Utilisation de vos informations</h2>
-      <p>Les données collectées par <strong>TALA Trajet</strong> sont exclusivement exploitées pour :</p>
+      <h2><i data-lucide="file-check"></i>2. Utilisation de vos informations</h2>
+      <p>
+        Les données collectées par <strong>TALA Trajet</strong> sont exclusivement exploitées pour :
+      </p>
       <ul>
         <li>Générer et valider vos billets de voyage officiels (avec QR Code).</li>
         <li>Transmettre vos listes de passagers aux compagnies de transport partenaires.</li>
@@ -98,13 +124,17 @@
     </div>
 
     <div class="legal-section">
-      <h2>3. Sécurité et Hébergement</h2>
-      <p>La sécurité de vos données est une priorité fondamentale. Toutes les interactions réseau entre votre navigateur et nos serveurs sont chiffrées via le protocole SSL/TLS (HTTPS). Vos données de réservation et comptes utilisateurs sont hébergés et protégés sur des infrastructures cloud hautement sécurisées (Supabase).</p>
+      <h2><i data-lucide="shield-check"></i>3. Sécurité et Hébergement</h2>
+      <p>
+        La sécurité de vos données est une priorité fondamentale. Toutes les interactions réseau entre votre navigateur et nos serveurs sont chiffrées via le protocole SSL/TLS (HTTPS). Vos données de réservation et comptes utilisateurs sont hébergés et protégés sur des infrastructures cloud hautement sécurisées (Supabase).
+      </p>
     </div>
 
     <div class="legal-section">
-      <h2>4. Partage avec des tiers</h2>
-      <p>Vos données personnelles ne sont <strong>jamais vendues ni louées</strong> à des fins publicitaires. Elles sont partagées uniquement avec :</p>
+      <h2><i data-lucide="share-2"></i>4. Partage avec des tiers</h2>
+      <p>
+        Vos données personnelles ne sont <strong>jamais vendues ni louées</strong> à des fins publicitaires. Elles sont partagées uniquement avec :
+      </p>
       <ul>
         <li><strong>Les Agences de Transport :</strong> Afin de garantir votre enregistrement au guichet d'embarquement.</li>
         <li><strong>Les Partenaires de Paiement :</strong> Afin de valider et sécuriser le règlement de vos billets.</li>
@@ -112,24 +142,31 @@
     </div>
 
     <div class="legal-section">
-      <h2>5. Vos droits (Accès, Modification et Suppression)</h2>
-      <p>Conformément aux réglementations en vigueur, vous disposez d'un droit d'accès, de rectification et de suppression de l'ensemble de vos données personnelles enregistrées sur notre plateforme. Vous pouvez exercer ce droit à tout moment :</p>
+      <h2><i data-lucide="user-check"></i>5. Vos droits (Accès, Modification et Suppression)</h2>
+      <p>
+        Conformément aux réglementations en vigueur, vous disposez d'un droit d'accès, de rectification et de suppression de l'ensemble de vos données personnelles enregistrées sur notre plateforme. Vous pouvez exercer ce droit à tout moment :
+      </p>
       <ul>
-        <li>Depuis votre espace personnel.</li>
+        <li>Depuis votre espace personnel <a href="account.html" style="color: #00d2ff;">Mon Compte</a>.</li>
         <li>En nous envoyant une demande via la page de <a href="contact.html" style="color: #00d2ff;">Contact</a>.</li>
       </ul>
     </div>
 
     <div class="legal-section">
-      <h2>6. Mise à jour de la politique</h2>
-      <p>TALA Trajet se réserve le droit de modifier la présente Politique de Confidentialité à tout moment afin de se conformer aux évolutions légales et technologiques. Toute mise à jour sera répercutée directement sur cette page avec effet immédiat.</p>
-      <p style="margin-top: 15px; font-size: 0.85rem; color: #6b7c93;">Dernière mise à jour : <strong>Août 2026</strong></p>
+      <h2><i data-lucide="refresh-cw"></i>6. Mise à jour de la politique</h2>
+      <p>
+        TALA Trajet se réserve le droit de modifier la présente Politique de Confidentialité à tout moment afin de se conformer aux évolutions légales et technologiques. Toute mise à jour sera répercutée directement sur cette page avec effet immédiat.
+      </p>
+      <p style="margin-top: 15px; font-size: 0.85rem; color: #6b7c93;">
+        Dernière mise à jour : <strong>Août 2026</strong>
+      </p>
     </div>
 
   </div>
 
 </main>
 
+<!-- FOOTER -->
 <footer>
   <div class="container footer-inner">
     <div class="footer-brand">
@@ -150,6 +187,7 @@
 </footer>
 
 <script>
+  // Menu Mobile Toggle
   const menuToggle = document.getElementById('menuToggle');
   const navMenu = document.getElementById('navMenu');
   if (menuToggle && navMenu) {
@@ -158,6 +196,9 @@
       menuToggle.textContent = navMenu.classList.contains('open') ? '✕' : '☰';
     });
   }
+
+  // Initialisation des icônes
+  lucide.createIcons();
 </script>
 
 </body>
