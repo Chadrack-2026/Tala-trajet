@@ -106,7 +106,7 @@
       border: 1px solid #444;
     }
 
-    /* Grille de bus configurée pour 4 sièges par rangée + allée centrale */
+    /* Grille de base à 4 colonnes régulières pour tout le bus */
     .seats-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr) 35px repeat(2, 1fr);
@@ -153,6 +153,17 @@
     .aisle {
       grid-column: 3;
       pointer-events: none;
+    }
+
+    /* Style spécifique pour étaler la dernière rangée sur 5 places pleines */
+    .last-row-container {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px dashed var(--input-border);
     }
 
     .total-bar {
@@ -210,7 +221,6 @@
       box-shadow: 0 0 10px rgba(0, 210, 255, 0.3);
     }
 
-    /* Classes Icônes */
     .icon, .back-icon, .section-icon, .info-icon, .payment-icon {
       width: 18px;
       height: 18px;
@@ -371,7 +381,8 @@
       });  
     }  
   
-    const capacity = trajet.places_totales ? Number(trajet.places_totales) : 56;  
+    // Fixe la capacité totale à 57 sièges
+    const capacity = 57;  
     const remainingSeats = trajet.places_disponibles !== null ? trajet.places_disponibles : (capacity - occupiedSeats.length);  
   
     document.getElementById("tripDetails").innerHTML = `  
@@ -390,8 +401,11 @@
     if (!container) return;  
       
     container.innerHTML = "";  
-  
-    for (let i = 1; i <= totalSeats; i++) {  
+
+    // Les 52 premiers sièges suivent la grille standard (13 rangées de 4 = 52 places)
+    const normalSeatsLimit = totalSeats - 5; 
+
+    for (let i = 1; i <= normalSeatsLimit; i++) {  
       const seat = document.createElement("div");  
       seat.classList.add("seat");  
       seat.textContent = i.toString().padStart(2, "0");  
@@ -404,13 +418,33 @@
   
       container.appendChild(seat);  
   
-      // Insérer un espace vide (allée centrale) tous les 2 sièges, mais uniquement sur les colonnes paires de la disposition globale à 4 colonnes
+      // Allée centrale tous les 2 sièges sur les colonnes paires
       if (i % 2 === 0 && i % 4 !== 0) {  
         const aisle = document.createElement("div");  
         aisle.classList.add("aisle");  
         container.appendChild(aisle);  
       }  
     }  
+
+    // Création de la dernière rangée de 5 sièges (du 53 au 57)
+    const lastRowDiv = document.createElement("div");
+    lastRowDiv.classList.add("last-row-container");
+
+    for (let i = normalSeatsLimit + 1; i <= totalSeats; i++) {
+      const seat = document.createElement("div");  
+      seat.classList.add("seat");  
+      seat.textContent = i.toString().padStart(2, "0");  
+  
+      if (occupiedSeats.includes(i)) {  
+        seat.classList.add("unavailable");  
+      } else {  
+        seat.addEventListener("click", () => toggleSeat(i, seat));  
+      }  
+  
+      lastRowDiv.appendChild(seat);
+    }
+
+    container.appendChild(lastRowDiv);
   }  
   
   function toggleSeat(seatNumber, seatDiv) {  
@@ -464,7 +498,6 @@
 </script>
 
 <script>
-  // Initialisation sécurisée des icônes Lucide
   lucide.createIcons();
 </script>
 
