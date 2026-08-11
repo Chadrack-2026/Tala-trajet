@@ -179,25 +179,11 @@
        SUPABASE
     ========================================================= */
 
-    const supabaseUrl =
-        "https://kfkifkstatbadtzosxai.supabase.co";
+    const { createClient } = window.supabase;
+  const supabaseUrl = "https://kfkifkstatbadtzosxai.supabase.co"; 
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma2lma3N0YXRiYWR0em9zeGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3MTYzMTAsImV4cCI6MjEwMTI5MjMxMH0.xPzFtl_OET2asSc5iH3liRHnPyuUYAfbbjZISwfnaA8";
+  const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
-    /*
-     * IMPORTANT :
-     * Mets ici ta vraie clé ANON publique.
-     *
-     * Ne mets JAMAIS la service_role key dans cette page.
-     */
-
-    const supabaseKey =
-        "TA_CLE_ANON_SUPABASE";
-
-
-    const supabaseClient =
-        window.supabase.createClient(
-            supabaseUrl,
-            supabaseKey
-        );
 
 
     /* =========================================================
