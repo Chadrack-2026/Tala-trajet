@@ -875,13 +875,8 @@
 
 
     /*
-      52 premiers sièges.
-
-      01 02   03 04
-      05 06   07 08
-      09 10   11 12
-      ...
-      49 50   51 52
+      Génération des 52 premiers sièges avec insertion propre 
+      de l'allée centrale (colonne 3) toutes les 4 places (2 à gauche, 2 à droite).
     */
 
     for (
@@ -895,11 +890,9 @@
           "div"
         );
 
-
       seat.classList.add(
         "seat"
       );
-
 
       seat.textContent =
         i
@@ -908,7 +901,6 @@
             2,
             "0"
           );
-
 
       if (
         occupiedSeats.includes(i)
@@ -931,21 +923,12 @@
 
       }
 
-
       container.appendChild(
         seat
       );
 
-
-      /*
-        Créer l'espace de l'allée
-        après les sièges 02, 06,
-        10, 14, etc.
-      */
-
-      if (
-        i % 4 === 2
-      ) {
+      // Si on atteint la fin d'une rangée de 4 sièges, on insère la case vide de l'allée
+      if (i % 4 === 2) {
 
         const aisle =
           document.createElement(
@@ -966,16 +949,13 @@
 
 
     /*
-      Dernière rangée :
-
-      53 54 55 56 57
+      Création de la dernière rangée de 5 sièges (53 à 57)
     */
 
     const lastRow =
       document.createElement(
         "div"
       );
-
 
     lastRow.classList.add(
       "last-row"
@@ -996,11 +976,9 @@
           "div"
         );
 
-
       seat.classList.add(
         "seat"
       );
-
 
       seat.textContent =
         i
@@ -1009,7 +987,6 @@
             2,
             "0"
           );
-
 
       if (
         occupiedSeats.includes(i)
@@ -1031,7 +1008,6 @@
         );
 
       }
-
 
       lastRow.appendChild(
         seat
