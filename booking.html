@@ -1,80 +1,340 @@
-<!DOCTYPE html>
+<!DOCTYPE html><html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TALA Trajet — Réservation</title>  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>  <!-- Icônes Lucide -->  <script src="https://unpkg.com/lucide@latest"></script>  <style>
+    :root {
+      --primary-blue: #00d2ff;
+      --accent-green: #2ecc71;
+      --seat-selected: #2ecc71;
+      --seat-occupied: #e74c3c;
+      --bg-dark: #0c0f13;
+      --card-dark: #171b22;
+      --text-light: #e7edf3;
+      --input-bg: #1c2129;
+      --input-border: #2a313b;
+      --placeholder: #9aa0a6;
+    }
 
-<html lang="fr">  
-<head>  
-  <meta charset="UTF-8">  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">  
-  <title>TALA Trajet — Réservation</title>    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">  
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>  
-  <style>  
-    :root {  
-      --primary-blue: #00d2ff;  
-      --accent-green: #2ecc71;  
-      --seat-selected: #2ecc71;  
-      --seat-occupied: #e74c3c;  
-      --bg-dark: #0c0f13;  
-      --card-dark: #171b22;  
-      --text-light: #e7edf3;  
-      --input-bg: #1c2129;  
-      --input-border: #2a313b;  
-      --placeholder: #9aa0a6;  
-    }  body { font-family: 'Poppins', sans-serif; background-color: var(--bg-dark); color: var(--text-light); margin: 0; }  
-header.site-header { background: var(--card-dark); padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--input-border); }  
-.brand { font-weight: 700; font-size: 1.4rem; color: var(--primary-blue); }  
-.brand span { color: #ffffff; }  
-.container { max-width: 700px; margin: 24px auto; padding: 0 24px; }  
-.card { background: var(--card-dark); border: 1px solid var(--input-border); border-radius: 16px; padding: 24px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }  
-.bus-wrapper { background: var(--card-dark); padding: 30px; border-radius: 20px; border: 1px solid var(--input-border); box-shadow: 0 6px 12px rgba(0,0,0,0.6); margin: 20px 0; }  
-.legend { display: flex; justify-content: space-around; margin-bottom: 25px; font-size: 12px; font-weight: 600; color: var(--text-light); }  
-.legend-item { display: flex; align-items: center; gap: 8px; }  
-.dot { width: 15px; height: 15px; border-radius: 4px; }  
-.dot.occupied { background: var(--seat-occupied); }  
-.dot.selected { background: var(--seat-selected); }  
-.dot.free { background: #2a313b; border: 1px solid #444; }  
-.seats-grid { display: grid; grid-template-columns: repeat(2, 1fr) 35px repeat(2, 1fr); gap: 12px; align-items: center; }  
-.seat { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; background-color: #2a313b; border: 1px solid #444; border-radius: 10px; cursor: pointer; font-weight: 600; transition: all 0.3s ease; font-size: 14px; color: var(--text-light); }  
-.seat:hover { transform: scale(1.05); border-color: var(--primary-blue); }  
-.seat.selected { background-color: var(--seat-selected); color: white; border-color: var(--seat-selected); }  
-.seat.unavailable { background-color: var(--seat-occupied); color: white; cursor: not-allowed; border: none; }  
-.aisle { grid-column: 3; }  
-.total-bar { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #0c0f13; border: 1px solid var(--input-border); border-radius: 12px; margin-top: 15px; font-weight: 700; color: var(--text-light); }  
-.price { color: var(--primary-blue); font-size: 1.2rem; }  
-button { width: 100%; padding: 15px; background: var(--primary-blue); color: #0c0f13; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; margin-top: 15px; transition: all 0.3s ease; font-size: 1rem; }  
-button:hover { opacity: 0.9; transform: translateY(-2px); }  
-.form input { width: 100%; box-sizing: border-box; padding: 14px 16px; margin-bottom: 18px; border: 1px solid var(--input-border); border-radius: 12px; background: var(--input-bg); color: var(--text-light); font-size: 15px; }  
-.form input:focus { outline: none; border-color: var(--primary-blue); box-shadow: 0 0 10px rgba(0, 210, 255, 0.3); }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-light);
+      margin: 0;
+    }
 
-  </style>  
-</head>  
-<body>  <header class="site-header">  
-  <div class="brand">TALA<span>Trajet</span></div>  
-  <a href="javascript:history.back()" style="color: #b0bcc9; text-decoration: none; font-size: 0.9rem;">← Retour</a>  
-</header>  <main class="container">  
-  <section id="tripDetails" class="card">  
-    <p style="text-align: center; color: #b0bcc9;">⏳ Chargement des détails du voyage...</p>  
-  </section>    <h3 style="color: #ffffff; font-size: 1.1rem; margin-top: 25px;">Choisissez vos sièges</h3>    <div class="bus-wrapper">  
-    <div class="legend">  
-      <div class="legend-item"><div class="dot free"></div> Libre</div>  
-      <div class="legend-item"><div class="dot selected"></div> Choisi</div>  
-      <div class="legend-item"><div class="dot occupied"></div> Occupé</div>  
-    </div>  
-    <div id="seatsContainer" class="seats-grid"></div>  
-  </div>    <form id="bookingForm" class="form card">  
-    <h3 style="color: #ffffff; font-size: 1.1rem; margin-top: 0; margin-bottom: 20px;">Vos informations de voyage</h3>  
-    <input type="text" id="name" name="name" placeholder="Nom et Prénom du passager" required>  
-    <input type="email" id="email" name="email" placeholder="Adresse e-mail" required>  
-    <input type="tel" id="phone" name="phone" placeholder="Numéro de téléphone (+243...)" required>  <div class="total-bar">  
-  <span>Total: <span id="seatCount">0</span> siège(s)</span>  
-  <span id="totalPrice" class="price">0 FC</span>  
-</div>  
+    header.site-header {
+      background: var(--card-dark);
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--input-border);
+    }
 
-<button type="submit" id="submitBtn">Procéder au paiement 💳</button>
+    .brand {
+      font-weight: 700;
+      font-size: 1.4rem;
+      color: var(--primary-blue);
+    }
 
-  </form>  
-</main>  <script>  
-  const { createClient } = window.supabase;  
+    .brand span {
+      color: #ffffff;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: 24px auto;
+      padding: 0 24px;
+    }
+
+    .card {
+      background: var(--card-dark);
+      border: 1px solid var(--input-border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+
+    .bus-wrapper {
+      background: var(--card-dark);
+      padding: 30px;
+      border-radius: 20px;
+      border: 1px solid var(--input-border);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.6);
+      margin: 20px 0;
+    }
+
+    .legend {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 25px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-light);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dot {
+      width: 15px;
+      height: 15px;
+      border-radius: 4px;
+    }
+
+    .dot.occupied {
+      background: var(--seat-occupied);
+    }
+
+    .dot.selected {
+      background: var(--seat-selected);
+    }
+
+    .dot.free {
+      background: #2a313b;
+      border: 1px solid #444;
+    }
+
+    .seats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr) 35px repeat(2, 1fr);
+      gap: 12px;
+      align-items: center;
+    }
+
+    .seat {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #2a313b;
+      border: 1px solid #444;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      font-size: 14px;
+      color: var(--text-light);
+    }
+
+    .seat:hover {
+      transform: scale(1.05);
+      border-color: var(--primary-blue);
+    }
+
+    .seat.selected {
+      background-color: var(--seat-selected);
+      color: white;
+      border-color: var(--seat-selected);
+    }
+
+    .seat.unavailable {
+      background-color: var(--seat-occupied);
+      color: white;
+      cursor: not-allowed;
+      border: none;
+    }
+
+    .aisle {
+      grid-column: 3;
+    }
+
+    .total-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px;
+      background: #0c0f13;
+      border: 1px solid var(--input-border);
+      border-radius: 12px;
+      margin-top: 15px;
+      font-weight: 700;
+      color: var(--text-light);
+    }
+
+    .price {
+      color: var(--primary-blue);
+      font-size: 1.2rem;
+    }
+
+    button {
+      width: 100%;
+      padding: 15px;
+      background: var(--primary-blue);
+      color: #0c0f13;
+      border: none;
+      border-radius: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 15px;
+      transition: all 0.3s ease;
+      font-size: 1rem;
+    }
+
+    button:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+    }
+
+    .form input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 14px 16px;
+      margin-bottom: 18px;
+      border: 1px solid var(--input-border);
+      border-radius: 12px;
+      background: var(--input-bg);
+      color: var(--text-light);
+      font-size: 15px;
+    }
+
+    .form input:focus {
+      outline: none;
+      border-color: var(--primary-blue);
+      box-shadow: 0 0 10px rgba(0, 210, 255, 0.3);
+    }
+
+    /* Icônes */
+    .header-icon {
+      width: 17px;
+      height: 17px;
+      vertical-align: -4px;
+      margin-right: 5px;
+    }
+
+    .section-icon {
+      width: 19px;
+      height: 19px;
+      vertical-align: -4px;
+      margin-right: 6px;
+    }
+
+    .info-icon {
+      width: 17px;
+      height: 17px;
+      vertical-align: -4px;
+      margin-right: 5px;
+    }
+
+    .input-icon {
+      width: 17px;
+      height: 17px;
+      vertical-align: -4px;
+      margin-right: 5px;
+    }
+
+    .payment-icon {
+      width: 19px;
+      height: 19px;
+      vertical-align: -4px;
+      margin-right: 6px;
+    }
+  </style></head><body><header class="site-header">  <div class="brand">
+    TALA<span>Trajet</span>
+  </div><a href="javascript:history.back()"
+style="color: #b0bcc9; text-decoration: none; font-size: 0.9rem;">
+
+<i data-lucide="arrow-left" class="header-icon"></i>
+Retour
+
+  </a></header><main class="container">  <section id="tripDetails" class="card"><p style="text-align: center; color: #b0bcc9;">
+
+  <i data-lucide="loader-circle" class="info-icon"></i>
+  Chargement des détails du voyage...
+
+</p>
+
+  </section>  <h3 style="color: #ffffff; font-size: 1.1rem; margin-top: 25px;"><i data-lucide="armchair" class="section-icon"></i>
+Choisissez vos sièges
+
+  </h3>  <div class="bus-wrapper"><div class="legend">
+
+  <div class="legend-item">
+    <div class="dot free"></div>
+    <i data-lucide="square" class="info-icon"></i>
+    Libre
+  </div>
+
+  <div class="legend-item">
+    <div class="dot selected"></div>
+    <i data-lucide="check-square" class="info-icon"></i>
+    Choisi
+  </div>
+
+  <div class="legend-item">
+    <div class="dot occupied"></div>
+    <i data-lucide="ban" class="info-icon"></i>
+    Occupé
+  </div>
+
+</div>
+
+<div id="seatsContainer" class="seats-grid"></div>
+
+  </div>  <form id="bookingForm" class="form card"><h3 style="color: #ffffff; font-size: 1.1rem; margin-top: 0; margin-bottom: 20px;">
+
+  <i data-lucide="user-round" class="section-icon"></i>
+  Vos informations de voyage
+
+</h3>
+
+
+<input
+  type="text"
+  id="name"
+  name="name"
+  placeholder="Nom et Prénom du passager"
+  required
+>
+
+<input
+  type="email"
+  id="email"
+  name="email"
+  placeholder="Adresse e-mail"
+  required
+>
+
+<input
+  type="tel"
+  id="phone"
+  name="phone"
+  placeholder="Numéro de téléphone (+243...)"
+  required
+>
+
+
+<div class="total-bar">
+
+  <span>
+    <i data-lucide="ticket" class="info-icon"></i>
+    Total: <span id="seatCount">0</span> siège(s)
+  </span>
+
+  <span id="totalPrice" class="price">
+    0 FC
+  </span>
+
+</div>
+
+
+<button type="submit" id="submitBtn">
+
+  <i data-lucide="credit-card" class="payment-icon"></i>
+  Procéder au paiement
+
+</button>
+
+  </form></main><script>
+  const { createClient } = window.supabase;
   const supabaseUrl = "https://kfkifkstatbadtzosxai.supabase.co";   
-  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma2lma3N0YXRiYWR0em9zeGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3MTYzMTAsImV4cCI6MjEwMTI5MjMxMH0.xPzFtl_OET2asSc5iH3liRHnPyuUYAfbbjZISwfnaA8";  
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzIiwicmVmIjoiXGtmaw==";  
   const supabaseClient = createClient(supabaseUrl, supabaseKey);  
   
   const params = new URLSearchParams(window.location.search);  
@@ -152,11 +412,25 @@ button:hover { opacity: 0.9; transform: translateY(-2px); }
     const remainingSeats = trajet.places_disponibles !== null ? trajet.places_disponibles : (capacity - occupiedSeats.length);  
   
     document.getElementById("tripDetails").innerHTML = `  
-      <h3 style="margin-top:0; color:#00d2ff; font-size:1.3rem;">${trajet.ville_depart} ➔ ${trajet.ville_arrivee}</h3>  
-      <p style="margin: 5px 0; color:#b0bcc9;">🏢 <strong>Compagnie :</strong> ${trajet.agency ? trajet.agency.nom : 'Agence Partenaire'}</p>  
-      <p style="margin: 5px 0; color:#b0bcc9;">📅 <strong>Date de départ :</strong> ${trajet.date_depart}</p>  
-      <p style="margin: 5px 0; color:#b0bcc9;">💰 <strong>Prix :</strong> ${Number(trajet.prix).toLocaleString('fr-FR')} FC / place</p>  
-      <p style="margin: 5px 0; color:#2ecc71;">🪑 <strong>Places restantes :</strong> ${remainingSeats} sur ${capacity}</p>  
+      <h3 style="margin-top:0; color:#00d2ff; font-size:1.3rem;">
+        ${trajet.ville_depart} ➔ ${trajet.ville_arrivee}
+      </h3>  
+
+      <p style="margin: 5px 0; color:#b0bcc9;">
+        🏢 <strong>Compagnie :</strong> ${trajet.agency ? trajet.agency.nom : 'Agence Partenaire'}
+      </p>  
+
+      <p style="margin: 5px 0; color:#b0bcc9;">
+        📅 <strong>Date de départ :</strong> ${trajet.date_depart}
+      </p>  
+
+      <p style="margin: 5px 0; color:#b0bcc9;">
+        💰 <strong>Prix :</strong> ${Number(trajet.prix).toLocaleString('fr-FR')} FC / place
+      </p>  
+
+      <p style="margin: 5px 0; color:#2ecc71;">
+        🪑 <strong>Places restantes :</strong> ${remainingSeats} sur ${capacity}
+      </p>  
     `;  
   
     generateSeats(capacity, occupiedSeats);  
@@ -236,6 +510,9 @@ button:hover { opacity: 0.9; transform: translateY(-2px); }
     window.location.href = "payment.html";  
   });  
   
-  loadTrip();  
-</script>  </body>  
-</html>  
+  loadTrip();
+
+  // Initialisation des icônes Lucide
+  lucide.createIcons();
+</script></body>
+</html>
