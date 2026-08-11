@@ -1,1187 +1,393 @@
-<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8">
-
-<meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
->
-
-<title>TALA Trajet - Validation du Billet</title>
-
-<!-- Tailwind CSS -->
-<script src="https://cdn.tailwindcss.com"></script>
-
-<!-- Supabase JS -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-</head><body class="bg-slate-950 text-white min-h-screen flex items-center justify-center p-4"><main class="w-full max-w-md"><!-- CARTE PRINCIPALE -->
-
-<div class="bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl p-6">
-
-
-    <!-- EN-TÊTE -->
-
-    <div class="text-center mb-7">
-
-        <div class="text-4xl mb-2">
-            🎫
-        </div>
-
-        <h1 class="text-2xl font-bold text-cyan-400">
-            TALA Contrôle
-        </h1>
-
-        <p class="text-slate-400 text-sm mt-1">
-            Validation du billet
-        </p>
-
-    </div>
-
-
-
-    <!-- FORMULAIRE -->
-
-    <form
-        id="ticket-form"
-        class="space-y-3"
-    >
-
-        <label
-            for="ticket-input"
-            class="block text-sm font-semibold text-slate-300"
-        >
-            Numéro du billet
-        </label>
-
-
-        <input
-            type="text"
-            id="ticket-input"
-            placeholder="Ex : TALA-A1B2C3"
-            autocomplete="off"
-            autocapitalize="characters"
-            class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:outline-none focus:border-cyan-400 uppercase font-mono"
-            required
-        >
-
-
-        <button
-            type="submit"
-            id="verify-button"
-            class="w-full bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold py-3 rounded-xl transition-all"
-        >
-            🔍 Vérifier le billet
-        </button>
-
-    </form>
-
-
-
-    <!-- RÉSULTAT -->
-
-    <div
-        id="status-card"
-        class="mt-6 p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50"
-    >
-
-        <div
-            id="status-text"
-            class="text-center text-slate-300"
-        >
-
-            Entrez un numéro de billet
-            pour vérifier la réservation.
-
-        </div>
-
-    </div>
-
-
-
-    <!-- AUTRE BILLET -->
-
-    <button
-        id="new-ticket-button"
-        type="button"
-        class="hidden w-full mt-4 bg-slate-700 hover:bg-slate-600 text-white font-semibold py-3 rounded-xl transition-all"
-    >
-        🔄 Vérifier un autre billet
-    </button>
-
-
-
-    <p class="text-center text-xs text-slate-600 mt-5">
-        TALA Trajet • Contrôle des réservations
-    </p>
-
-
-</div>
-
-</main><script>
-
-/* =========================================================
-   SUPABASE
-========================================================= */
-
-const { createClient } = window.supabase;
-  const supabaseUrl = "https://kfkifkstatbadtzosxai.supabase.co"; 
-  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma2lma3N0YXRiYWR0em9zeGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3MTYzMTAsImV4cCI6MjEwMTI5MjMxMH0.xPzFtl_OET2asSc5iH3liRHnPyuUYAfbbjZISwfnaA8";
-  const supabaseClient = createClient(supabaseUrl, supabaseKey);
-
-
-/* =========================================================
-   ÉLÉMENTS
-========================================================= */
-
-const form =
-    document.getElementById(
-        "ticket-form"
-    );
-
-
-const input =
-    document.getElementById(
-        "ticket-input"
-    );
-
-
-const verifyButton =
-    document.getElementById(
-        "verify-button"
-    );
-
-
-const statusCard =
-    document.getElementById(
-        "status-card"
-    );
-
-
-const statusText =
-    document.getElementById(
-        "status-text"
-    );
-
-
-const newTicketButton =
-    document.getElementById(
-        "new-ticket-button"
-    );
-
-
-
-/* =========================================================
-   PROTECTION HTML
-========================================================= */
-
-function escapeHTML(value) {
-
-    if (
-        value === null ||
-        value === undefined
-    ) {
-
-        return "";
-
-    }
-
-
-    return String(value)
-
-        .replace(/&/g, "&amp;")
-
-        .replace(/</g, "&lt;")
-
-        .replace(/>/g, "&gt;")
-
-        .replace(/"/g, "&quot;")
-
-        .replace(/'/g, "&#039;");
-
-}
-
-
-
-/* =========================================================
-   FORMULAIRE
-========================================================= */
-
-form.addEventListener(
-    "submit",
-    async function(event) {
-
-        event.preventDefault();
-
-
-        const ticket =
-            input.value
-                .trim()
-                .toUpperCase();
-
-
-        if (!ticket) {
-
-            afficherErreur(
-                "Veuillez entrer un numéro de billet."
-            );
-
-            return;
-        }
-
-
-        await verifierBillet(
-            ticket
-        );
-
-    }
-);
-
-
-
-/* =========================================================
-   VÉRIFICATION DU BILLET
-========================================================= */
-
-async function verifierBillet(
-    ticketNumber
-) {
-
-    setLoading(true);
-
-    afficherChargement(
-        ticketNumber
-    );
-
-
-    try {
-
-
-        /*
-         * Recherche de la réservation
-         */
-
-        const {
-            data,
-            error
-        } = await supabaseClient
-
-            .from("reservations")
-
-            .select(`
-                *,
-                trips (
-                    ville_depart,
-                    ville_arrivee,
-                    date_depart,
-                    heure_depart
-                )
-            `)
-
-            .eq(
-                "ticket_number",
-                ticketNumber
-            )
-
-            .maybeSingle();
-
-
-
-        /* =================================================
-           ERREUR SUPABASE
-        ================================================= */
-
-        if (error) {
-
-            console.error(
-                "Erreur Supabase :",
-                error
-            );
-
-
-            afficherErreur(
-                "Impossible de vérifier le billet."
-            );
-
-
-            return;
-        }
-
-
-
-        /* =================================================
-           BILLET INTROUVABLE
-        ================================================= */
-
-        if (!data) {
-
-            afficherIntrouvable(
-                ticketNumber
-            );
-
-
-            return;
-        }
-
-
-
-        /* =================================================
-           INFORMATIONS
-        ================================================= */
-
-        const statut =
-            String(
-                data.statut || ""
-            )
-            .trim()
-            .toUpperCase();
-
-
-        const ticket =
-            data.ticket_number ||
-            ticketNumber;
-
-
-        const nomClient =
-            data.nom_client ||
-            "Non spécifié";
-
-
-        const telephone =
-            data.telephone_client ||
-            "Non spécifié";
-
-
-        let seats =
-            "Non spécifié";
-
-
-        if (
-            Array.isArray(
-                data.seats
-            )
-        ) {
-
-            seats =
-                data.seats.join(", ");
-
-        }
-
-        else if (
-            data.seats
-        ) {
-
-            seats =
-                data.seats;
-
-        }
-
-
-
-        /* =================================================
-           TRAJET
-        ================================================= */
-
-        const trip =
-            data.trips || {};
-
-
-        const villeDepart =
-            trip.ville_depart ||
-            "Départ";
-
-
-        const villeArrivee =
-            trip.ville_arrivee ||
-            "Arrivée";
-
-
-        const dateDepart =
-            trip.date_depart ||
-            "Non spécifiée";
-
-
-        const heureDepart =
-            trip.heure_depart ||
-            "Non spécifiée";
-
-
-
-        /* =================================================
-           BILLET DÉJÀ UTILISÉ
-        ================================================= */
-
-        if (
-
-            statut === "USED" ||
-
-            statut === "UTILISE" ||
-
-            statut === "UTILISÉ"
-
-        ) {
-
-            afficherDejaUtilise({
-
-                ticket,
-                nomClient,
-                villeDepart,
-                villeArrivee,
-                seats
-
-            });
-
-
-            return;
-        }
-
-
-
-        /* =================================================
-           STATUTS ACCEPTÉS
-        ================================================= */
-
-        const statutsValides = [
-
-            "CONFIRME",
-            "CONFIRMÉ",
-            "CONFIRMED",
-            "PAID",
-            "SUCCESS",
-            "COMPLETED"
-
-        ];
-
-
-        if (
-            !statutsValides.includes(
-                statut
-            )
-        ) {
-
-            afficherNonValide({
-
-                ticket,
-                nomClient,
-                telephone,
-                statut
-
-            });
-
-
-            return;
-        }
-
-
-
-        /* =================================================
-           BILLET VALIDE
-        ================================================= */
-
-        afficherBilletValide({
-
-            ticket,
-            nomClient,
-            telephone,
-            villeDepart,
-            villeArrivee,
-            dateDepart,
-            heureDepart,
-            seats,
-            reservationId: data.id
-
-        });
-
-
-    }
-
-    catch (error) {
-
-        console.error(
-            "Erreur :",
-            error
-        );
-
-
-        afficherErreur(
-            "Une erreur est survenue pendant la vérification."
-        );
-
-    }
-
-    finally {
-
-        setLoading(false);
-
-    }
-
-}
-
-
-
-/* =========================================================
-   CONFIRMER L'EMBARQUEMENT
-========================================================= */
-
-async function confirmerEmbarquement(
-    reservationId
-) {
-
-    setLoading(true);
-
-
-    try {
-
-
-        const {
-            data,
-            error
-        } = await supabaseClient
-
-            .from("reservations")
-
-            .update({
-
-                statut: "USED"
-
-            })
-
-            .eq(
-                "id",
-                reservationId
-            )
-
-            .in(
-                "statut",
-                [
-                    "CONFIRME",
-                    "CONFIRMÉ",
-                    "CONFIRMED",
-                    "PAID",
-                    "SUCCESS",
-                    "COMPLETED"
-                ]
-            )
-
-            .select()
-
-            .maybeSingle();
-
-
-
-        /* =================================================
-           ERREUR
-        ================================================= */
-
-        if (error) {
-
-            console.error(
-                "Erreur validation :",
-                error
-            );
-
-
-            afficherErreur(
-                "Impossible de confirmer l'embarquement."
-            );
-
-
-            return;
-        }
-
-
-
-        /* =================================================
-           BILLET DÉJÀ VALIDÉ
-        ================================================= */
-
-        if (!data) {
-
-            afficherDejaUtiliseSimple();
-
-            return;
-        }
-
-
-
-        /* =================================================
-           SUCCÈS
-        ================================================= */
-
-        afficherEmbarquementConfirme();
-
-
-    }
-
-    catch (error) {
-
-        console.error(
-            error
-        );
-
-
-        afficherErreur(
-            "Erreur lors de la confirmation."
-        );
-
-    }
-
-    finally {
-
-        setLoading(false);
-
-    }
-
-}
-
-
-
-/* =========================================================
-   CHARGEMENT
-========================================================= */
-
-function afficherChargement(
-    ticket
-) {
-
-    statusCard.className =
-        "mt-6 p-5 rounded-2xl bg-slate-800/50 border border-slate-700";
-
-
-    statusText.innerHTML = `
-
-        <div class="text-center">
-
-            <div class="text-4xl mb-3 animate-pulse">
-                🔎
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TALA Trajet - Validation du Billet</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-950 text-white min-h-screen flex items-center justify-center p-4">
+    <main class="w-full max-w-md">
+        <!-- CARTE PRINCIPALE -->
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl p-6">
+
+            <!-- EN-TÊTE -->
+            <div class="text-center mb-7">
+                <div class="text-4xl mb-2">🎫</div>
+                <h1 class="text-2xl font-bold text-cyan-400">TALA Contrôle</h1>
+                <p class="text-slate-400 text-sm mt-1">Validation du billet</p>
             </div>
 
-            <p class="font-bold text-white">
-                Vérification...
-            </p>
+            <!-- FORMULAIRE -->
+            <form id="ticket-form" class="space-y-3">
+                <label for="ticket-input" class="block text-sm font-semibold text-slate-300">
+                    Numéro du billet
+                </label>
 
-            <p class="text-cyan-300 font-mono text-sm mt-2">
-                ${escapeHTML(ticket)}
-            </p>
+                <input
+                    type="text"
+                    id="ticket-input"
+                    placeholder="Ex : TALA-A1B2C3"
+                    autocomplete="off"
+                    autocapitalize="characters"
+                    class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:outline-none focus:border-cyan-400 uppercase font-mono"
+                    required
+                >
 
+                <button
+                    type="submit"
+                    id="verify-button"
+                    class="w-full bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold py-3 rounded-xl transition-all"
+                >
+                    🔍 Vérifier le billet
+                </button>
+            </form>
+
+            <!-- RÉSULTAT -->
+            <div id="status-card" class="mt-6 p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50">
+                <div id="status-text" class="text-center text-slate-300">
+                    Entrez un numéro de billet pour vérifier la réservation.
+                </div>
+            </div>
+
+            <!-- AUTRE BILLET -->
+            <button
+                id="new-ticket-button"
+                type="button"
+                class="hidden w-full mt-4 bg-slate-700 hover:bg-slate-600 text-white font-semibold py-3 rounded-xl transition-all"
+            >
+                🔄 Vérifier un autre billet
+            </button>
+
+            <p class="text-center text-xs text-slate-600 mt-5">
+                TALA Trajet • Contrôle des réservations
+            </p>
         </div>
-
-    `;
-
-
-    newTicketButton.classList.add(
-        "hidden"
-    );
-
-}
-
-
-
-/* =========================================================
-   BILLET INTROUVABLE
-========================================================= */
-
-function afficherIntrouvable(
-    ticket
-) {
-
-    statusCard.className =
-        "mt-6 p-5 rounded-2xl bg-red-950/40 border border-red-800";
-
-
-    statusText.innerHTML = `
-
-        <div class="text-4xl mb-3">
-            ❌
-        </div>
-
-        <h2 class="text-xl font-bold text-red-400">
-            Billet introuvable
-        </h2>
-
-        <p class="text-sm text-slate-300 mt-2">
-            Aucune réservation ne correspond à :
-        </p>
-
-        <p class="font-mono text-cyan-300 mt-2">
-            ${escapeHTML(ticket)}
-        </p>
-
-    `;
-
-
-    newTicketButton.classList.remove(
-        "hidden"
-    );
-
-}
-
-
-
-/* =========================================================
-   BILLET NON VALIDE
-========================================================= */
-
-function afficherNonValide(
-    info
-) {
-
-    statusCard.className =
-        "mt-6 p-5 rounded-2xl bg-red-950/40 border border-red-800";
-
-
-    statusText.innerHTML = `
-
-        <div class="text-4xl mb-3">
-            🚫
-        </div>
-
-        <h2 class="text-xl font-bold text-red-400">
-            Billet non valide
-        </h2>
-
-        <p class="text-sm text-slate-300 mt-2">
-            Cette réservation n'est pas confirmée.
-        </p>
-
-
-        <div class="text-left mt-4 bg-slate-950/70 p-4 rounded-xl space-y-2">
-
-            <p>
-                <strong>Billet :</strong>
-                <span class="font-mono text-cyan-300">
-                    ${escapeHTML(info.ticket)}
-                </span>
-            </p>
-
-            <p>
-                <strong>Client :</strong>
-                ${escapeHTML(info.nomClient)}
-            </p>
-
-            <p>
-                <strong>Statut :</strong>
-                <span class="text-red-400 font-bold">
-                    ${escapeHTML(info.statut || "INCONNU")}
-                </span>
-            </p>
-
-        </div>
-
-    `;
-
-
-    newTicketButton.classList.remove(
-        "hidden"
-    );
-
-}
-
-
-
-/* =========================================================
-   BILLET DÉJÀ UTILISÉ
-========================================================= */
-
-function afficherDejaUtilise(
-    info
-) {
-
-    statusCard.className =
-        "mt-6 p-5 rounded-2xl bg-amber-950/40 border border-amber-800";
-
-
-    statusText.innerHTML = `
-
-        <div class="text-4xl mb-3">
-            ⚠️
-        </div>
-
-        <h2 class="text-xl font-bold text-amber-400">
-            Billet déjà utilisé
-        </h2>
-
-        <p class="text-sm text-amber-200 mt-2">
-            Ce billet a déjà été validé.
-        </p>
-
-
-        <div class="text-left mt-4 bg-slate-950/70 p-4 rounded-xl space-y-2">
-
-            <p>
-                <strong>Billet :</strong>
-                <span class="font-mono text-cyan-300">
-                    ${escapeHTML(info.ticket)}
-                </span>
-            </p>
-
-            <p>
-                <strong>Passager :</strong>
-                ${escapeHTML(info.nomClient)}
-            </p>
-
-            <p>
-                <strong>Trajet :</strong>
-                ${escapeHTML(info.villeDepart)}
-                →
-                ${escapeHTML(info.villeArrivee)}
-            </p>
-
-            <p>
-                <strong>Siège(s) :</strong>
-                ${escapeHTML(info.seats)}
-            </p>
-
-        </div>
-
-    `;
-
-
-    newTicketButton.classList.remove(
-        "hidden"
-    );
-
-}
-
-
-
-/* =========================================================
-   BILLET VALIDE
-========================================================= */
-
-function afficherBilletValide(
-    info
-) {
-
-    statusCard.className =
-        "mt-6 p-5 rounded-2xl bg-emerald-950/40 border border-emerald-800";
-
-
-    statusText.innerHTML = `
-
-        <div class="text-4xl mb-2">
-            🎫
-        </div>
-
-        <h2 class="text-2xl font-bold text-emerald-400">
-            BILLET VALIDE
-        </h2>
-
-        <p class="text-sm text-emerald-200 mt-1">
-            Réservation confirmée
-        </p>
-
-
-        <div class="text-left mt-5 bg-slate-950/80 p-4 rounded-xl border border-emerald-900 space-y-2">
-
-            <p>
-                <strong>N° Billet :</strong>
-                <span class="font-mono text-cyan-300">
-                    ${escapeHTML(info.ticket)}
-                </span>
-            </p>
-
-            <p>
-                <strong>Passager :</strong>
-                ${escapeHTML(info.nomClient)}
-            </p>
-
-            <p>
-                <strong>Téléphone :</strong>
-                ${escapeHTML(info.telephone)}
-            </p>
-
-            <p>
-                <strong>Trajet :</strong>
-                ${escapeHTML(info.villeDepart)}
-                →
-                ${escapeHTML(info.villeArrivee)}
-            </p>
-
-            <p>
-                <strong>Date :</strong>
-                ${escapeHTML(info.dateDepart)}
-            </p>
-
-            <p>
-                <strong>Heure :</strong>
-                ${escapeHTML(info.heureDepart)}
-            </p>
-
-            <p>
-                <strong>Siège(s) :</strong>
-                ${escapeHTML(info.seats)}
-            </p>
-
-        </div>
-
-
-        <button
-            id="confirm-boarding"
-            type="button"
-            class="w-full mt-5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-3 rounded-xl transition-all"
-        >
-            ✅ Valider l'embarquement
-        </button>
-
-    `;
-
-
-    document
-        .getElementById(
-            "confirm-boarding"
-        )
-        .addEventListener(
-            "click",
-            function() {
-
-                confirmerEmbarquement(
-                    info.reservationId
-                );
-
-            }
-        );
-
-}
-
-
-
-/* =========================================================
-   EMBARQUEMENT CONFIRMÉ
-========================================================= */
-
-function afficherEmbarquementConfirme() {
-
-    statusCard.className =
-        "mt-6 p-5 rounded-2xl bg-emerald-950/40 border border-emerald-700";
-
-
-    statusText.innerHTML = `
-
-        <div class="text-5xl mb-3">
-            ✅
-        </div>
-
-        <h2 class="text-2xl font-bold text-emerald-400">
-            EMBARQUEMENT VALIDÉ
-        </h2>
-
-        <p class="text-slate-300 text-sm mt-2">
-            Le billet a été confirmé avec succès.
-        </p>
-
-        <p class="text-xs text-emerald-300 mt-3">
-            Le billet est maintenant marqué comme utilisé.
-        </p>
-
-    `;
-
-
-    newTicketButton.classList.remove(
-        "hidden"
-    );
-
-}
-
-
-
-/* =========================================================
-   DÉJÀ UTILISÉ
-========================================================= */
-
-function afficherDejaUtiliseSimple() {
-
-    statusCard.className =
-        "mt-6 p-5 rounded-2xl bg-amber-950/40 border border-amber-800";
-
-
-    statusText.innerHTML = `
-
-        <div class="text-4xl mb-3">
-            ⚠️
-        </div>
-
-        <h2 class="text-xl font-bold text-amber-400">
-            Billet déjà utilisé
-        </h2>
-
-        <p class="text-sm text-slate-300 mt-2">
-            Ce billet a déjà été validé.
-        </p>
-
-    `;
-
-
-    newTicketButton.classList.remove(
-        "hidden"
-    );
-
-}
-
-
-
-/* ==========================================================
-   ERREUR
-========================================================= */
-
-function afficherErreur(
-    message
-) {
-
-    statusCard.className =
-        "mt-6 p-5 rounded-2xl bg-red-950/40 border border-red-800";
-
-
-    statusText.innerHTML = `
-
-        <div class="text-4xl mb-3">
-            ❌
-        </div>
-
-        <h2 class="text-xl font-bold text-red-400">
-            Erreur
-        </h2>
-
-        <p class="text-sm text-slate-300 mt-2">
-            ${escapeHTML(message)}
-        </p>
-
-    `;
-
-
-    newTicketButton.classList.remove(
-        "hidden"
-    );
-
-}
-
-
-
-/* =========================================================
-   LOADING
-========================================================= */
-
-function setLoading(
-    loading
-) {
-
-    verifyButton.disabled =
-        loading;
-
-
-    if (loading) {
-
-        verifyButton.innerText =
-            "⏳ Vérification...";
-
-        verifyButton.classList.add(
-            "opacity-50",
-            "cursor-not-allowed"
-        );
-
-    }
-
-    else {
-
-        verifyButton.innerText =
-            "🔍 Vérifier le billet";
-
-        verifyButton.classList.remove(
-            "opacity-50",
-            "cursor-not-allowed"
-        );
-
-    }
-
-}
-
-
-
-/* =========================================================
-   NOUVEAU BILLET
-========================================================= */
-
-newTicketButton.addEventListener(
-    "click",
-    function() {
-
-        input.value = "";
-
-        input.focus();
-
-
-        statusCard.className =
-            "mt-6 p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50";
-
-
-        statusText.innerHTML = `
-
-            <p class="text-slate-300">
-                Entrez le numéro du prochain billet.
-            </p>
-
-        `;
-
-
-        newTicketButton.classList.add(
-            "hidden"
-        );
-
-    }
-);
-
-
-
-/* =========================================================
-   RÉCUPÉRATION DU BILLET DEPUIS L'URL
-=========================================================
-
-Exemple :
-
-https://tala-trajet-ivory.vercel.app/controle.html?ticket=TALA-A1B2C3
-
-========================================================= */
-
-document.addEventListener(
-    "DOMContentLoaded",
-    function() {
-
-        const params =
-            new URLSearchParams(
-                window.location.search
-            );
-
-
-        const ticket =
-            params.get("ticket");
-
-
-        if (ticket) {
-
-            const cleanTicket =
-                ticket
-                    .trim()
-                    .toUpperCase();
-
-
-            input.value =
-                cleanTicket;
-
-
-            /*
-             * Vérification automatique
-             * dès l'ouverture de la page.
-             */
-
-            verifierBillet(
-                cleanTicket
-            );
-
+    </main>
+
+    <script>
+        /* =========================================================
+           SUPABASE INITIALISATION
+        ========================================================= */
+        const { createClient } = window.supabase;
+        const supabaseUrl = "https://kfkifkstatbadtzosxai.supabase.co"; 
+        const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma2lma3N0YXRiYWR0em9zeGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3MTYzMTAsImV4cCI6MjEwMTI5MjMxMH0.xPzFtl_OET2asSc5iH3liRHnPyuUYAfbbjZISwfnaA8";
+        const supabaseClient = createClient(supabaseUrl, supabaseKey);
+
+        /* =========================================================
+           ÉLÉMENTS DU DOM
+        ========================================================= */
+        const form = document.getElementById("ticket-form");
+        const input = document.getElementById("ticket-input");
+        const verifyButton = document.getElementById("verify-button");
+        const statusCard = document.getElementById("status-card");
+        const statusText = document.getElementById("status-text");
+        const newTicketButton = document.getElementById("new-ticket-button");
+
+        /* =========================================================
+           PROTECTION HTML
+        ========================================================= */
+        function escapeHTML(value) {
+            if (value === null || value === undefined) return "";
+            return String(value)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
         }
 
-    }
-);
+        /* =========================================================
+           GESTION DU CHARGEMENT (MUTUALISÉE)
+        ========================================================= */
+        function setLoading(loading) {
+            verifyButton.disabled = loading;
+            if (loading) {
+                verifyButton.innerText = "⏳ Vérification...";
+                verifyButton.classList.add("opacity-50", "cursor-not-allowed");
+            } else {
+                verifyButton.innerText = "🔍 Vérifier le billet";
+                verifyButton.classList.remove("opacity-50", "cursor-not-allowed");
+            }
+        }
 
-</script>
+        /* =========================================================
+           FORMULAIRE EVENT
+        ========================================================= */
+        form.addEventListener("submit", async function(event) {
+            event.preventDefault();
+            const ticket = input.value.trim().toUpperCase();
 
+            if (!ticket) {
+                afficherErreur("Veuillez entrer un numéro de billet.");
+                return;
+            }
+
+            await verifierBillet(ticket);
+        });
+
+        /* =========================================================
+           VÉRIFICATION DU BILLET
+        ========================================================= */
+        async function verifierBillet(ticketNumber) {
+            setLoading(true);
+            afficherChargement(ticketNumber);
+
+            try {
+                // Requête Supabase sécurisée avec gestion de la relation
+                const { data, error } = await supabaseClient
+                    .from("reservations")
+                    .select(`
+                        *,
+                        trips (
+                            ville_depart,
+                            ville_arrivee,
+                            date_depart,
+                            heure_depart
+                        )
+                    `)
+                    .eq("ticket_number", ticketNumber)
+                    .maybeSingle();
+
+                if (error) {
+                    console.error("Erreur Supabase :", error);
+                    afficherErreur("Impossible de vérifier le billet (Erreur de base de données).");
+                    return;
+                }
+
+                if (!data) {
+                    afficherIntrouvable(ticketNumber);
+                    return;
+                }
+
+                const statut = String(data.statut || "").trim().toUpperCase();
+                const ticket = data.ticket_number || ticketNumber;
+                const nomClient = data.nom_client || "Non spécifié";
+                const telephone = data.telephone_client || "Non spécifié";
+
+                let seats = "Non spécifié";
+                if (Array.isArray(data.seats)) {
+                    seats = data.seats.join(", ");
+                } else if (data.seats) {
+                    seats = data.seats;
+                }
+
+                const trip = data.trips || {};
+                const villeDepart = trip.ville_depart || "Départ";
+                const villeArrivee = trip.ville_arrivee || "Arrivée";
+                const dateDepart = trip.date_depart || "Non spécifiée";
+                const heureDepart = trip.heure_depart || "Non spécifiée";
+
+                // Vérification du statut
+                if (statut === "USED" || statut === "UTILISE" || statut === "UTILISÉ") {
+                    afficherDejaUtilise({ ticket, nomClient, villeDepart, villeArrivee, seats });
+                    return;
+                }
+
+                const statutsValides = ["CONFIRME", "CONFIRMÉ", "CONFIRMED", "PAID", "SUCCESS", "COMPLETED"];
+                if (!statutsValides.includes(statut)) {
+                    afficherNonValide({ ticket, nomClient, telephone, statut });
+                    return;
+                }
+
+                afficherBilletValide({
+                    ticket,
+                    nomClient,
+                    telephone,
+                    villeDepart,
+                    villeArrivee,
+                    dateDepart,
+                    heureDepart,
+                    seats,
+                    reservationId: data.id
+                });
+
+            } catch (error) {
+                console.error("Erreur inattendue :", error);
+                afficherErreur("Une erreur est survenue pendant la vérification.");
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        /* =========================================================
+           CONFIRMER L'EMBARQUEMENT
+        ========================================================= */
+        async function confirmerEmbarquement(reservationId) {
+            setLoading(true);
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from("reservations")
+                    .update({ statut: "USED" })
+                    .eq("id", reservationId)
+                    .in("statut", ["CONFIRME", "CONFIRMÉ", "CONFIRMED", "PAID", "SUCCESS", "COMPLETED"])
+                    .select()
+                    .maybeSingle();
+
+                if (error) {
+                    console.error("Erreur validation :", error);
+                    afficherErreur("Impossible de confirmer l'embarquement.");
+                    return;
+                }
+
+                if (!data) {
+                    afficherDejaUtiliseSimple();
+                    return;
+                }
+
+                afficherEmbarquementConfirme();
+
+            } catch (error) {
+                console.error(error);
+                afficherErreur("Erreur lors de la confirmation.");
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        /* =========================================================
+           AFFICHAGES INTERFACES (UI)
+        ========================================================= */
+        function afficherChargement(ticket) {
+            statusCard.className = "mt-6 p-5 rounded-2xl bg-slate-800/50 border border-slate-700";
+            statusText.innerHTML = `
+                <div class="text-center">
+                    <div class="text-4xl mb-3 animate-pulse">🔎</div>
+                    <p class="font-bold text-white">Vérification...</p>
+                    <p class="text-cyan-300 font-mono text-sm mt-2">${escapeHTML(ticket)}</p>
+                </div>
+            `;
+            newTicketButton.classList.add("hidden");
+        }
+
+        function afficherIntrouvable(ticket) {
+            statusCard.className = "mt-6 p-5 rounded-2xl bg-red-950/40 border border-red-800";
+            statusText.innerHTML = `
+                <div class="text-4xl mb-3">❌</div>
+                <h2 class="text-xl font-bold text-red-400">Billet introuvable</h2>
+                <p class="text-sm text-slate-300 mt-2">Aucune réservation ne correspond à :</p>
+                <p class="font-mono text-cyan-300 mt-2">${escapeHTML(ticket)}</p>
+            `;
+            newTicketButton.classList.remove("hidden");
+        }
+
+        function afficherNonValide(info) {
+            statusCard.className = "mt-6 p-5 rounded-2xl bg-red-950/40 border border-red-800";
+            statusText.innerHTML = `
+                <div class="text-4xl mb-3">🚫</div>
+                <h2 class="text-xl font-bold text-red-400">Billet non valide</h2>
+                <p class="text-sm text-slate-300 mt-2">Cette réservation n'est pas confirmée.</p>
+                <div class="text-left mt-4 bg-slate-950/70 p-4 rounded-xl space-y-2">
+                    <p><strong>Billet :</strong> <span class="font-mono text-cyan-300">${escapeHTML(info.ticket)}</span></p>
+                    <p><strong>Client :</strong> ${escapeHTML(info.nomClient)}</p>
+                    <p><strong>Statut :</strong> <span class="text-red-400 font-bold">${escapeHTML(info.statut || "INCONNU")}</span></p>
+                </div>
+            `;
+            newTicketButton.classList.remove("hidden");
+        }
+
+        function afficherDejaUtilise(info) {
+            statusCard.className = "mt-6 p-5 rounded-2xl bg-amber-950/40 border border-amber-800";
+            statusText.innerHTML = `
+                <div class="text-4xl mb-3">⚠️</div>
+                <h2 class="text-xl font-bold text-amber-400">Billet déjà utilisé</h2>
+                <p class="text-sm text-amber-200 mt-2">Ce billet a déjà été validé.</p>
+                <div class="text-left mt-4 bg-slate-950/70 p-4 rounded-xl space-y-2">
+                    <p><strong>Billet :</strong> <span class="font-mono text-cyan-300">${escapeHTML(info.ticket)}</span></p>
+                    <p><strong>Passager :</strong> ${escapeHTML(info.nomClient)}</p>
+                    <p><strong>Trajet :</strong> ${escapeHTML(info.villeDepart)} → ${escapeHTML(info.villeArrivee)}</p>
+                    <p><strong>Siège(s) :</strong> ${escapeHTML(info.seats)}</p>
+                </div>
+            `;
+            newTicketButton.classList.remove("hidden");
+        }
+
+        function afficherBilletValide(info) {
+            statusCard.className = "mt-6 p-5 rounded-2xl bg-emerald-950/40 border border-emerald-800";
+            statusText.innerHTML = `
+                <div class="text-4xl mb-2">🎫</div>
+                <h2 class="text-2xl font-bold text-emerald-400">BILLET VALIDE</h2>
+                <p class="text-sm text-emerald-200 mt-1">Réservation confirmée</p>
+                <div class="text-left mt-5 bg-slate-950/80 p-4 rounded-xl border border-emerald-900 space-y-2">
+                    <p><strong>N° Billet :</strong> <span class="font-mono text-cyan-300">${escapeHTML(info.ticket)}</span></p>
+                    <p><strong>Passager :</strong> ${escapeHTML(info.nomClient)}</p>
+                    <p><strong>Téléphone :</strong> ${escapeHTML(info.telephone)}</p>
+                    <p><strong>Trajet :</strong> ${escapeHTML(info.villeDepart)} → ${escapeHTML(info.villeArrivee)}</p>
+                    <p><strong>Date :</strong> ${escapeHTML(info.dateDepart)}</p>
+                    <p><strong>Heure :</strong> ${escapeHTML(info.heureDepart)}</p>
+                    <p><strong>Siège(s) :</strong> ${escapeHTML(info.seats)}</p>
+                </div>
+                <button id="confirm-boarding" type="button" class="w-full mt-5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-3 rounded-xl transition-all">
+                    ✅ Valider l'embarquement
+                </button>
+            `;
+
+            document.getElementById("confirm-boarding").addEventListener("click", function() {
+                confirmerEmbarquement(info.reservationId);
+            });
+        }
+
+        function afficherEmbarquementConfirme() {
+            statusCard.className = "mt-6 p-5 rounded-2xl bg-emerald-950/40 border border-emerald-700";
+            statusText.innerHTML = `
+                <div class="text-5xl mb-3">✅</div>
+                <h2 class="text-2xl font-bold text-emerald-400">EMBARQUEMENT VALIDÉ</h2>
+                <p class="text-slate-300 text-sm mt-2">Le billet a été confirmé avec succès.</p>
+                <p class="text-xs text-emerald-300 mt-3">Le billet est maintenant marqué comme utilisé.</p>
+            `;
+            newTicketButton.classList.remove("hidden");
+        }
+
+        function afficherDejaUtiliseSimple() {
+            statusCard.className = "mt-6 p-5 rounded-2xl bg-amber-950/40 border border-amber-800";
+            statusText.innerHTML = `
+                <div class="text-4xl mb-3">⚠️</div>
+                <h2 class="text-xl font-bold text-amber-400">Billet déjà utilisé</h2>
+                <p class="text-sm text-slate-300 mt-2">Ce billet a déjà été validé.</p>
+            `;
+            newTicketButton.classList.remove("hidden");
+        }
+
+        function afficherErreur(message) {
+            statusCard.className = "mt-6 p-5 rounded-2xl bg-red-950/40 border border-red-800";
+            statusText.innerHTML = `
+                <div class="text-4xl mb-3">❌</div>
+                <h2 class="text-xl font-bold text-red-400">Erreur</h2>
+                <p class="text-sm text-slate-300 mt-2">${escapeHTML(message)}</p>
+            `;
+            newTicketButton.classList.remove("hidden");
+        }
+
+        /* =========================================================
+           NOUVEAU BILLET / RESET
+        ========================================================= */
+        newTicketButton.addEventListener("click", function() {
+            input.value = "";
+            input.focus();
+            statusCard.className = "mt-6 p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50";
+            statusText.innerHTML = `<p class="text-slate-300">Entrez le numéro du prochain billet.</p>`;
+            newTicketButton.classList.add("hidden");
+        });
+
+        /* =========================================================
+           CHARGEMENT AUTO DEPUIS L'URL
+        ========================================================= */
+        document.addEventListener("DOMContentLoaded", function() {
+            const params = new URLSearchParams(window.location.search);
+            const ticket = params.get("ticket");
+
+            if (ticket) {
+                const cleanTicket = ticket.trim().toUpperCase();
+                input.value = cleanTicket;
+                verifierBillet(cleanTicket);
+            }
+        });
+    </script>
 </body>
-
 </html>
