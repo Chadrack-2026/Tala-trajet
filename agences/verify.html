@@ -1,13 +1,16 @@
 <!DOCTYPE html><html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>TALA Trajet - Contrôle du Billet</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>TALA Contrôle - Scanner Billet</title>
 
-<!-- Tailwind CSS -->
+<!-- Tailwind -->
 <script src="https://cdn.tailwindcss.com"></script>
 
-<!-- Supabase JS -->
+<!-- Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- Scanner QR -->
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 
 <style>
     body {
@@ -17,35 +20,101 @@
     .hidden {
         display: none !important;
     }
+
+    #reader {
+        width: 100%;
+        overflow: hidden;
+        border-radius: 18px;
+    }
+
+    #reader video {
+        border-radius: 18px;
+    }
+
+    #reader img {
+        display: none !important;
+    }
 </style>
 
 </head><body class="bg-slate-950 text-white min-h-screen flex items-center justify-center p-4"><main class="w-full max-w-md">
 
-    <!-- CARTE PRINCIPALE -->
     <div class="bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl p-6">
 
-        <!-- EN-TÊTE -->
+        <!-- HEADER -->
         <div class="text-center mb-6">
-            <div class="text-4xl mb-2">🎫</div>
+
+            <div class="text-4xl mb-2">
+                🎫
+            </div>
 
             <h1 class="text-2xl font-bold text-cyan-400">
                 TALA Contrôle
             </h1>
 
             <p class="text-slate-400 text-sm mt-1">
-                Vérification du billet
+                Scanner et vérifier les billets
             </p>
+
         </div>
 
 
-        <!-- FORMULAIRE -->
+        <!-- SCANNER -->
+
+        <div
+            id="scanner-container"
+            class="mb-5"
+        >
+
+            <div
+                id="reader"
+                class="bg-slate-950 border border-slate-700"
+            ></div>
+
+            <p
+                id="scanner-message"
+                class="text-center text-xs text-slate-500 mt-3"
+            >
+                Autorisez l'accès à la caméra pour scanner le QR Code.
+            </p>
+
+        </div>
+
+
+        <!-- BOUTON CAMÉRA -->
+
+        <button
+            id="camera-button"
+            type="button"
+            class="w-full bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold py-3 rounded-xl transition-all mb-5"
+        >
+            📷 Démarrer le scanner
+        </button>
+
+
+        <!-- SÉPARATEUR -->
+
+        <div class="flex items-center gap-3 my-5">
+
+            <div class="h-px bg-slate-800 flex-1"></div>
+
+            <span class="text-xs text-slate-500">
+                OU
+            </span>
+
+            <div class="h-px bg-slate-800 flex-1"></div>
+
+        </div>
+
+
+        <!-- SAISIE MANUELLE -->
+
         <form id="manual-form" class="space-y-3">
 
             <label
                 for="ticket-input"
                 class="block text-sm font-semibold text-slate-300"
             >
-                Numéro du billet
+                Entrer le numéro du billet
             </label>
 
             <input
@@ -55,21 +124,21 @@
                 autocomplete="off"
                 autocapitalize="characters"
                 class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:outline-none focus:border-cyan-400 uppercase font-mono"
-                required
             >
 
             <button
                 type="submit"
                 id="verify-button"
-                class="w-full bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold py-3 rounded-xl transition-all"
+                class="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded-xl transition-all"
             >
-                🔍 Vérifier le billet
+                🔍 Vérifier
             </button>
 
         </form>
 
 
         <!-- RÉSULTAT -->
+
         <div
             id="status-card"
             class="mt-6 p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50"
@@ -79,25 +148,25 @@
                 id="status-text"
                 class="text-center text-slate-300"
             >
-                Entrez le numéro du billet pour commencer.
+                Scannez le QR Code du billet.
             </div>
 
         </div>
 
 
-        <!-- BOUTON NOUVEAU BILLET -->
+        <!-- NOUVEAU BILLET -->
+
         <button
             id="new-ticket-button"
             type="button"
-            class="hidden w-full mt-4 bg-slate-700 hover:bg-slate-600 text-white font-semibold py-3 rounded-xl transition-all"
+            class="hidden w-full mt-4 bg-slate-700 hover:bg-slate-600 text-white font-semibold py-3 rounded-xl"
         >
-            🔄 Vérifier un autre billet
+            🔄 Scanner un autre billet
         </button>
 
 
-        <!-- INFORMATION -->
-        <p class="text-center text-xs text-slate-500 mt-5">
-            Vérifiez le billet avant de confirmer l'embarquement.
+        <p class="text-center text-xs text-slate-600 mt-5">
+            TALA Trajet • Contrôle des réservations
         </p>
 
     </div>
@@ -107,14 +176,22 @@
 <script>
 
     /* =========================================================
-       CONFIGURATION SUPABASE
+       SUPABASE
     ========================================================= */
 
     const supabaseUrl =
         "https://kfkifkstatbadtzosxai.supabase.co";
 
+    /*
+     * IMPORTANT :
+     * Mets ici ta vraie clé ANON publique.
+     *
+     * Ne mets JAMAIS la service_role key dans cette page.
+     */
+
     const supabaseKey =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma2lma3N0YT...";
+        "TA_CLE_ANON_SUPABASE";
+
 
     const supabaseClient =
         window.supabase.createClient(
@@ -126,6 +203,15 @@
     /* =========================================================
        ÉLÉMENTS
     ========================================================= */
+
+    const reader =
+        document.getElementById("reader");
+
+    const cameraButton =
+        document.getElementById("camera-button");
+
+    const scannerMessage =
+        document.getElementById("scanner-message");
 
     const form =
         document.getElementById("manual-form");
@@ -147,50 +233,410 @@
 
 
     /* =========================================================
-       ÉCHAPPEMENT HTML
-       Évite d'injecter du HTML provenant de la base
+       SCANNER
     ========================================================= */
 
-    function escapeHTML(value) {
+    let html5QrCode = null;
 
-        if (value === null || value === undefined) {
-            return "";
+    let scannerRunning = false;
+
+    let scanLocked = false;
+
+
+    /* =========================================================
+       DÉMARRER LE SCANNER
+    ========================================================= */
+
+    async function startScanner() {
+
+        if (scannerRunning) {
+            return;
         }
 
-        return String(value)
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
+        try {
+
+            scanLocked = false;
+
+            html5QrCode =
+                new Html5Qrcode("reader");
+
+
+            const cameras =
+                await Html5Qrcode.getCameras();
+
+
+            if (!cameras || cameras.length === 0) {
+
+                scannerMessage.innerText =
+                    "Aucune caméra détectée.";
+
+                return;
+            }
+
+
+            /*
+             * On privilégie la caméra arrière
+             */
+
+            let cameraId =
+                cameras[0].id;
+
+
+            const backCamera =
+                cameras.find(camera =>
+                    /back|rear|environment|arrière/i.test(
+                        camera.label
+                    )
+                );
+
+
+            if (backCamera) {
+
+                cameraId =
+                    backCamera.id;
+
+            }
+
+
+            await html5QrCode.start(
+
+                cameraId,
+
+                {
+                    fps: 10,
+
+                    qrbox: {
+                        width: 250,
+                        height: 250
+                    },
+
+                    aspectRatio: 1.0
+
+                },
+
+                onScanSuccess,
+
+                onScanError
+
+            );
+
+
+            scannerRunning = true;
+
+
+            cameraButton.innerText =
+                "🛑 Arrêter le scanner";
+
+
+            cameraButton.classList.remove(
+                "bg-cyan-500"
+            );
+
+            cameraButton.classList.add(
+                "bg-red-500"
+            );
+
+
+            scannerMessage.innerText =
+                "Placez le QR Code dans le cadre.";
+
+
+        } catch (error) {
+
+            console.error(
+                "Erreur caméra :",
+                error
+            );
+
+
+            scannerMessage.innerText =
+                "Impossible d'accéder à la caméra. Vérifiez l'autorisation du navigateur.";
+
+        }
+
     }
 
 
     /* =========================================================
-       FORMULAIRE
+       ARRÊTER LE SCANNER
     ========================================================= */
 
-    form.addEventListener("submit", async function(event) {
+    async function stopScanner() {
 
-        event.preventDefault();
-
-        const ticketNumber =
-            input.value.trim().toUpperCase();
-
-        if (!ticketNumber) {
-            afficherErreur(
-                "Veuillez entrer un numéro de billet."
-            );
+        if (!html5QrCode || !scannerRunning) {
             return;
         }
 
-        await verifierBillet(ticketNumber);
 
-    });
+        try {
+
+            await html5QrCode.stop();
+
+            html5QrCode.clear();
+
+        } catch (error) {
+
+            console.error(
+                "Erreur arrêt scanner :",
+                error
+            );
+
+        }
+
+
+        scannerRunning = false;
+
+
+        cameraButton.innerText =
+            "📷 Démarrer le scanner";
+
+
+        cameraButton.classList.remove(
+            "bg-red-500"
+        );
+
+        cameraButton.classList.add(
+            "bg-cyan-500"
+        );
+
+
+        scannerMessage.innerText =
+            "Scanner arrêté.";
+
+    }
 
 
     /* =========================================================
-       VÉRIFICATION DU BILLET
+       BOUTON CAMÉRA
+    ========================================================= */
+
+    cameraButton.addEventListener(
+        "click",
+        async function() {
+
+            if (scannerRunning) {
+
+                await stopScanner();
+
+            } else {
+
+                await startScanner();
+
+            }
+
+        }
+    );
+
+
+    /* =========================================================
+       QR SCANNÉ
+    ========================================================= */
+
+    async function onScanSuccess(decodedText) {
+
+        /*
+         * Évite que le scanner lise le même QR
+         * plusieurs fois en quelques millisecondes.
+         */
+
+        if (scanLocked) {
+            return;
+        }
+
+        scanLocked = true;
+
+
+        console.log(
+            "QR détecté :",
+            decodedText
+        );
+
+
+        /*
+         * Arrêter la caméra après lecture
+         */
+
+        await stopScanner();
+
+
+        /*
+         * Le QR peut contenir :
+         *
+         * TALA-A1B2C3
+         *
+         * OU
+         *
+         * https://tala-trajet-ivory.vercel.app/controle.html?ticket=TALA-A1B2C3
+         */
+
+        const ticket =
+            extractTicketFromQR(decodedText);
+
+
+        if (!ticket) {
+
+            afficherErreur(
+                "QR Code invalide. Aucun numéro de billet trouvé."
+            );
+
+            scanLocked = false;
+
+            return;
+        }
+
+
+        input.value =
+            ticket;
+
+
+        await verifierBillet(ticket);
+
+    }
+
+
+    /* =========================================================
+       ERREUR DE SCAN
+    ========================================================= */
+
+    function onScanError(errorMessage) {
+
+        /*
+         * Ne rien afficher ici.
+         *
+         * Le scanner génère énormément de messages
+         * pendant qu'il cherche un QR Code.
+         */
+
+    }
+
+
+    /* =========================================================
+       EXTRAIRE LE NUMÉRO DU QR
+    ========================================================= */
+
+    function extractTicketFromQR(value) {
+
+        if (!value) {
+            return null;
+        }
+
+
+        value =
+            value.trim();
+
+
+        /*
+         * CAS 1 :
+         * Le QR contient directement le numéro
+         *
+         * TALA-A1B2C3
+         */
+
+        if (
+            value.toUpperCase().startsWith("TALA-")
+        ) {
+
+            return value
+                .toUpperCase();
+
+        }
+
+
+        /*
+         * CAS 2 :
+         * Le QR contient une URL
+         *
+         * ...controle.html?ticket=TALA-A1B2C3
+         */
+
+        try {
+
+            const url =
+                new URL(value);
+
+
+            const ticket =
+                url.searchParams.get(
+                    "ticket"
+                );
+
+
+            if (ticket) {
+
+                return ticket
+                    .trim()
+                    .toUpperCase();
+
+            }
+
+        } catch (error) {
+
+            /*
+             * Ce n'est pas une URL.
+             */
+
+        }
+
+
+        /*
+         * CAS 3 :
+         * Recherche d'un numéro TALA dans le texte
+         */
+
+        const match =
+            value.match(
+                /TALA-[A-Z0-9_-]+/i
+            );
+
+
+        if (match) {
+
+            return match[0]
+                .toUpperCase();
+
+        }
+
+
+        return null;
+
+    }
+
+
+    /* =========================================================
+       FORMULAIRE MANUEL
+    ========================================================= */
+
+    form.addEventListener(
+        "submit",
+        async function(event) {
+
+            event.preventDefault();
+
+
+            const ticket =
+                input.value
+                    .trim()
+                    .toUpperCase();
+
+
+            if (!ticket) {
+
+                afficherErreur(
+                    "Veuillez entrer un numéro de billet."
+                );
+
+                return;
+            }
+
+
+            await verifierBillet(ticket);
+
+        }
+    );
+
+
+    /* =========================================================
+       VÉRIFICATION SUPABASE
     ========================================================= */
 
     async function verifierBillet(ticketNumber) {
@@ -202,10 +648,10 @@
 
         try {
 
-            /*
-             * Recherche de la réservation
-             */
-            const { data, error } = await supabaseClient
+            const {
+                data,
+                error
+            } = await supabaseClient
 
                 .from("reservations")
 
@@ -227,30 +673,24 @@
                 .maybeSingle();
 
 
-            /* =================================================
-               ERREUR SUPABASE
-            ================================================= */
+            /* ERREUR */
 
             if (error) {
 
                 console.error(
-                    "Erreur Supabase :",
+                    "Supabase :",
                     error
                 );
 
                 afficherErreur(
-                    "Impossible de vérifier ce billet."
+                    "Impossible de vérifier le billet."
                 );
-
-                setLoading(false);
 
                 return;
             }
 
 
-            /* =================================================
-               BILLET INTROUVABLE
-            ================================================= */
+            /* INTROUVABLE */
 
             if (!data) {
 
@@ -258,20 +698,25 @@
                     ticketNumber
                 );
 
-                setLoading(false);
-
                 return;
             }
 
 
             /* =================================================
-               RÉCUPÉRATION DES INFORMATIONS
+               DONNÉES
             ================================================= */
 
             const statut =
-                String(data.statut || "")
-                    .trim()
-                    .toUpperCase();
+                String(
+                    data.statut || ""
+                )
+                .trim()
+                .toUpperCase();
+
+
+            const ticket =
+                data.ticket_number ||
+                ticketNumber;
 
 
             const nomClient =
@@ -284,15 +729,13 @@
                 "Non spécifié";
 
 
-            const ticket =
-                data.ticket_number ||
-                ticketNumber;
+            let seats =
+                "Non spécifié";
 
 
-            let seats = "Non spécifié";
-
-
-            if (Array.isArray(data.seats)) {
+            if (
+                Array.isArray(data.seats)
+            ) {
 
                 seats =
                     data.seats.join(", ");
@@ -330,7 +773,7 @@
 
 
             /* =================================================
-               BILLET DÉJÀ UTILISÉ
+               DÉJÀ UTILISÉ
             ================================================= */
 
             if (
@@ -340,45 +783,47 @@
             ) {
 
                 afficherDejaUtilise({
+
                     ticket,
                     nomClient,
                     villeDepart,
                     villeArrivee,
                     seats
-                });
 
-                setLoading(false);
+                });
 
                 return;
             }
 
 
             /* =================================================
-               VÉRIFICATION DU PAIEMENT / CONFIRMATION
+               STATUTS ACCEPTÉS
             ================================================= */
 
             const statutsValides = [
 
                 "CONFIRME",
                 "CONFIRMÉ",
+                "CONFIRMED",
                 "PAID",
                 "SUCCESS",
-                "COMPLETED",
-                "CONFIRMED"
+                "COMPLETED"
 
             ];
 
 
-            if (!statutsValides.includes(statut)) {
+            if (
+                !statutsValides.includes(statut)
+            ) {
 
                 afficherNonValide({
+
                     ticket,
                     nomClient,
                     telephone,
                     statut
-                });
 
-                setLoading(false);
+                });
 
                 return;
             }
@@ -389,6 +834,7 @@
             ================================================= */
 
             afficherBilletValide({
+
                 ticket,
                 nomClient,
                 telephone,
@@ -398,18 +844,18 @@
                 heureDepart,
                 seats,
                 reservationId: data.id
+
             });
 
 
         } catch (error) {
 
             console.error(
-                "Erreur :",
                 error
             );
 
             afficherErreur(
-                "Une erreur est survenue pendant la vérification."
+                "Erreur pendant la vérification."
             );
 
         } finally {
@@ -422,7 +868,7 @@
 
 
     /* =========================================================
-       CONFIRMER L'EMBARQUEMENT
+       CONFIRMER EMBARQUEMENT
     ========================================================= */
 
     async function confirmerEmbarquement(
@@ -435,15 +881,10 @@
 
         try {
 
-            /*
-             * IMPORTANT :
-             * On vérifie une nouvelle fois que le billet
-             * est toujours CONFIRME avant de le passer à USED.
-             *
-             * Cela réduit le risque de double validation.
-             */
-
-            const { data, error } = await supabaseClient
+            const {
+                data,
+                error
+            } = await supabaseClient
 
                 .from("reservations")
 
@@ -451,16 +892,22 @@
                     statut: "USED"
                 })
 
-                .eq("id", reservationId)
+                .eq(
+                    "id",
+                    reservationId
+                )
 
-                .in("statut", [
-                    "CONFIRME",
-                    "CONFIRMÉ",
-                    "PAID",
-                    "SUCCESS",
-                    "COMPLETED",
-                    "CONFIRMED"
-                ])
+                .in(
+                    "statut",
+                    [
+                        "CONFIRME",
+                        "CONFIRMÉ",
+                        "CONFIRMED",
+                        "PAID",
+                        "SUCCESS",
+                        "COMPLETED"
+                    ]
+                )
 
                 .select()
 
@@ -470,7 +917,6 @@
             if (error) {
 
                 console.error(
-                    "Erreur validation :",
                     error
                 );
 
@@ -478,33 +924,25 @@
                     "Impossible de confirmer l'embarquement."
                 );
 
-                setLoading(false);
-
                 return;
             }
 
 
             /*
-             * Aucun enregistrement modifié
-             * signifie généralement que le billet
-             * a déjà été utilisé entre-temps.
+             * Aucun résultat =
+             * billet déjà utilisé ou statut modifié.
              */
 
             if (!data) {
 
                 afficherDejaUtiliseSimple();
 
-                setLoading(false);
-
                 return;
             }
 
 
-            /* =================================================
-               EMBARQUEMENT CONFIRMÉ
-            ================================================= */
-
             afficherEmbarquementConfirme();
+
 
         } catch (error) {
 
@@ -525,7 +963,7 @@
     }
 
 
-    /* =========================================================
+    /* ========================================================
        AFFICHAGE CHARGEMENT
     ========================================================= */
 
@@ -536,24 +974,27 @@
 
         statusText.innerHTML = `
 
-            <div class="flex flex-col items-center">
+            <div class="text-center">
 
-                <div class="text-3xl animate-pulse mb-3">
+                <div class="text-4xl mb-3 animate-pulse">
                     🔎
                 </div>
 
-                <p class="font-semibold text-white">
-                    Vérification...
+                <p class="font-bold">
+                    Vérification du billet
                 </p>
 
-                <p class="text-sm text-slate-400 mt-1 font-mono">
+                <p class="text-cyan-300 font-mono text-sm mt-2">
                     ${escapeHTML(ticket)}
                 </p>
 
             </div>
+
         `;
 
-        newTicketButton.classList.add("hidden");
+        newTicketButton.classList.add(
+            "hidden"
+        );
 
     }
 
@@ -578,7 +1019,7 @@
             </h2>
 
             <p class="text-sm text-slate-300 mt-2">
-                Aucun billet ne correspond au numéro :
+                Aucun billet ne correspond à :
             </p>
 
             <p class="font-mono text-cyan-300 mt-2">
@@ -587,7 +1028,9 @@
 
         `;
 
-        newTicketButton.classList.remove("hidden");
+        newTicketButton.classList.remove(
+            "hidden"
+        );
 
     }
 
@@ -611,6 +1054,10 @@
                 Billet non valide
             </h2>
 
+            <p class="text-sm text-slate-300 mt-2">
+                Cette réservation n'est pas confirmée.
+            </p>
+
             <div class="text-left mt-4 bg-slate-950/70 p-4 rounded-xl space-y-2">
 
                 <p>
@@ -626,11 +1073,6 @@
                 </p>
 
                 <p>
-                    <strong>Téléphone :</strong>
-                    ${escapeHTML(info.telephone)}
-                </p>
-
-                <p>
                     <strong>Statut :</strong>
                     <span class="text-red-400 font-bold">
                         ${escapeHTML(info.statut || "INCONNU")}
@@ -639,19 +1081,17 @@
 
             </div>
 
-            <p class="text-xs text-red-300 mt-4">
-                Ce billet n'est pas confirmé pour l'embarquement.
-            </p>
-
         `;
 
-        newTicketButton.classList.remove("hidden");
+        newTicketButton.classList.remove(
+            "hidden"
+        );
 
     }
 
 
     /* =========================================================
-       BILLET DÉJÀ UTILISÉ
+       DÉJÀ UTILISÉ
     ========================================================= */
 
     function afficherDejaUtilise(info) {
@@ -670,7 +1110,7 @@
             </h2>
 
             <p class="text-sm text-amber-200 mt-2">
-                Ce billet a déjà été validé pour l'embarquement.
+                Ce billet a déjà été validé.
             </p>
 
             <div class="text-left mt-4 bg-slate-950/70 p-4 rounded-xl space-y-2">
@@ -703,7 +1143,9 @@
 
         `;
 
-        newTicketButton.classList.remove("hidden");
+        newTicketButton.classList.remove(
+            "hidden"
+        );
 
     }
 
@@ -776,8 +1218,6 @@
             </div>
 
 
-            <!-- CONFIRMATION EMBARQUEMENT -->
-
             <button
                 id="confirm-boarding"
                 type="button"
@@ -806,7 +1246,178 @@
     }
 
 
-    /* ==ticket=TALA-A1B2C3
+    /* =========================================================
+       EMBARQUEMENT CONFIRMÉ
+    ========================================================= */
+
+    function afficherEmbarquementConfirme() {
+
+        statusCard.className =
+            "mt-6 p-5 rounded-2xl bg-emerald-950/40 border border-emerald-700";
+
+        statusText.innerHTML = `
+
+            <div class="text-5xl mb-3">
+                ✅
+            </div>
+
+            <h2 class="text-2xl font-bold text-emerald-400">
+                EMBARQUEMENT CONFIRMÉ
+            </h2>
+
+            <p class="text-slate-300 text-sm mt-2">
+                Le billet est validé.
+            </p>
+
+            <p class="text-xs text-emerald-300 mt-3">
+                Ce billet ne pourra plus être utilisé une seconde fois.
+            </p>
+
+        `;
+
+        newTicketButton.classList.remove(
+            "hidden"
+        );
+
+    }
+
+
+    /* =========================================================
+       DÉJÀ UTILISÉ
+    ========================================================= */
+
+    function afficherDejaUtiliseSimple() {
+
+        statusCard.className =
+            "mt-6 p-5 rounded-2xl bg-amber-950/40 border border-amber-800";
+
+        statusText.innerHTML = `
+
+            <div class="text-4xl mb-3">
+                ⚠️
+            </div>
+
+            <h2 class="text-xl font-bold text-amber-400">
+                Billet déjà utilisé
+            </h2>
+
+            <p class="text-sm text-slate-300 mt-2">
+                Ce billet vient d'être validé par un autre contrôleur.
+            </p>
+
+        `;
+
+        newTicketButton.classList.remove(
+            "hidden"
+        );
+
+    }
+
+
+    /* =========================================================
+       ERREUR
+    ========================================================= */
+
+    function afficherErreur(message) {
+
+        statusCard.className =
+            "mt-6 p-5 rounded-2xl bg-red-950/40 border border-red-800";
+
+        statusText.innerHTML = `
+
+            <div class="text-4xl mb-3">
+                ❌
+            </div>
+
+            <h2 class="text-xl font-bold text-red-400">
+                Erreur
+            </h2>
+
+            <p class="text-sm text-slate-300 mt-2">
+                ${escapeHTML(message)}
+            </p>
+
+        `;
+
+        newTicketButton.classList.remove(
+            "hidden"
+        );
+
+    }
+
+
+    /* =========================================================
+       LOADING
+    ========================================================= */
+
+    function setLoading(isLoading) {
+
+        verifyButton.disabled =
+            isLoading;
+
+
+        verifyButton.classList.toggle(
+            "opacity-50",
+            isLoading
+        );
+
+
+        if (isLoading) {
+
+            verifyButton.innerText =
+                "⏳ Vérification...";
+
+        } else {
+
+            verifyButton.innerText =
+                "🔍 Vérifier";
+
+        }
+
+    }
+
+
+    /* =========================================================
+       NOUVEAU BILLET
+    ========================================================= */
+
+    newTicketButton.addEventListener(
+        "click",
+        async function() {
+
+            input.value = "";
+
+            scanLocked = false;
+
+            statusCard.className =
+                "mt-6 p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50";
+
+            statusText.innerHTML = `
+                <p class="text-slate-300">
+                    Scannez le prochain QR Code.
+                </p>
+            `;
+
+            newTicketButton.classList.add(
+                "hidden"
+            );
+
+
+            /*
+             * Redémarrer automatiquement la caméra
+             */
+
+            await startScanner();
+
+        }
+    );
+
+
+    /* =========================================================
+       QR DANS L'URL
+       
+       Exemple :
+       controle.html?ticket=TALA-A1B2C3
     ========================================================= */
 
     document.addEventListener(
@@ -818,8 +1429,10 @@
                     window.location.search
                 );
 
+
             const ticket =
                 params.get("ticket");
+
 
             if (ticket) {
 
@@ -828,8 +1441,10 @@
                         .trim()
                         .toUpperCase();
 
+
                 input.value =
                     cleanTicket;
+
 
                 verifierBillet(
                     cleanTicket
