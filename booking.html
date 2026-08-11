@@ -281,6 +281,38 @@
       box-shadow: 0 0 10px rgba(0, 210, 255, 0.3);
     }
 
+    /* Style spécifique pour le conteneur du téléphone avec préfixe */
+    .phone-container {
+      display: flex;
+      align-items: center;
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: 12px;
+      margin-bottom: 18px;
+      transition: all 0.3s ease;
+    }
+
+    .phone-container:focus-within {
+      border-color: var(--primary-blue);
+      box-shadow: 0 0 10px rgba(0, 210, 255, 0.3);
+    }
+
+    .phone-prefix {
+      padding: 0 14px;
+      color: var(--placeholder);
+      font-family: monospace;
+      font-size: 15px;
+      user-select: none;
+      border-right: 1px solid var(--input-border);
+    }
+
+    .phone-container input {
+      margin-bottom: 0 !important;
+      border: none !important;
+      background: transparent !important;
+      box-shadow: none !important;
+    }
+
     .icon,
     .back-icon,
     .section-icon,
@@ -387,7 +419,12 @@
 
     <input type="text" id="name" name="name" placeholder="Nom et Prénom du passager" required>
     <input type="email" id="email" name="email" placeholder="Adresse e-mail" required>
-    <input type="tel" id="phone" name="phone" placeholder="Numéro de téléphone (+243...)" required>
+    
+    <!-- Champ téléphone avec préfixe +243 intégré -->
+    <div class="phone-container">
+      <span class="phone-prefix">+243</span>
+      <input type="tel" id="phone" name="phone" placeholder="81 234 5678" required>
+    </div>
 
     <div class="total-bar">
       <span>
@@ -582,12 +619,16 @@
     const formData = new FormData(e.target);
     const totalAmount = selectedSeats.length * Number(trajet.prix);
 
+    // Concaténation automatique du préfixe +243 avec le numéro saisi
+    const rawPhone = formData.get("phone").trim();
+    const fullPhone = "+243" + rawPhone.replace(/\s+/g, '');
+
     const reservationInfoToSave = {
       trip_id: trajetId,
       user_id: currentUserId,
       nom_client: formData.get("name"),
       email: formData.get("email"),
-      telephone_client: formData.get("phone"),
+      telephone_client: fullPhone,
       seats: selectedSeats,
       seats_count: selectedSeats.length,
       total_price: totalAmount,
