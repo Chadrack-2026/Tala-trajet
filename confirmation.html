@@ -121,8 +121,28 @@
 
   let currentReservation = null;
 
+  // Fonction unifiée pour formater proprement la date et l'heure (ex: 12/08/2026 • 06:30)
+  function formatFullDateTime(dateString) {
+    if (!dateString) return 'Aujourd\'hui • 08:00';
+    
+    const partsT = dateString.split('T');
+    const cleanDate = partsT[0];
+    
+    const dateParts = cleanDate.split('-');
+    let formattedDate = cleanDate;
+    if (dateParts.length === 3) {
+      formattedDate = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
+    }
+    
+    let formattedTime = "08:00";
+    if (partsT.length > 1) {
+      formattedTime = partsT[1].substring(0, 5); // Extrait "HH:MM"
+    }
+    
+    return `${formattedDate} • ${formattedTime}`;
+  }
+
   document.addEventListener("DOMContentLoaded", async () => {
-    // Vérification de la session pour afficher dynamiquement le prénom dans le menu
     const { data: { session } } = await supabaseClient.auth.getSession();
     const accountLink = document.getElementById("userAccountLink");
     
@@ -198,6 +218,9 @@
       }
     }
 
+    const rawDate = tripData?.date_depart || baseInfo.date || "";
+    const finalDateTimeString = formatFullDateTime(rawDate);
+
     currentReservation = {
       ticket_number: baseInfo.ticket_number,
       ville_depart: tripData?.ville_depart || baseInfo.ville_depart || "Départ",
@@ -205,8 +228,7 @@
       client_name: baseInfo.nom_client,
       client_phone: baseInfo.telephone_client,
       agence: resolvedAgencyName,
-      date: tripData?.date_depart || baseInfo.date || "Aujourd'hui",
-      heure_depart: tripData?.heure_depart || "08:00",
+      date_heure: finalDateTimeString,
       total_price: baseInfo.total_price,
       seats: baseInfo.seats || [1]
     };
@@ -216,7 +238,7 @@
     document.getElementById("passengerName").textContent = currentReservation.client_name;
     document.getElementById("passengerPhone").textContent = currentReservation.client_phone;
     document.getElementById("agencyName").textContent = currentReservation.agence;
-    document.getElementById("travelDateTime").textContent = `${currentReservation.date} • ${currentReservation.heure_depart}`;
+    document.getElementById("travelDateTime").textContent = currentReservation.date_heure;
     document.getElementById("totalPrice").textContent = Number(currentReservation.total_price).toLocaleString('fr-FR') + " FC";
 
     const seatsDisplay = document.getElementById("seatsDisplay");
@@ -279,7 +301,7 @@
     addRow("Passager :", currentReservation.client_name);
     addRow("Téléphone :", currentReservation.client_phone);
     addRow("Agence :", currentReservation.agence);
-    addRow("Date & Départ :", `${currentReservation.date} • ${currentReservation.heure_depart}`);
+    addRow("Date & Départ :", currentReservation.date_heure);
     addRow("Montant Total :", Number(currentReservation.total_price).toLocaleString('fr-FR') + " FC");
     addRow("Statut Paiement :", "CONFIRMÉ / PAYÉ");
 
