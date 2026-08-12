@@ -677,4 +677,10 @@ footer {
 }
 
 /* partenaires de paiement */
+    /* CSS pour l'animation de la bande défilante */
+    .partners-ticker { overflow: hidden; white-space: nowrap; position: relative; width: 100%; background: #0b0e13; padding: 20px 0; margin-top: 20px; }
+    .ticker-track { display: inline-flex; gap: 40px; align-items: center; animation: scrollTicker 20s linear infinite; }
+    .partner-logo-item { background: #171b22; border: 1px solid #2a313b; padding: 10px 20px; border-radius: 8px; height: 50px; display: inline-flex; align-items: center; justify-content: center; }
+    @keyframes scrollTicker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+    .partners-ticker:hover .ticker-track { animation-play-state: paused; }
 
