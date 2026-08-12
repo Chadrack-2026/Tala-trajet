@@ -78,8 +78,13 @@
         </form>
       </div>
 
-      <!-- Statistiques d'impact -->
-      <div class="hero-stats" style="margin-top: 40px;">
+      <!-- Statistiques d'impact & Compteurs de communauté -->
+      <div class="hero-stats" style="margin-top: 40px; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px;">
+        <div class="stat-item">
+          <h3 id="statTravelers">10K+</h3>
+          <p>Voyageurs Actifs</p>
+        </div>
+        <div class="stat-divider"></div>
         <div class="stat-item">
           <h3>100%</h3>
           <p>Billet Sécurisé</p>
@@ -91,13 +96,25 @@
         </div>
         <div class="stat-divider"></div>
         <div class="stat-item">
-          <h3>1,3%</h3>
-          <p>Frais cachés</p>
+          <h3 id="statRoutes">15+</h3>
+            <p>Villes Desservies</p>
         </div>
       </div>
 
     </div>
   </section>  
+
+  <!-- PARTENAIRES DE PAIEMENT & CONFIANCE -->
+  <section style="padding: 30px 0; background: #0b0e13; border-bottom: 1px solid #1c222d; text-align: center;">
+    <div class="container">
+      <p style="font-size: 0.85rem; color: #8b9bb4; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; font-weight: 600;">Partenaires de paiement officiels</p>
+      <div style="display: flex; justify-content: center; align-items: center; gap: 30px; flex-wrap: wrap; opacity: 0.85;">
+        <span style="background: #171b22; padding: 10px 20px; border-radius: 8px; border: 1px solid #2a313b; font-weight: 700; color: #e7edf3;">M-Pesa</span>
+        <span style="background: #171b22; padding: 10px 20px; border-radius: 8px; border: 1px solid #2a313b; font-weight: 700; color: #ff6600;">Orange Money</span>
+        <span style="background: #171b22; padding: 10px 20px; border-radius: 8px; border: 1px solid #2a313b; font-weight: 700; color: #ff0000;">Airtel Money</span>
+      </div>
+    </div>
+  </section>
 
   <!-- FEATURES SECTION -->  
   <section class="features-section">
@@ -224,6 +241,48 @@
     </div>
   </section>  
 
+  <!-- TÉMOIGNAGES / AVIS CLIENTS DYNAMIQUES -->
+  <section style="padding: 80px 0; background: #131720;">
+    <div class="container">
+      <div class="section-header">
+        <h2>Ce que disent <span>nos voyageurs</span></h2>
+        <p>Découvrez les retours d'expérience de ceux qui utilisent TALA Trajet.</p>
+      </div>
+
+      <!-- Conteneur qui affichera les vrais avis globaux de la base de données -->
+      <div id="dynamicReviewsContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
+        <p style="text-align: center; color: #b0bcc9; grid-column: 1 / -1;">Chargement des avis clients...</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ RAPIDE -->
+  <section style="padding: 80px 0; border-top: 1px solid #1c222d;">
+    <div class="container" style="max-width: 800px;">
+      <div class="section-header">
+        <h2>Questions <span>Fréquentes</span></h2>
+        <p>Tout ce que vous devez savoir avant de réserver.</p>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        <details style="background: #171b22; border: 1px solid #2a313b; border-radius: 10px; padding: 18px 24px; cursor: pointer;">
+          <summary style="font-weight: 600; color: #fff; font-size: 1.05rem;">Comment puis-je récupérer mon billet après le paiement ?</summary>
+          <p style="margin-top: 12px; color: #b0bcc9; font-size: 0.95rem; line-height: 1.5;">Votre billet numérique muni d'un QR code sécurisé s'affiche directement sur votre écran après validation et vous pouvez le retrouver à tout moment dans votre espace personnel "Mon Compte".</p>
+        </details>
+
+        <details style="background: #171b22; border: 1px solid #2a313b; border-radius: 10px; padding: 18px 24px; cursor: pointer;">
+          <summary style="font-weight: 600; color: #fff; font-size: 1.05rem;">Quels modes de paiement Mobile Money sont acceptés ?</summary>
+          <p style="margin-top: 12px; color: #b0bcc9; font-size: 0.95rem; line-height: 1.5;">Nous acceptons les principaux opérateurs mobiles en RDC, à savoir M-Pesa, Orange Money et Airtel Money.</p>
+        </details>
+
+        <details style="background: #171b22; border: 1px solid #2a313b; border-radius: 10px; padding: 18px 24px; cursor: pointer;">
+          <summary style="font-weight: 600; color: #fff; font-size: 1.05rem;">Puis-je modifier ou annuler mon voyage ?</summary>
+          <p style="margin-top: 12px; color: #b0bcc9; font-size: 0.95rem; line-height: 1.5;">Oui, vous pouvez gérer vos réservations directement depuis votre profil ou contacter notre support client disponible 24/7 pour toute assistance.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
   <!-- CTA FINAL -->  
   <section class="cta-banner">
     <div class="container cta-content">
@@ -275,9 +334,49 @@
     });
   }
 
+  // Fonction pour charger et afficher les avis globaux dynamiquement
+  async function loadPublicReviews() {
+    const container = document.getElementById('dynamicReviewsContainer');
+    if (!container) return;
+
+    const { data: reviews, error } = await supabaseClient
+      .from('reviews')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(3);
+
+    if (error) {
+      console.error("Erreur chargement avis :", error);
+      container.innerHTML = `<p style="text-align: center; color: #b0bcc9; grid-column: 1 / -1;">Impossible de charger les avis pour le moment.</p>`;
+      return;
+    }
+
+    if (!reviews || reviews.length === 0) {
+      container.innerHTML = `<p style="text-align: center; color: #b0bcc9; grid-column: 1 / -1;">Soyez le premier à laisser un avis depuis votre espace compte !</p>`;
+      return;
+    }
+
+    container.innerHTML = "";
+    reviews.forEach(rev => {
+      const stars = "★".repeat(rev.rating) + "☆".repeat(5 - rev.rating);
+      const card = document.createElement("div");
+      card.style.cssText = "background: #171b22; border: 1px solid #2a313b; padding: 24px; border-radius: 12px;";
+      card.innerHTML = `
+        <div style="color: #00d2ff; margin-bottom: 12px; font-size: 1.1rem;">${stars}</div>
+        <p style="font-size: 0.95rem; color: #b0bcc9; margin-bottom: 16px; line-height: 1.5;">"${rev.comment}"</p>
+        <h4 style="font-size: 0.95rem; margin: 0 0 4px 0; color: #fff;">${rev.user_name || 'Voyageur TALA'}</h4>
+        <span style="font-size: 0.8rem; color: #8b9bb4;">Membre vérifié</span>
+      `;
+      container.appendChild(card);
+    });
+  }
+
   // Initialisation au chargement de la page
   document.addEventListener('DOMContentLoaded', async () => {
-    // 1. Définir la date minimale du formulaire à aujourd'hui
+    // 1. Charger les avis publics
+    loadPublicReviews();
+
+    // 2. Définir la date minimale du formulaire à aujourd'hui
     const dateInput = document.getElementById('travelDate');
     if (dateInput) {
       const today = new Date().toISOString().split('T')[0];
@@ -285,7 +384,7 @@
       dateInput.value = today;
     }
 
-    // 2. Restaurer une recherche en suspens si l'utilisateur vient de se connecter
+    // 3. Restaurer une recherche en suspens si l'utilisateur vient de se connecter
     const pendingSearch = localStorage.getItem('pendingSearch');
     if (pendingSearch) {
       try {
@@ -300,7 +399,7 @@
       }
     }
 
-    // 3. Vérifier la session utilisateur Supabase pour personnaliser le bouton "Mon Compte" / "Connexion"
+    // 4. Vérifier la session utilisateur Supabase pour personnaliser le bouton "Mon Compte" / "Connexion"
     const { data: { session } } = await supabaseClient.auth.getSession();
     const accountLink = document.getElementById('userAccountLink');
 
