@@ -281,7 +281,6 @@
       box-shadow: 0 0 10px rgba(0, 210, 255, 0.3);
     }
 
-    /* Style spécifique pour le conteneur du téléphone avec préfixe */
     .phone-container {
       display: flex;
       align-items: center;
@@ -420,7 +419,6 @@
     <input type="text" id="name" name="name" placeholder="Nom et Prénom du passager" required>
     <input type="email" id="email" name="email" placeholder="Adresse e-mail" required>
     
-    <!-- Champ téléphone avec préfixe +243 intégré -->
     <div class="phone-container">
       <span class="phone-prefix">+243</span>
       <input type="tel" id="phone" name="phone" placeholder="81 234 5678" required>
@@ -428,7 +426,7 @@
 
     <div class="total-bar">
       <span>
-        <i data-lucide="ticket" class="info-icon"></i> Total : <span id="seatCount">0</span> siège(s)
+        <i data-lucide="armchair" class="info-icon"></i> <span id="remainingCount">0</span> restantes
       </span>
       <span id="totalPrice" class="price">0 FC</span>
     </div>
@@ -452,6 +450,19 @@
   let selectedSeats = [];
   let trajet = null;
   let currentUserId = null;
+  let totalCapacity = 57;
+  let occupiedSeatsCount = 0;
+
+  // Fonction pour formater proprement la date (AAAA-MM-JJ ➔ JJ/MM/AAAA)
+  function formatDate(dateString) {
+    if (!dateString) return '';
+    const cleanDate = dateString.split('T')[0];
+    const parts = cleanDate.split('-');
+    if (parts.length === 3) {
+      return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+    return dateString;
+  }
 
   async function loadTrip() {
     if (!trajetId) {
@@ -517,8 +528,11 @@
       });
     }
 
-    const capacity = trajet.places_totales ? Number(trajet.places_totales) : 57;
-    const remainingSeats = trajet.places_disponibles !== null ? trajet.places_disponibles : (capacity - occupiedSeats.length);
+    totalCapacity = trajet.places_totales ? Number(trajet.places_totales) : 57;
+    occupiedSeatsCount = occupiedSeats.length;
+    const remainingSeats = trajet.places_disponibles !== null ? trajet.places_disponibles : (totalCapacity - occupiedSeatsCount);
+
+    document.getElementById("remainingCount").textContent = remainingSeats;
 
     document.getElementById("tripDetails").innerHTML = `
       <h3 style="margin-top:0; color:#00d2ff; font-size:1.3rem;">
@@ -528,18 +542,18 @@
         <i data-lucide="building-2" class="info-icon"></i> <strong>Compagnie :</strong> ${trajet.agency ? trajet.agency.nom : 'Agence Partenaire'}
       </p>
       <p style="margin:7px 0; color:#b0bcc9;">
-        <i data-lucide="calendar-days" class="info-icon"></i> <strong>Date de départ :</strong> ${trajet.date_depart}
+        <i data-lucide="calendar-days" class="info-icon"></i> <strong>Date de départ :</strong> ${formatDate(trajet.date_depart)}
       </p>
       <p style="margin:7px 0; color:#b0bcc9;">
         <i data-lucide="banknote" class="info-icon"></i> <strong>Prix :</strong> ${Number(trajet.prix).toLocaleString('fr-FR')} FC / place
       </p>
       <p style="margin:7px 0; color:#2ecc71;">
-        <i data-lucide="armchair" class="info-icon"></i> <strong>Places restantes :</strong> ${remainingSeats} sur ${capacity}
+        <i data-lucide="armchair" class="info-icon"></i> <strong>Places restantes :</strong> ${remainingSeats} sur ${totalCapacity}
       </p>
     `;
 
     lucide.createIcons();
-    generateSeats(capacity, occupiedSeats);
+    generateSeats(totalCapacity, occupiedSeats);
   }
 
   function generateSeats(totalSeats, occupiedSeats) {
@@ -603,7 +617,10 @@
       seatDiv.classList.add("selected");
     }
 
-    document.getElementById("seatCount").textContent = selectedSeats.length;
+    const baseRemaining = totalCapacity - occupiedSeatsCount;
+    const currentRemaining = baseRemaining - selectedSeats.length;
+
+    document.getElementById("remainingCount").textContent = currentRemaining;
     document.getElementById("totalPrice").textContent =
       (selectedSeats.length * Number(trajet.prix)).toLocaleString('fr-FR') + " FC";
   }
@@ -619,7 +636,6 @@
     const formData = new FormData(e.target);
     const totalAmount = selectedSeats.length * Number(trajet.prix);
 
-    // Concaténation automatique du préfixe +243 avec le numéro saisi
     const rawPhone = formData.get("phone").trim();
     const fullPhone = "+243" + rawPhone.replace(/\s+/g, '');
 
