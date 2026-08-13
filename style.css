@@ -685,7 +685,7 @@ footer {
   overflow: hidden;
   position: relative;
   background: #0b0e13;
-  padding: 28px 0;
+  padding: 280px 0;
   margin-top: 20px;
   user-select: none;
   isolation: isolate;
@@ -739,7 +739,7 @@ footer {
 ===================================================== */
 
 .ticker-track {
-  display: flex;
+  display: inline-flex;
   width: max-content;
   align-items: center;
   animation: talaTicker 28s linear infinite;
@@ -754,9 +754,9 @@ footer {
 ===================================================== */
 
 .ticker-group {
-  display: flex;
+  display: inline-inflex;
   align-items: center;
-  gap: 140px;
+  gap: 100px;
   flex-shrink: 0;
   padding-right: 140px;
 }
@@ -770,7 +770,7 @@ footer {
   height: 100px;
   min-width: 210px;
   padding: 15px 35px;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
