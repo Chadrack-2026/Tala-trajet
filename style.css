@@ -677,287 +677,293 @@ footer {
 }
 
     /* =====================================================
-       BANDE DÉFILANTE DES PARTENAIRES
-    ===================================================== */
+   BANDE DÉFILANTE DES PARTENAIRES
+===================================================== */
 
-    .partners-ticker {
+.partners-ticker {
+  width: 100%;
+  overflow: hidden;
+  position: relative;
 
-      width: 100%;
+  background: #0b0e13;
 
-      overflow: hidden;
+  padding: 28px 0;
 
-      position: relative;
+  margin-top: 20px;
 
-      background: #0b0e13;
-
-      padding: 22px 0;
-
-      margin-top: 20px;
-
-      user-select: none;
-    }
+  user-select: none;
+}
 
 
-    /* -----------------------------------------------------
-       FONDU À GAUCHE ET À DROITE
-    ----------------------------------------------------- */
+/* =====================================================
+   FONDU GAUCHE / DROITE
+===================================================== */
 
-    .partners-ticker::before,
-    .partners-ticker::after {
+.partners-ticker::before,
+.partners-ticker::after {
 
-      content: "";
+  content: "";
 
-      position: absolute;
+  position: absolute;
 
-      top: 0;
+  top: 0;
+  bottom: 0;
 
-      bottom: 0;
+  width: 100px;
 
-      width: 90px;
+  z-index: 2;
 
-      z-index: 2;
-
-      pointer-events: none;
-    }
-
-
-    .partners-ticker::before {
-
-      left: 0;
-
-      background: linear-gradient(
-        to right,
-        #0b0e13,
-        transparent
-      );
-    }
+  pointer-events: none;
+}
 
 
-    .partners-ticker::after {
+.partners-ticker::before {
 
-      right: 0;
+  left: 0;
 
-      background: linear-gradient(
-        to left,
-        #0b0e13,
-        transparent
-      );
-    }
-
-
-    /* -----------------------------------------------------
-       TRACK
-    ----------------------------------------------------- */
-
-    .ticker-track {
-
-      display: flex;
-
-      width: max-content;
-
-      align-items: center;
-
-      animation:
-        talaTicker 28s linear infinite;
-
-      will-change: transform;
-    }
+  background: linear-gradient(
+    to right,
+    #0b0e13,
+    transparent
+  );
+}
 
 
-    /* -----------------------------------------------------
-       GROUPE
-    ----------------------------------------------------- */
+.partners-ticker::after {
 
-    .ticker-group {
+  right: 0;
 
-      display: flex;
-
-      align-items: center;
-
-      gap: 40px;
-
-      flex-shrink: 0;
-
-      padding-right: 40px;
-    }
+  background: linear-gradient(
+    to left,
+    #0b0e13,
+    transparent
+  );
+}
 
 
-    /* -----------------------------------------------------
-       CARTE PARTENAIRE
-    ----------------------------------------------------- */
+/* =====================================================
+   TRACK
+===================================================== */
 
-    .partner-logo-item {
+.ticker-track {
 
-      height: 70px;
-  min-width: 150px;
-  padding: 12px 28px;
+  display: flex;
 
-      display: flex;
+  width: max-content;
 
-      align-items: center;
+  align-items: center;
 
-      justify-content: center;
+  animation:
+    talaTicker 28s linear infinite;
 
-      flex-shrink: 0;
-
-      box-sizing: border-box;
-
-      background: #171b22;
-
-      border: 1px solid #2a313b;
-
-      border-radius: 10px;
-
-      transition:
-        transform 0.25s ease,
-        border-color 0.25s ease,
-        background 0.25s ease;
-    }
+  will-change: transform;
+}
 
 
-    /* -----------------------------------------------------
-       IMAGES
-    ----------------------------------------------------- */
+/* =====================================================
+   GROUPE
+===================================================== */
 
-    .partner-logo-item img {
+.ticker-group {
 
-      display: block;
-  max-width: 130px;
-  max-height: 45px;
+  display: flex;
+
+  align-items: center;
+
+  gap: 50px;
+
+  flex-shrink: 0;
+
+  padding-right: 50px;
+}
+
+
+/* =====================================================
+   CARTE PARTENAIRE — GRANDE
+===================================================== */
+
+.partner-logo-item {
+
+  height: 100px;
+
+  min-width: 210px;
+
+  padding: 15px 35px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  box-sizing: border-box;
+
+  background: #171b22;
+
+  border: 1px solid #2a313b;
+
+  border-radius: 14px;
+
+  transition:
+    transform 0.25s ease,
+    border-color 0.25s ease,
+    background 0.25s ease;
+}
+
+
+/* =====================================================
+   LOGOS — TRÈS GRANDS
+===================================================== */
+
+.partner-logo-item img {
+
+  display: block;
+
+  max-width: 175px;
+
+  max-height: 68px;
+
   width: auto;
+
   height: auto;
+
   object-fit: contain;
-    }
+}
 
 
-    /* -----------------------------------------------------
-       NOM DES PARTENAIRES
-    ----------------------------------------------------- */
+/* =====================================================
+   NOM DES PARTENAIRES
+===================================================== */
 
-    .partner-name {
+.partner-name {
 
-      color: #ffffff;
+  color: #ffffff;
 
-      font-size: 15px;
+  font-size: 22px;
 
-      font-weight: 600;
+  font-weight: 700;
 
-      white-space: nowrap;
-    }
-
-
-    /* -----------------------------------------------------
-       HOVER
-    ----------------------------------------------------- */
-
-    .partner-logo-item:hover {
-
-      transform: translateY(-2px);
-
-      background: #1d232c;
-
-      border-color: #3a4655;
-    }
+  white-space: nowrap;
+}
 
 
-    /* -----------------------------------------------------
-       ANIMATION INFINIE
-    ----------------------------------------------------- */
+/* =====================================================
+   HOVER
+===================================================== */
 
-    @keyframes talaTicker {
+.partner-logo-item:hover {
 
-      from {
+  transform: translateY(-3px);
 
-        transform: translate3d(
-          0,
-          0,
-          0
-        );
+  background: #1d232c;
 
-      }
-
-      to {
-
-        transform: translate3d(
-          -50%,
-          0,
-          0
-        );
-
-      }
-
-    }
+  border-color: #3a4655;
+}
 
 
-    /* -----------------------------------------------------
-       PAUSE AU SURVOL
-    ----------------------------------------------------- */
+/* =====================================================
+   ANIMATION INFINIE
+===================================================== */
 
-    .partners-ticker:hover .ticker-track {
+@keyframes talaTicker {
 
-      animation-play-state: paused;
-    }
+  from {
 
+    transform: translate3d(
+      0,
+      0,
+      0
+    );
 
-    /* -----------------------------------------------------
-       MOBILE
-    ----------------------------------------------------- */
+  }
 
-    @media (max-width: 600px) {
+  to {
 
-      .partners-ticker {
+    transform: translate3d(
+      -50%,
+      0,
+      0
+    );
 
-        padding: 16px 0;
-      }
+  }
 
-
-      .ticker-group {
-
-        gap: 20px;
-
-        padding-right: 20px;
-      }
-
-
-      .partner-logo-item {
-
-        height: 60px;
-    min-width: 130px;
-    padding: 10px 20px;
-      }
+}
 
 
-      .partner-logo-item img {
+/* =====================================================
+   PAUSE AU SURVOL
+===================================================== */
 
-        max-width: 110px;
-    max-height: 38px;
-      }
+.partners-ticker:hover .ticker-track {
 
-
-      .partner-name {
-
-        font-size: 13px;
-      }
+  animation-play-state: paused;
+}
 
 
-      .partners-ticker::before,
-      .partners-ticker::after {
+/* =====================================================
+   MOBILE
+===================================================== */
 
-        width: 40px;
-      }
+@media (max-width: 600px) {
 
-    }
+  .partners-ticker {
+
+    padding: 22px 0;
+  }
 
 
-    /* -----------------------------------------------------
-       ACCESSIBILITÉ
-    ----------------------------------------------------- */
+  .ticker-group {
 
-    @media (prefers-reduced-motion: reduce) {
+    gap: 30px;
 
-      .ticker-track {
+    padding-right: 30px;
+  }
 
-        animation: none;
-      }
 
-    }
+  .partner-logo-item {
+
+    height: 80px;
+
+    min-width: 170px;
+
+    padding: 12px 25px;
+  }
+
+
+  .partner-logo-item img {
+
+    max-width: 145px;
+
+    max-height: 55px;
+  }
+
+
+  .partner-name {
+
+    font-size: 19px;
+  }
+
+
+  .partners-ticker::before,
+  .partners-ticker::after {
+
+    width: 50px;
+  }
+
+}
+
+
+/* =====================================================
+   ACCESSIBILITÉ
+===================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .ticker-track {
+
+    animation: none;
+  }
+
+}
