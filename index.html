@@ -10,7 +10,46 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>  
   <!-- Inclusion Lucide Icons -->  
   <script src="https://unpkg.com/lucide@latest"></script>
-  
+
+  <!-- STYLE CSS INDISPENSABLE POUR LA BANDE DÉFILANTE -->
+  <style>
+    .partners-ticker {
+      overflow: hidden;
+      white-space: nowrap;
+      position: relative;
+      width: 100%;
+      background: #0b0e13;
+      padding: 20px 0;
+    }
+    .ticker-track {
+      display: inline-flex;
+      gap: 40px;
+      align-items: center;
+      animation: scrollTicker 20s linear infinite;
+    }
+    .partners-ticker:hover .ticker-track {
+      animation-play-state: paused;
+    }
+    .partner-logo-item {
+      background: #171b22;
+      border: 1px solid #2a313b;
+      padding: 10px 20px;
+      border-radius: 8px;
+      height: 50px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .partner-logo-item img {
+      height: 30px;
+      width: auto;
+      object-fit: contain;
+    }
+    @keyframes scrollTicker {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+  </style>
 </head>
 <body>
 
@@ -19,16 +58,13 @@
   <div class="brand">TALA<span>Trajet</span></div>
   <nav class="main-nav" id="navMenu">
     <a href="index.html" class="active">
-      <i data-lucide="home"></i>
-      Accueil
+      <i data-lucide="home"></i> Accueil
     </a>
     <a href="about.html">
-      <i data-lucide="info"></i>
-      À propos
+      <i data-lucide="info"></i> À propos
     </a>
     <a href="contact.html">
-      <i data-lucide="headphones"></i>
-      Contact
+      <i data-lucide="headphones"></i> Contact
     </a>
     <a href="auth.html" id="userAccountLink" class="nav-auth-btn">Se connecter / S'inscrire</a>
   </nav>
@@ -37,14 +73,12 @@
   </button>
 </header>
 
-
 <main>
   <!-- HERO SECTION AVEC FORMULAIRE DE RECHERCHE INTÉGRÉ -->
   <section class="hero-showcase">
     <div class="container hero-content">
       <span class="badge-hero">
-        <i data-lucide="rocket"></i>
-        La révolution du transport en RDC
+        <i data-lucide="rocket"></i> La révolution du transport en RDC
       </span>
       <h1 class="hero-title">Voyagez à travers la RDC en toute <span>sérénité.</span></h1>
       <p class="hero-sub">
@@ -55,80 +89,54 @@
       <div class="card" style="padding: 24px; border-radius: 16px; margin-top: 30px; background: #171b22; border: 1px solid #2a313b; text-align: left; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
         <form id="searchForm" onsubmit="handleSearch(event)" class="search-form">
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px;">
-            
             <div>
               <label for="departureCity" style="display: block; margin-bottom: 8px; font-size: 0.85rem; color: #e7edf3; font-weight: 500;">Ville de départ</label>
               <input type="text" id="departureCity" name="departure" placeholder="Ex: Kinshasa..." required style="width: 100%; padding: 12px; border-radius: 8px; background: #0c0f13; border: 1px solid #2a313b; color: #ffffff; font-family: 'Poppins', sans-serif;">
             </div>
-
             <div>
               <label for="arrivalCity" style="display: block; margin-bottom: 8px; font-size: 0.85rem; color: #e7edf3; font-weight: 500;">Ville d'arrivée</label>
               <input type="text" id="arrivalCity" name="arrival" placeholder="Ex: Matadi..." required style="width: 100%; padding: 12px; border-radius: 8px; background: #0c0f13; border: 1px solid #2a313b; color: #ffffff; font-family: 'Poppins', sans-serif;">
             </div>
-
             <div>
               <label for="travelDate" style="display: block; margin-bottom: 8px; font-size: 0.85rem; color: #e7edf3; font-weight: 500;">Date de voyage</label>
               <input type="date" id="travelDate" name="date" required style="width: 100%; padding: 12px; border-radius: 8px; background: #0c0f13; border: 1px solid #2a313b; color: #ffffff; font-family: 'Poppins', sans-serif;">
             </div>
-
           </div>
-
           <button type="submit" class="btn-primary-lg" style="margin-top: 20px; width: 100%; border: none; cursor: pointer; text-align: center;">
-            <i data-lucide="search"></i>
-            Rechercher un trajet
+            <i data-lucide="search"></i> Rechercher un trajet
           </button>
         </form>
       </div>
 
       <!-- Statistiques d'impact & Compteurs de communauté -->
       <div class="hero-stats" style="margin-top: 40px; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px;">
-        <div class="stat-item">
-          <h3 id="statTravelers">10K+</h3>
-          <p>Voyageurs Actifs</p>
-        </div>
+        <div class="stat-item"><h3 id="statTravelers">10K+</h3><p>Voyageurs Actifs</p></div>
         <div class="stat-divider"></div>
-        <div class="stat-item">
-          <h3>100%</h3>
-          <p>Billet Sécurisé</p>
-        </div>
+        <div class="stat-item"><h3>100%</h3><p>Billet Sécurisé</p></div>
         <div class="stat-divider"></div>
-        <div class="stat-item">
-          <h3>24/7</h3>
-          <p>Disponibilité</p>
-        </div>
+        <div class="stat-item"><h3>24/7</h3><p>Disponibilité</p></div>
         <div class="stat-divider"></div>
-        <div class="stat-item">
-          <h3 id="statRoutes">15+</h3>
-            <p>Villes Desservies</p>
-        </div>
+        <div class="stat-item"><h3 id="statRoutes">15+</h3><p>Villes Desservies</p></div>
       </div>
-
     </div>
   </section>  
 
-
-  <!-- PARTENAIRES DE PAIEMENT & CONFIANCE -->
+  <!-- PARTENAIRES DE PAIEMENT & CONFIANCE (BANDE DÉFILANTE PROPRE) -->
   <section style="padding: 30px 0; background: #0b0e13; border-bottom: 1px solid #1c222d; text-align: center;">
     <div class="container">
       <p style="font-size: 0.85rem; color: #8b9bb4; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; font-weight: 600;">Partenaires de paiement officiels</p>
       
-<!-- BANDE DÉFILANTE DES PARTENAIRES -->
-  <section style="padding: 30px 0; background: #0b0e13; border-bottom: 1px solid #1c222d; text-align: center;">
-    <div class="container">
-      <div class="section-header"><h2>PARTENAIRES DE PAIEMENT & CONFIANCE</h2></div>
-      <section class="partners-ticker">
+      <div class="partners-ticker">
         <div class="ticker-track">
-          <div class="partner-logo-item"><img src="images/vodacom.svg" alt="M-Pesa" style="height: 30px;"></div>
+          <div class="partner-logo-item"><img src="images/vodacom.svg" alt="Vodacom" style="height: 30px;"></div>
           <div class="partner-logo-item"><img src="images/orange.svg" alt="Orange" style="height: 30px;"></div>
           <div class="partner-logo-item"><img src="images/airtel.svg" alt="Airtel" style="height: 30px;"></div>
-         
-          <!-- Doublon pour la boucle -->
-          <div class="partner-logo-item"><img src="images/vodacom.svg" alt="M-Pesa" style="height: 30px;"></div>
+          <!-- Doublon pour assurer la boucle infinie fluide -->
+          <div class="partner-logo-item"><img src="images/vodacom.svg" alt="Vodacom" style="height: 30px;"></div>
           <div class="partner-logo-item"><img src="images/orange.svg" alt="Orange" style="height: 30px;"></div>
           <div class="partner-logo-item"><img src="images/airtel.svg" alt="Airtel" style="height: 30px;"></div>
-         
         </div>
-      </section>
+      </div>
     </div>
   </section>
 
@@ -139,39 +147,11 @@
         <h2>Pourquoi choisir <span>TALA Trajet</span> ?</h2>
         <p>Une expérience repensée pour éliminer le stress du voyage.</p>
       </div>  
-
       <div class="features-grid">
-        <div class="feature-card">
-          <div class="feature-icon">
-            <i data-lucide="zap"></i>
-          </div>
-          <h3>Zéro file d'attente</h3>
-          <p>Plus besoin de vous déplacer en agence des heures à l'avance. Obtenez votre place directement depuis votre téléphone.</p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">
-            <i data-lucide="credit-card"></i>
-          </div>
-          <h3>Paiement Local Sécurisé</h3>
-          <p>Payez directement avec vos comptes Mobile Money habituels (M-Pesa, Orange Money, Airtel Money) en toute transparence.</p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">
-            <i data-lucide="ticket"></i>
-          </div>
-          <h3>Billet Digital QR Code</h3>
-          <p>Recevez un ticket numérique infalsifiable sur votre téléphone. Présentez-le simplement au moment d'embarquer.</p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">
-            <i data-lucide="bus-front"></i>
-          </div>
-          <h3>Agences Partenaires</h3>
-          <p>Accédez aux meilleures compagnies de transport routier et ferroviaire opérant en République Démocratique du Congo.</p>
-        </div>
+        <div class="feature-card"><div class="feature-icon"><i data-lucide="zap"></i></div><h3>Zéro file d'attente</h3><p>Plus besoin de vous déplacer en agence des heures à l'avance.</p></div>
+        <div class="feature-card"><div class="feature-icon"><i data-lucide="credit-card"></i></div><h3>Paiement Local Sécurisé</h3><p>Payez directement avec vos comptes Mobile Money habituels.</p></div>
+        <div class="feature-card"><div class="feature-icon"><i data-lucide="ticket"></i></div><h3>Billet Digital QR Code</h3><p>Recevez un ticket numérique infalsifiable sur votre téléphone.</p></div>
+        <div class="feature-card"><div class="feature-icon"><i data-lucide="bus-front"></i></div><h3>Agences Partenaires</h3><p>Accédez aux meilleures compagnies de transport en RDC.</p></div>
       </div>
     </div>
   </section>  
@@ -183,31 +163,11 @@
         <h2>Comment ça marche ?</h2>
         <p>Votre billet en 4 étapes chrono</p>
       </div>  
-
       <div class="steps-timeline">
-        <div class="step-card">
-          <div class="step-badge">01</div>
-          <h3>Compte</h3>
-          <p>Créez votre compte en quelques secondes.</p>
-        </div>
-
-        <div class="step-card">
-          <div class="step-badge">02</div>
-          <h3>Recherche</h3>
-          <p>Indiquez vos villes de départ/d'arrivée et choisissez la date souhaitée.</p>
-        </div>
-
-        <div class="step-card">
-          <div class="step-badge">03</div>
-          <h3>Siège & Paiement</h3>
-          <p>Sélectionnez votre place sur le plan du véhicule et validez par Mobile Money.</p>
-        </div>
-
-        <div class="step-card">
-          <div class="step-badge">04</div>
-          <h3>Embarquement</h3>
-          <p>Présentez le QR Code de votre billet à l'agence le jour du départ et voyagez.</p>
-        </div>
+        <div class="step-card"><div class="step-badge">01</div><h3>Compte</h3><p>Créez votre compte en quelques secondes.</p></div>
+        <div class="step-card"><div class="step-badge">02</div><h3>Recherche</h3><p>Indiquez vos villes et choisissez la date.</p></div>
+        <div class="step-card"><div class="step-badge">03</div><h3>Siège & Paiement</h3><p>Sélectionnez votre place et validez.</p></div>
+        <div class="step-card"><div class="step-badge">04</div><h3>Embarquement</h3><p>Présentez le QR Code le jour du départ.</p></div>
       </div>
     </div>
   </section>  
@@ -219,54 +179,33 @@
         <h2>Lignes populaires</h2>
         <p>Des connexions quotidiennes vers les grands centres urbains</p>
       </div>  
-
       <div class="routes-grid">
         <div class="route-card">
-          <div class="route-header">
-            <h4>Matadi ➔ Kinshasa</h4>
-            <span class="route-tag">Populaire</span>
-          </div>
+          <div class="route-header"><h4>Matadi ➔ Kinshasa</h4><span class="route-tag">Populaire</span></div>
           <p class="route-info">Liaison quotidienne • Bus & Minibus</p>
-          <a href="#" onclick="handleRouteClick(event, 'Matadi', 'Kinshasa')" class="route-link">
-            Voir les horaires
-          </a>
+          <a href="#" onclick="handleRouteClick(event, 'Matadi', 'Kinshasa')" class="route-link">Voir les horaires</a>
         </div>
-
         <div class="route-card">
-          <div class="route-header">
-            <h4>Kinshasa ➔ Moanda</h4>
-            <span class="route-tag">Direct</span>
-          </div>
+          <div class="route-header"><h4>Kinshasa ➔ Moanda</h4><span class="route-tag">Direct</span></div>
           <p class="route-info">Trajet confort • Climatisation disponible</p>
-          <a href="#" onclick="handleRouteClick(event, 'Kinshasa', 'Moanda')" class="route-link">
-            Voir les horaires
-          </a>
+          <a href="#" onclick="handleRouteClick(event, 'Kinshasa', 'Moanda')" class="route-link">Voir les horaires</a>
         </div>
-
         <div class="route-card">
-          <div class="route-header">
-            <h4>Kinshasa ➔ Boma</h4>
-            <span class="route-tag">Quotidien</span>
-          </div>
+          <div class="route-header"><h4>Kinshasa ➔ Boma</h4><span class="route-tag">Quotidien</span></div>
           <p class="route-info">Départs matin & soir</p>
-          <a href="#" onclick="handleRouteClick(event, 'Kinshasa', 'Boma')" class="route-link">
-            Voir les horaires
-          </a>
+          <a href="#" onclick="handleRouteClick(event, 'Kinshasa', 'Boma')" class="route-link">Voir les horaires</a>
         </div>
       </div>
     </div>
   </section>  
 
-
-  <!-- TÉMOIGNAGES / AVIS CLIENTS DYNAMIQUES -->
+  <!-- TÉMOIGNAGES -->
   <section style="padding: 80px 0; background: #131720;">
     <div class="container">
       <div class="section-header">
         <h2>Ce que disent <span>nos voyageurs</span></h2>
         <p>Découvrez les retours d'expérience de ceux qui utilisent TALA Trajet.</p>
       </div>
-
-      <!-- Conteneur qui affichera les vrais avis globaux de la base de données -->
       <div id="dynamicReviewsContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
         <p style="text-align: center; color: #b0bcc9; grid-column: 1 / -1;">Chargement des avis clients...</p>
       </div>
@@ -280,21 +219,14 @@
         <h2>Questions <span>Fréquentes</span></h2>
         <p>Tout ce que vous devez savoir avant de réserver.</p>
       </div>
-
       <div style="display: flex; flex-direction: column; gap: 16px;">
         <details style="background: #171b22; border: 1px solid #2a313b; border-radius: 10px; padding: 18px 24px; cursor: pointer;">
           <summary style="font-weight: 600; color: #fff; font-size: 1.05rem;">Comment puis-je récupérer mon billet après le paiement ?</summary>
-          <p style="margin-top: 12px; color: #b0bcc9; font-size: 0.95rem; line-height: 1.5;">Votre billet numérique muni d'un QR code sécurisé s'affiche directement sur votre écran après validation et vous pouvez le retrouver à tout moment dans votre espace personnel "Mon Compte".</p>
+          <p style="margin-top: 12px; color: #b0bcc9; font-size: 0.95rem; line-height: 1.5;">Votre billet numérique muni d'un QR code sécurisé s'affiche directement sur votre écran.</p>
         </details>
-
         <details style="background: #171b22; border: 1px solid #2a313b; border-radius: 10px; padding: 18px 24px; cursor: pointer;">
           <summary style="font-weight: 600; color: #fff; font-size: 1.05rem;">Quels modes de paiement Mobile Money sont acceptés ?</summary>
-          <p style="margin-top: 12px; color: #b0bcc9; font-size: 0.95rem; line-height: 1.5;">Nous acceptons les principaux opérateurs mobiles en RDC, à savoir M-Pesa, Orange Money et Airtel Money.</p>
-        </details>
-
-        <details style="background: #171b22; border: 1px solid #2a313b; border-radius: 10px; padding: 18px 24px; cursor: pointer;">
-          <summary style="font-weight: 600; color: #fff; font-size: 1.05rem;">Puis-je modifier ou annuler mon voyage ?</summary>
-          <p style="margin-top: 12px; color: #b0bcc9; font-size: 0.95rem; line-height: 1.5;">Oui, vous pouvez gérer vos réservations directement depuis votre profil ou contacter notre support client disponible 24/7 pour toute assistance.</p>
+          <p style="margin-top: 12px; color: #b0bcc9; font-size: 0.95rem; line-height: 1.5;">M-Pesa, Orange Money et Airtel Money.</p>
         </details>
       </div>
     </div>
@@ -305,9 +237,7 @@
     <div class="container cta-content">
       <h2>Prêt à simplifier vos déplacements ?</h2>
       <p>Inscrivez-vous dès maintenant et profitez de la meilleure expérience de réservation de billets en RDC.</p>
-      <a href="auth.html" class="btn-primary-lg">
-        Créer un compte gratuitement
-      </a>
+      <a href="auth.html" class="btn-primary-lg">Créer un compte gratuitement</a>
     </div>
   </section>
 </main>
@@ -317,7 +247,7 @@
   <div class="container footer-inner">
     <div class="footer-brand">
       <div class="brand">TALA<span>Trajet</span></div>
-      <p>La plateforme intelligente de réservation de billets de transport en République Démocratique du Congo.</p>
+      <p>La plateforme intelligente de réservation de billets de transport en RDC.</p>
     </div>
     <div class="footer-links">
       <a href="about.html">À propos</a>
@@ -332,13 +262,11 @@
 </footer>
 
 <script>
-  // Initialisation Supabase
   const { createClient } = window.supabase;
   const supabaseUrl = "https://kfkifkstatbadtzosxai.supabase.co"; 
   const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma2lma3N0YXRiYWR0em9zeGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3MTYzMTAsImV4cCI6MjEwMTI5MjMxMH0.xPzFtl_OET2asSc5iH3liRHnPyuUYAfbbjZISwfnaA8";
   const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
-  // Menu Mobile Toggle
   const menuToggle = document.getElementById('menuToggle');
   const navMenu = document.getElementById('navMenu');
   if (menuToggle && navMenu) {
@@ -351,7 +279,6 @@
     });
   }
 
-  // Fonction pour charger et afficher les avis globaux dynamiquement
   async function loadPublicReviews() {
     const container = document.getElementById('dynamicReviewsContainer');
     if (!container) return;
@@ -363,13 +290,12 @@
       .limit(3);
 
     if (error) {
-      console.error("Erreur chargement avis :", error);
       container.innerHTML = `<p style="text-align: center; color: #b0bcc9; grid-column: 1 / -1;">Impossible de charger les avis pour le moment.</p>`;
       return;
     }
 
     if (!reviews || reviews.length === 0) {
-      container.innerHTML = `<p style="text-align: center; color: #b0bcc9; grid-column: 1 / -1;">Soyez le premier à laisser un avis depuis votre espace compte !</p>`;
+      container.innerHTML = `<p style="text-align: center; color: #b0bcc9; grid-column: 1 / -1;">Soyez le premier à laisser un avis !</p>`;
       return;
     }
 
@@ -388,12 +314,8 @@
     });
   }
 
-  // Initialisation au chargement de la page
   document.addEventListener('DOMContentLoaded', async () => {
-    // 1. Charger les avis publics
     loadPublicReviews();
-
-    // 2. Définir la date minimale du formulaire à aujourd'hui
     const dateInput = document.getElementById('travelDate');
     if (dateInput) {
       const today = new Date().toISOString().split('T')[0];
@@ -401,25 +323,8 @@
       dateInput.value = today;
     }
 
-    // 3. Restaurer une recherche en suspens si l'utilisateur vient de se connecter
-    const pendingSearch = localStorage.getItem('pendingSearch');
-    if (pendingSearch) {
-      try {
-        const searchData = JSON.parse(pendingSearch);
-        if (searchData.departure) document.getElementById('departureCity').value = searchData.departure;
-        if (searchData.arrival) document.getElementById('arrivalCity').value = searchData.arrival;
-        if (searchData.date) document.getElementById('travelDate').value = searchData.date;
-        
-        localStorage.removeItem('pendingSearch');
-      } catch (e) {
-        console.error("Erreur lors de la lecture de la recherche en suspens", e);
-      }
-    }
-
-    // 4. Vérifier la session utilisateur Supabase pour personnaliser le bouton "Mon Compte" / "Connexion"
     const { data: { session } } = await supabaseClient.auth.getSession();
     const accountLink = document.getElementById('userAccountLink');
-
     if (session && session.user) {
       const userName = session.user.user_metadata?.full_name || "Mon Compte";
       accountLink.innerHTML = `<i data-lucide="user"></i> ${userName.split(' ')[0]}`;
@@ -431,10 +336,8 @@
     }
   });
 
-  // Gestion de la recherche principale avec contrôle de connexion
   async function handleSearch(e) {
     e.preventDefault();
-    
     const dep = document.getElementById('departureCity').value.trim();
     const arr = document.getElementById('arrivalCity').value.trim();
     const date = document.getElementById('travelDate').value;
@@ -445,12 +348,7 @@
     }
 
     const { data: { session } } = await supabaseClient.auth.getSession();
-
-    const searchParams = new URLSearchParams({
-      departure: dep,
-      arrival: arr,
-      date: date
-    });
+    const searchParams = new URLSearchParams({ departure: dep, arrival: arr, date: date });
 
     if (!session) {
       localStorage.setItem('pendingSearch', JSON.stringify({ departure: dep, arrival: arr, date: date }));
@@ -460,10 +358,8 @@
     }
   }
 
-  // Gestion spécifique pour les clics sur les "Lignes populaires"
   async function handleRouteClick(e, departure, arrival) {
     e.preventDefault();
-
     const { data: { session } } = await supabaseClient.auth.getSession();
     const today = new Date().toISOString().split('T')[0];
 
@@ -475,7 +371,6 @@
     }
   }
 
-  // Initialisation des icônes Lucide
   lucide.createIcons();
 </script>
 
