@@ -688,10 +688,12 @@ footer {
   background: #0b0e13;
 
   padding: 28px 0;
-
   margin-top: 20px;
 
   user-select: none;
+
+  /* Empêche certains débordements visuels */
+  isolation: isolate;
 }
 
 
@@ -711,11 +713,14 @@ footer {
 
   width: 100px;
 
-  z-index: 2;
+  z-index: 3;
 
   pointer-events: none;
+
 }
 
+
+/* GAUCHE */
 
 .partners-ticker::before {
 
@@ -723,11 +728,15 @@ footer {
 
   background: linear-gradient(
     to right,
-    #0b0e13,
-    transparent
+    #0b0e13 0%,
+    rgba(11, 14, 19, 0.85) 35%,
+    rgba(11, 14, 19, 0) 100%
   );
+
 }
 
+
+/* DROITE */
 
 .partners-ticker::after {
 
@@ -735,9 +744,11 @@ footer {
 
   background: linear-gradient(
     to left,
-    #0b0e13,
-    transparent
+    #0b0e13 0%,
+    rgba(11, 14, 19, 0.85) 35%,
+    rgba(11, 14, 19, 0) 100%
   );
+
 }
 
 
@@ -753,10 +764,22 @@ footer {
 
   align-items: center;
 
+  /*
+     IMPORTANT :
+     On anime uniquement transform.
+     Cela permet au navigateur d'utiliser
+     l'accélération GPU.
+  */
+
   animation:
     talaTicker 28s linear infinite;
 
   will-change: transform;
+
+  transform: translate3d(0, 0, 0);
+
+  backface-visibility: hidden;
+
 }
 
 
@@ -775,11 +798,13 @@ footer {
   flex-shrink: 0;
 
   padding-right: 50px;
+
 }
 
 
 /* =====================================================
-   CARTE PARTENAIRE — GRANDE
+   CARTE PARTENAIRE
+   — TAILLE CONSERVÉE
 ===================================================== */
 
 .partner-logo-item {
@@ -806,30 +831,46 @@ footer {
 
   border-radius: 14px;
 
+  /*
+     Évite que le navigateur recalcule
+     inutilement la mise en page.
+  */
+
+  transform: translate3d(0, 0, 0);
+
   transition:
     transform 0.25s ease,
     border-color 0.25s ease,
-    background 0.25s ease;
+    background-color 0.25s ease;
+
 }
 
 
 /* =====================================================
-   LOGOS — TRÈS GRANDS
+   LOGOS
+   — TAILLE CONSERVÉE
 ===================================================== */
 
 .partner-logo-item img {
 
   display: block;
 
-  max-width: 175px;
-
-  max-height: 68px;
-
   width: auto;
-
   height: auto;
 
+  max-width: 175px;
+  max-height: 68px;
+
   object-fit: contain;
+
+  /*
+     Améliore le rendu des images
+  */
+
+  user-select: none;
+
+  pointer-events: none;
+
 }
 
 
@@ -845,7 +886,10 @@ footer {
 
   font-weight: 700;
 
+  line-height: 1;
+
   white-space: nowrap;
+
 }
 
 
@@ -855,17 +899,33 @@ footer {
 
 .partner-logo-item:hover {
 
-  transform: translateY(-3px);
+  transform: translate3d(0, -3px, 0);
 
   background: #1d232c;
 
   border-color: #3a4655;
+
 }
 
 
 /* =====================================================
    ANIMATION INFINIE
 ===================================================== */
+
+/*
+   IMPORTANT :
+
+   Cette animation fonctionne correctement si ton
+   .ticker-track contient deux groupes identiques.
+
+   Exemple :
+
+   Groupe 1
+   Groupe 2
+
+   L'animation revient exactement au début du
+   deuxième groupe.
+*/
 
 @keyframes talaTicker {
 
@@ -899,11 +959,13 @@ footer {
 .partners-ticker:hover .ticker-track {
 
   animation-play-state: paused;
+
 }
 
 
 /* =====================================================
    MOBILE
+   — TAILLE CONSERVÉE
 ===================================================== */
 
 @media (max-width: 600px) {
@@ -911,6 +973,7 @@ footer {
   .partners-ticker {
 
     padding: 22px 0;
+
   }
 
 
@@ -919,6 +982,7 @@ footer {
     gap: 30px;
 
     padding-right: 30px;
+
   }
 
 
@@ -929,6 +993,9 @@ footer {
     min-width: 170px;
 
     padding: 12px 25px;
+
+    border-radius: 12px;
+
   }
 
 
@@ -937,12 +1004,14 @@ footer {
     max-width: 145px;
 
     max-height: 55px;
+
   }
 
 
   .partner-name {
 
     font-size: 19px;
+
   }
 
 
@@ -950,6 +1019,44 @@ footer {
   .partners-ticker::after {
 
     width: 50px;
+
+  }
+
+}
+
+
+/* =====================================================
+   TRÈS PETITS ÉCRANS
+===================================================== */
+
+@media (max-width: 380px) {
+
+  .ticker-group {
+
+    gap: 24px;
+
+    padding-right: 24px;
+
+  }
+
+
+  .partner-logo-item {
+
+    height: 80px;
+
+    min-width: 160px;
+
+    padding: 10px 20px;
+
+  }
+
+
+  .partner-logo-item img {
+
+    max-width: 135px;
+
+    max-height: 52px;
+
   }
 
 }
@@ -964,6 +1071,9 @@ footer {
   .ticker-track {
 
     animation: none;
+
+    transform: none;
+
   }
 
 }
