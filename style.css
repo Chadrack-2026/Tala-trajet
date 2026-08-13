@@ -788,17 +788,14 @@ footer {
 ===================================================== */
 
 .ticker-group {
-
   display: flex;
-
   align-items: center;
 
-  gap: 50px;
+  gap: 80px;
 
   flex-shrink: 0;
 
-  padding-right: 50px;
-
+  padding-right: 80px;
 }
 
 
@@ -1032,10 +1029,9 @@ footer {
 @media (max-width: 380px) {
 
   .ticker-group {
-
-    gap: 24px;
-
-    padding-right: 24px;
+  gap: 45px;
+  padding-right: 45px;
+}
 
   }
 
