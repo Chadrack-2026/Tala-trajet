@@ -222,291 +222,234 @@
   }
 }
 
+/* =====================================================
+   BANDE DÉFILANTE DES PARTENAIRES
+===================================================== */
 
-<style>
-    /* =====================================================
-       BANDE DÉFILANTE DES PARTENAIRES
-    ===================================================== */
-
-    .partners-ticker {
-
-      width: 100%;
-
-      overflow: hidden;
-
-      position: relative;
-
-      background: #0b0e13;
-
-      padding: 22px 0;
-
-      margin-top: 20px;
-
-      user-select: none;
-    }
+.partners-ticker {
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  background: #0b0e13;
+  padding: 22px 0;
+  margin-top: 20px;
+  user-select: none;
+}
 
 
-    /* -----------------------------------------------------
-       FONDU À GAUCHE ET À DROITE
-    ----------------------------------------------------- */
+/* =====================================================
+   FONDU À GAUCHE ET À DROITE
+===================================================== */
 
-    .partners-ticker::before,
-    .partners-ticker::after {
+.partners-ticker::before,
+.partners-ticker::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 90px;
+  z-index: 2;
+  pointer-events: none;
+}
 
-      content: "";
+.partners-ticker::before {
+  left: 0;
+  background: linear-gradient(
+    to right,
+    #0b0e13,
+    transparent
+  );
+}
 
-      position: absolute;
-
-      top: 0;
-
-      bottom: 0;
-
-      width: 90px;
-
-      z-index: 2;
-
-      pointer-events: none;
-    }
-
-
-    .partners-ticker::before {
-
-      left: 0;
-
-      background: linear-gradient(
-        to right,
-        #0b0e13,
-        transparent
-      );
-    }
-
-
-    .partners-ticker::after {
-
-      right: 0;
-
-      background: linear-gradient(
-        to left,
-        #0b0e13,
-        transparent
-      );
-    }
+.partners-ticker::after {
+  right: 0;
+  background: linear-gradient(
+    to left,
+    #0b0e13,
+    transparent
+  );
+}
 
 
-    /* -----------------------------------------------------
-       TRACK
-    ----------------------------------------------------- */
+/* =====================================================
+   TRACK PRINCIPAL
+===================================================== */
 
-    .ticker-track {
+.ticker-track {
+  display: flex;
+  align-items: center;
+  width: max-content;
 
-      display: flex;
+  animation: talaTicker 28s linear infinite;
 
-      width: max-content;
-
-      align-items: center;
-
-      animation:
-        talaTicker 28s linear infinite;
-
-      will-change: transform;
-    }
+  will-change: transform;
+}
 
 
-    /* -----------------------------------------------------
-       GROUPE
-    ----------------------------------------------------- */
+/* =====================================================
+   GROUPE DE PARTENAIRES
+===================================================== */
 
-    .ticker-group {
+.ticker-group {
+  display: flex;
+  align-items: center;
 
-      display: flex;
+  gap: 40px;
 
-      align-items: center;
+  flex-shrink: 0;
 
-      gap: 40px;
-
-      flex-shrink: 0;
-
-      padding-right: 40px;
-    }
+  padding-right: 40px;
+}
 
 
-    /* -----------------------------------------------------
-       CARTE PARTENAIRE
-    ----------------------------------------------------- */
+/* =====================================================
+   CARTE PARTENAIRE
+===================================================== */
 
-    .partner-logo-item {
+.partner-logo-item {
+  width: 150px;
+  height: 70px;
 
-      height: 70px;
-  min-width: 150px;
   padding: 12px 28px;
 
-      display: flex;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-      align-items: center;
+  flex-shrink: 0;
 
-      justify-content: center;
+  box-sizing: border-box;
 
-      flex-shrink: 0;
+  background: #171b22;
 
-      box-sizing: border-box;
+  border: 1px solid #2a313b;
 
-      background: #171b22;
+  border-radius: 10px;
 
-      border: 1px solid #2a313b;
-
-      border-radius: 10px;
-
-      transition:
-        transform 0.25s ease,
-        border-color 0.25s ease,
-        background 0.25s ease;
-    }
+  transition:
+    transform 0.25s ease,
+    border-color 0.25s ease,
+    background 0.25s ease;
+}
 
 
-    /* -----------------------------------------------------
-       IMAGES
-    ----------------------------------------------------- */
+/* =====================================================
+   LOGOS
+===================================================== */
 
-    .partner-logo-item img {
+.partner-logo-item img {
+  display: block;
 
-      display: block;
-  max-width: 130px;
-  max-height: 45px;
   width: auto;
   height: auto;
+
+  max-width: 130px;
+  max-height: 45px;
+
   object-fit: contain;
-    }
+}
 
 
-    /* -----------------------------------------------------
-       NOM DES PARTENAIRES
-    ----------------------------------------------------- */
+/* =====================================================
+   NOM DES PARTENAIRES
+===================================================== */
 
-    .partner-name {
+.partner-name {
+  color: #ffffff;
 
-      color: #ffffff;
+  font-size: 15px;
+  font-weight: 600;
 
-      font-size: 15px;
-
-      font-weight: 600;
-
-      white-space: nowrap;
-    }
+  white-space: nowrap;
+}
 
 
-    /* -----------------------------------------------------
-       HOVER
-    ----------------------------------------------------- */
+/* =====================================================
+   EFFET AU SURVOL
+===================================================== */
 
-    .partner-logo-item:hover {
+.partner-logo-item:hover {
+  transform: translateY(-2px);
 
-      transform: translateY(-2px);
+  background: #1d232c;
 
-      background: #1d232c;
-
-      border-color: #3a4655;
-    }
-
-
-    /* -----------------------------------------------------
-       ANIMATION INFINIE
-    ----------------------------------------------------- */
-
-    @keyframes talaTicker {
-
-      from {
-
-        transform: translate3d(
-          0,
-          0,
-          0
-        );
-
-      }
-
-      to {
-
-        transform: translate3d(
-          -50%,
-          0,
-          0
-        );
-
-      }
-
-    }
+  border-color: #3a4655;
+}
 
 
-    /* -----------------------------------------------------
-       PAUSE AU SURVOL
-    ----------------------------------------------------- */
+/* =====================================================
+   ANIMATION INFINIE
+===================================================== */
 
-    .partners-ticker:hover .ticker-track {
+@keyframes talaTicker {
 
-      animation-play-state: paused;
-    }
+  from {
+    transform: translate3d(0, 0, 0);
+  }
 
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
 
-    /* -----------------------------------------------------
-       MOBILE
-    ----------------------------------------------------- */
-
-    @media (max-width: 600px) {
-
-      .partners-ticker {
-
-        padding: 16px 0;
-      }
+}
 
 
-      .ticker-group {
+/* =====================================================
+   PAUSE AU SURVOL
+===================================================== */
 
-        gap: 20px;
+.partners-ticker:hover .ticker-track {
+  animation-play-state: paused;
+}
 
-        padding-right: 20px;
-      }
 
+/* =====================================================
+   MOBILE
+===================================================== */
 
-      .partner-logo-item {
+@media (max-width: 600px) {
 
-        height: 60px;
-    min-width: 130px;
+  .partners-ticker {
+    padding: 16px 0;
+  }
+
+  .ticker-group {
+    gap: 20px;
+    padding-right: 20px;
+  }
+
+  .partner-logo-item {
+    width: 130px;
+    height: 60px;
+
     padding: 10px 20px;
-      }
+  }
 
-
-      .partner-logo-item img {
-
-        max-width: 110px;
+  .partner-logo-item img {
+    max-width: 110px;
     max-height: 38px;
-      }
+  }
+
+  .partner-name {
+    font-size: 13px;
+  }
+
+  .partners-ticker::before,
+  .partners-ticker::after {
+    width: 40px;
+  }
+
+}
 
 
-      .partner-name {
+/* =====================================================
+   ACCESSIBILITÉ
+===================================================== */
 
-        font-size: 13px;
-      }
+@media (prefers-reduced-motion: reduce) {
 
+  .ticker-track {
+    animation: none;
+  }
 
-      .partners-ticker::before,
-      .partners-ticker::after {
-
-        width: 40px;
-      }
-
-    }
-
-
-    /* -----------------------------------------------------
-       ACCESSIBILITÉ
-    ----------------------------------------------------- */
-
-    @media (prefers-reduced-motion: reduce) {
-
-      .ticker-track {
-
-        animation: none;
-      }
-
-    }
-
+}
