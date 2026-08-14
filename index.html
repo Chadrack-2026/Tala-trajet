@@ -201,109 +201,134 @@
 
   <script>
     const { createClient } = window.supabase;
-    const supabaseUrl = "https://kfkifkstatbadtzosxai.supabase.co"; 
-    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma2lma3N0YXRiYWR0em9zeGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3MTYzMTAsImV4cCI6MjEwMTI5MjMxMH0.xPzFtl_OET2asSc5iH3liRHnPyuUYAfbbjZISwfnaA8";
-    const supabaseClient = createClient(supabaseUrl, supabaseKey);
+const supabaseUrl = "https://kfkifkstatbadtzosxai.supabase.co"; 
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma2lma3N0YXRiYWR0em9zeGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3MTYzMTAsImV4cCI6MjEwMTI5MjMxMH0.xPzFtl_OET2asSc5iH3liRHnPyuUYAfbbjZISwfnaA8";
+const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
-    // Initialisation du menu mobile
-    const menuToggle = document.getElementById('menuToggle');
-    const navMenu = document.getElementById('navMenu');
-    if (menuToggle && navMenu) {
-      menuToggle.addEventListener('click', () => {
-        navMenu.classList.toggle('open');
-      });
+// Initialisation du menu mobile
+const menuToggle = document.getElementById('menuToggle');
+const navMenu = document.getElementById('navMenu');
+
+if (menuToggle && navMenu) {
+  // Toggle du menu au clic sur le bouton
+  menuToggle.addEventListener('click', (e) => {
+    e.stopPropagation(); // Empêche la propagation pour ne pas déclencher le clic extérieur
+    navMenu.classList.toggle('open');
+    menuToggle.setAttribute('aria-expanded', navMenu.classList.contains('open'));
+  });
+
+  // Fermer le menu lors du scroll sur la page
+  window.addEventListener('scroll', () => {
+    if (navMenu.classList.contains('open')) {
+      navMenu.classList.remove('open');
+      menuToggle.setAttribute('aria-expanded', 'false');
     }
+  });
 
-    // Vérification dynamique de l'authentification pour le menu
-    async function checkAuthStatus() {
-      const accountLink = document.getElementById("userAccountLink");
-      if (!accountLink) return;
-
-      const { data: { session }, error } = await supabaseClient.auth.getSession();
-
-      if (error || !session || !session.user) {
-        accountLink.textContent = "Se connecter";
-        accountLink.href = "auth.html";
-      } else {
-        const fullName = session.user.user_metadata?.full_name || session.user.email.split('@')[0];
-        accountLink.textContent = fullName;
-        accountLink.href = "account.html";
-      }
+  // Fermer le menu si l'utilisateur clique en dehors de la zone de navigation
+  document.addEventListener('click', (event) => {
+    if (navMenu.classList.contains('open') && 
+        !navMenu.contains(event.target) && 
+        !menuToggle.contains(event.target)) {
+      navMenu.classList.remove('open');
+      menuToggle.setAttribute('aria-expanded', 'false');
     }
+  });
+}
 
-    // Chargement des avis
-    async function loadPublicReviews() {
-      const container = document.getElementById('dynamicReviewsContainer');
-      if (!container) return;
-      const { data: reviews, error } = await supabaseClient
-        .from('reviews')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(3);
+// Vérification dynamique de l'authentification pour le menu
+async function checkAuthStatus() {
+  const accountLink = document.getElementById("userAccountLink");
+  if (!accountLink) return;
 
-      if (error || !reviews || reviews.length === 0) {
-        container.innerHTML = `<p style="text-align: center; color: #b0bcc9; grid-column: 1 / -1;">Aucun avis pour le moment.</p>`;
-        return;
-      }
-      container.innerHTML = "";
-      reviews.forEach(rev => {
-        const card = document.createElement("div");
-        card.style.cssText = "background: #171b22; border: 1px solid #2a313b; padding: 24px; border-radius: 12px;";
-        card.innerHTML = `
-          <p style="color: #00d2ff; font-size: 1.1rem;">${"★".repeat(rev.rating)}</p>
-          <p style="color: #b0bcc9; margin: 16px 0;">"${rev.comment}"</p>
-          <h4 style="color: #fff;">${rev.user_name || 'Voyageur'}</h4>
-        `;
-        container.appendChild(card);
-      });
-    }
+  const { data: { session }, error } = await supabaseClient.auth.getSession();
 
-    document.addEventListener('DOMContentLoaded', () => {
-      checkAuthStatus();
-      loadPublicReviews();
-      const yearEl = document.getElementById('currentYear');
-      if (yearEl) yearEl.textContent = new Date().getFullYear();
-    });
+  if (error || !session || !session.user) {
+    accountLink.textContent = "Se connecter";
+    accountLink.href = "auth.html";
+  } else {
+    const fullName = session.user.user_metadata?.full_name || session.user.email.split('@')[0];
+    accountLink.textContent = fullName;
+    accountLink.href = "account.html";
+  }
+}
 
-    // Fonction de recherche obligatoire avec validation stricte des champs et vérification de session
-    async function handleSearch(e) {
-      e.preventDefault();
-      
-      const dep = document.getElementById('departureCity').value.trim();
-      const arr = document.getElementById('arrivalCity').value.trim();
-      const date = document.getElementById('travelDate').value;
+// Chargement des avis depuis la base de données Supabase
+async function loadPublicReviews() {
+  const container = document.getElementById('dynamicReviewsContainer');
+  if (!container) return;
+  const { data: reviews, error } = await supabaseClient
+    .from('reviews')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(3);
 
-      // Double vérification de sécurité pour bloquer si l'un des champs est vide
-      if (!dep || !arr || !date) {
-        alert("Veuillez remplir tous les champs obligatoires (Ville de départ, ville d'arrivée et date de voyage).");
-        return;
-      }
+  if (error || !reviews || reviews.length === 0) {
+    container.innerHTML = `<p style="text-align: center; color: #b0bcc9; grid-column: 1 / -1;">Aucun avis pour le moment.</p>`;
+    return;
+  }
+  container.innerHTML = "";
+  reviews.forEach(rev => {
+    const card = document.createElement("div");
+    card.style.cssText = "background: #171b22; border: 1px solid #2a313b; padding: 24px; border-radius: 12px;";
+    card.innerHTML = `
+      <p style="color: #00d2ff; font-size: 1.1rem;">${"★".repeat(rev.rating)}</p>
+      <p style="color: #b0bcc9; margin: 16px 0;">"${rev.comment}"</p>
+      <h4 style="color: #fff;">${rev.user_name || 'Voyageur'}</h4>
+    `;
+    container.appendChild(card);
+  });
+}
 
-      // Vérifier si l'utilisateur est connecté
-      const { data: { session } } = await supabaseClient.auth.getSession();
-      
-      if (!session || !session.user) {
-        window.location.href = 'auth.html';
-        return;
-      }
+document.addEventListener('DOMContentLoaded', () => {
+  checkAuthStatus();
+  loadPublicReviews();
+  
+  // Mise à jour automatique de l'année dans le footer
+  const yearEl = document.getElementById('currentYear');
+  if (yearEl) yearEl.textContent = new Date().getFullYear();
+});
 
-      // Rediriger vers results.html avec les paramètres encodés
-      window.location.href = `results.html?departure=${encodeURIComponent(dep)}&arrival=${encodeURIComponent(arr)}&date=${date}`;
-    }
+// Fonction de recherche obligatoire avec validation stricte des champs et vérification de session
+async function handleSearch(e) {
+  e.preventDefault();
+  
+  const dep = document.getElementById('departureCity').value.trim();
+  const arr = document.getElementById('arrivalCity').value.trim();
+  const date = document.getElementById('travelDate').value;
 
-    // Redirection sécurisée pour les lignes populaires
-    async function handleRouteClick(e, dep, arr) {
-      e.preventDefault();
-      
-      const { data: { session } } = await supabaseClient.auth.getSession();
-      
-      if (!session || !session.user) {
-        window.location.href = 'auth.html';
-        return;
-      }
+  // Double vérification de sécurité pour bloquer si l'un des champs est vide
+  if (!dep || !arr || !date) {
+    alert("Veuillez remplir tous les champs obligatoires (Ville de départ, ville d'arrivée et date de voyage).");
+    return;
+  }
 
-      window.location.href = `results.html?departure=${encodeURIComponent(dep)}&arrival=${encodeURIComponent(arr)}`;
-    }
+  // Vérifier si l'utilisateur est connecté
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  
+  if (!session || !session.user) {
+    window.location.href = 'auth.html';
+    return;
+  }
+
+  // Rediriger vers results.html avec les paramètres encodés
+  window.location.href = `results.html?departure=${encodeURIComponent(dep)}&arrival=${encodeURIComponent(arr)}&date=${date}`;
+}
+
+// Redirection sécurisée pour les lignes populaires
+async function handleRouteClick(e, dep, arr) {
+  e.preventDefault();
+  
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  
+  if (!session || !session.user) {
+    window.location.href = 'auth.html';
+    return;
+  }
+
+  window.location.href = `results.html?departure=${encodeURIComponent(dep)}&arrival=${encodeURIComponent(arr)}`;
+}
+
   </script>
 </body>
 </html>
