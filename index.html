@@ -1,725 +1,308 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TALA Trajet — La référence du voyage en RDC</title>  
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="Projet2/style.css">  
-  <!-- Inclusion SDK Supabase -->  
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>  
-  <!-- Inclusion Lucide Icons -->  
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="TALA Trajet — Comparez les trajets, choisissez votre siège et réservez votre billet de transport en RDC." />
+  <meta name="theme-color" content="#0b1018" />
+  <title>TALA Trajet — Réservez vos trajets en RDC</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Inclusion de la bibliothèque Supabase et Lucide Icons pour le script JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
-  <style>
-    /* =====================================================
-       BANDE DÉFILANTE DES PARTENAIRES
-    ===================================================== */
-
-    .partners-ticker {
-
-      width: 100%;
-
-      overflow: hidden;
-
-      position: relative;
-
-      background: #0b0e13;
-
-      padding: 22px 0;
-
-      margin-top: 20px;
-
-      user-select: none;
-    }
-
-
-    /* -----------------------------------------------------
-       FONDU À GAUCHE ET À DROITE
-    ----------------------------------------------------- */
-
-    .partners-ticker::before,
-    .partners-ticker::after {
-
-      content: "";
-
-      position: absolute;
-
-      top: 0;
-
-      bottom: 0;
-
-      width: 90px;
-
-      z-index: 2;
-
-      pointer-events: none;
-    }
-
-
-    .partners-ticker::before {
-
-      left: 0;
-
-      background: linear-gradient(
-        to right,
-        #0b0e13,
-        transparent
-      );
-    }
-
-
-    .partners-ticker::after {
-
-      right: 0;
-
-      background: linear-gradient(
-        to left,
-        #0b0e13,
-        transparent
-      );
-    }
-
-
-    /* -----------------------------------------------------
-       TRACK
-    ----------------------------------------------------- */
-
-    .ticker-track {
-
-      display: flex;
-
-      width: max-content;
-
-      align-items: center;
-
-      animation:
-        talaTicker 28s linear infinite;
-
-      will-change: transform;
-    }
-
-
-    /* -----------------------------------------------------
-       GROUPE
-    ----------------------------------------------------- */
-
-    .ticker-group {
-
-      display: flex;
-
-      align-items: center;
-
-      gap: 40px;
-
-      flex-shrink: 0;
-
-      padding-right: 40px;
-    }
-
-
-    /* -----------------------------------------------------
-       CARTE PARTENAIRE
-    ----------------------------------------------------- */
-
-    .partner-logo-item {
-
-      height: 70px;
-  min-width: 150px;
-  padding: 12px 28px;
-
-      display: flex;
-
-      align-items: center;
-
-      justify-content: center;
-
-      flex-shrink: 0;
-
-      box-sizing: border-box;
-
-      background: #171b22;
-
-      border: 1px solid #2a313b;
-
-      border-radius: 10px;
-
-      transition:
-        transform 0.25s ease,
-        border-color 0.25s ease,
-        background 0.25s ease;
-    }
-
-
-    /* -----------------------------------------------------
-       IMAGES
-    ----------------------------------------------------- */
-
-    .partner-logo-item img {
-
-      display: block;
-  max-width: 130px;
-  max-height: 45px;
-  width: auto;
-  height: auto;
-  object-fit: contain;
-    }
-
-
-    /* -----------------------------------------------------
-       NOM DES PARTENAIRES
-    ----------------------------------------------------- */
-
-    .partner-name {
-
-      color: #ffffff;
-
-      font-size: 15px;
-
-      font-weight: 600;
-
-      white-space: nowrap;
-    }
-
-
-    /* -----------------------------------------------------
-       HOVER
-    ----------------------------------------------------- */
-
-    .partner-logo-item:hover {
-
-      transform: translateY(-2px);
-
-      background: #1d232c;
-
-      border-color: #3a4655;
-    }
-
-
-    /* -----------------------------------------------------
-       ANIMATION INFINIE
-    ----------------------------------------------------- */
-
-    @keyframes talaTicker {
-
-      from {
-
-        transform: translate3d(
-          0,
-          0,
-          0
-        );
-
-      }
-
-      to {
-
-        transform: translate3d(
-          -50%,
-          0,
-          0
-        );
-
-      }
-
-    }
-
-
-    /* -----------------------------------------------------
-       PAUSE AU SURVOL
-    ----------------------------------------------------- */
-
-    .partners-ticker:hover .ticker-track {
-
-      animation-play-state: paused;
-    }
-
-
-    /* -----------------------------------------------------
-       MOBILE
-    ----------------------------------------------------- */
-
-    @media (max-width: 600px) {
-
-      .partners-ticker {
-
-        padding: 16px 0;
-      }
-
-
-      .ticker-group {
-
-        gap: 20px;
-
-        padding-right: 20px;
-      }
-
-
-      .partner-logo-item {
-
-        height: 60px;
-    min-width: 130px;
-    padding: 10px 20px;
-      }
-
-
-      .partner-logo-item img {
-
-        max-width: 110px;
-    max-height: 38px;
-      }
-
-
-      .partner-name {
-
-        font-size: 13px;
-      }
-
-
-      .partners-ticker::before,
-      .partners-ticker::after {
-
-        width: 40px;
-      }
-
-    }
-
-
-    /* -----------------------------------------------------
-       ACCESSIBILITÉ
-    ----------------------------------------------------- */
-
-    @media (prefers-reduced-motion: reduce) {
-
-      .ticker-track {
-
-        animation: none;
-      }
-
-    }
-
-</style>
-
 </head>
+
 <body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="#accueil" aria-label="TALA Trajet, accueil">TALA<span>Trajet</span></a>
+      <button class="menu-button" id="menuToggle" type="button" aria-controls="mainNav" aria-expanded="false" aria-label="Ouvrir le menu">☰</button>
+      <nav class="main-nav" id="navMenu" aria-label="Navigation principale">
+        <a class="active" href="#accueil">Accueil</a>
+        <a href="#fonctionnement">Comment ça marche</a>
+        <a href="#lignes">Lignes</a>
+        <a href="#faq">FAQ</a>
+        <a class="auth-link" id="userAccountLink" href="auth.html">Se connecter</a>
+      </nav>
+    </div>
+  </header>
 
-<!-- HEADER -->
-<header class="site-header">
-  <div class="brand">TALA<span>Trajet</span></div>
-  <nav class="main-nav" id="navMenu">
-    <a href="index.html" class="active">
-      <i data-lucide="home"></i>
-      Accueil
-    </a>
-    <a href="about.html">
-      <i data-lucide="info"></i>
-      À propos
-    </a>
-    <a href="contact.html">
-      <i data-lucide="headphones"></i>
-      Contact
-    </a>
-    <a href="auth.html" id="userAccountLink" class="nav-auth-btn">Se connecter / S'inscrire</a>
-  </nav>
-  <button class="menu-btn" id="menuToggle" aria-label="Ouvrir le menu">
-    <i data-lucide="menu"></i>
-  </button>
-</header>
+  <main>
+    <section class="hero" id="accueil">
+      <div class="container">
+        <span class="eyebrow">✦ La nouvelle expérience du transport en RDC</span>
+        <h1>Voyagez à travers la RDC en toute <span class="gradient-text">sérénité.</span></h1>
+        <p class="hero-lead">Comparez les compagnies, consultez les disponibilités, sélectionnez votre siège et préparez votre réservation avec TALA Trajet.</p>
 
-<main>
-  <!-- HERO SECTION AVEC FORMULAIRE DE RECHERCHE INTÉGRÉ -->
-  <section class="hero-showcase">
-    <div class="container hero-content">
-      <span class="badge-hero">
-        <i data-lucide="rocket"></i>
-        La révolution du transport en RDC
-      </span>
-      <h1 class="hero-title">Voyagez à travers la RDC en toute <span>sérénité.</span></h1>
-      <p class="hero-sub">
-        Comparez les compagnies, sélectionnez vos sièges et achetez vos billets instantanément par Mobile Money.
-      </p>  
-
-      <!-- BARRE DE RECHERCHE RAPIDE INTÉGRÉE -->
-      <div class="card" style="padding: 24px; border-radius: 16px; margin-top: 30px; background: #171b22; border: 1px solid #2a313b; text-align: left; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-        <form id="searchForm" onsubmit="handleSearch(event)" class="search-form">
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px;">
-            
-            <div>
-              <label for="departureCity" style="display: block; margin-bottom: 8px; font-size: 0.85rem; color: #e7edf3; font-weight: 500;">Ville de départ</label>
-              <input type="text" id="departureCity" name="departure" placeholder="Ex: Kinshasa..." required style="width: 100%; padding: 12px; border-radius: 8px; background: #0c0f13; border: 1px solid #2a313b; color: #ffffff; font-family: 'Poppins', sans-serif;">
+        <div class="search-card">
+          <form id="searchForm" onsubmit="handleSearch(event)" novalidate>
+            <div class="search-grid">
+              <div class="field">
+                <label for="departureCity">Ville de départ</label>
+                <input id="departureCity" name="departure" list="cities" placeholder="Ex. Kinshasa" autocomplete="address-level2" required />
+              </div>
+              <div class="field">
+                <label for="arrivalCity">Ville d’arrivée</label>
+                <input id="arrivalCity" name="arrival" list="cities" placeholder="Ex. Matadi" autocomplete="address-level2" required />
+              </div>
+              <div class="field">
+                <label for="travelDate">Date de voyage</label>
+                <input id="travelDate" name="date" type="date" required />
+              </div>
+              <button class="primary-button" type="submit">Rechercher un trajet</button>
             </div>
+            <datalist id="cities">
+              <option value="Kinshasa"></option>
+              <option value="Matadi"></option>
+              <option value="Boma"></option>
+              <option value="Moanda"></option>
+              <option value="Lubumbashi"></option>
+              <option value="Kolwezi"></option>
+              <option value="Goma"></option>
+              <option value="Bukavu"></option>
+              <option value="Kisangani"></option>
+            </datalist>
+            <p class="form-status" id="formStatus" role="status" aria-live="polite"></p>
+          </form>
+        </div>
 
-            <div>
-              <label for="arrivalCity" style="display: block; margin-bottom: 8px; font-size: 0.85rem; color: #e7edf3; font-weight: 500;">Ville d'arrivée</label>
-              <input type="text" id="arrivalCity" name="arrival" placeholder="Ex: Matadi..." required style="width: 100%; padding: 12px; border-radius: 8px; background: #0c0f13; border: 1px solid #2a313b; color: #ffffff; font-family: 'Poppins', sans-serif;">
-            </div>
+        <div class="stats" aria-label="Statistiques de la plateforme">
+          <div class="stat"><strong>15+</strong><span>Villes ciblées</span></div>
+          <div class="stat"><strong>24/7</strong><span>Accès à la plateforme</span></div>
+          <div class="stat"><strong>3</strong><span>Paiements locaux</span></div>
+          <div class="stat"><strong>QR</strong><span>Billet numérique</span></div>
+        </div>
+      </div>
+    </section>
 
-            <div>
-              <label for="travelDate" style="display: block; margin-bottom: 8px; font-size: 0.85rem; color: #e7edf3; font-weight: 500;">Date de voyage</label>
-              <input type="date" id="travelDate" name="date" required style="width: 100%; padding: 12px; border-radius: 8px; background: #0c0f13; border: 1px solid #2a313b; color: #ffffff; font-family: 'Poppins', sans-serif;">
-            </div>
-
+    <section class="partners-section" aria-label="Partenaires de paiement">
+      <div class="container">
+        <p class="partners-title">Partenaires de paiement officiels</p>
+        <div class="partners-ticker">
+          <div class="ticker-track">
+            <div class="partner-logo-item"><img src="../image/vodacom.svg" alt="Vodacom M-Pesa"></div>
+            <div class="partner-logo-item"><img src="../image/orange.svg" alt="Orange Money"></div>
+            <div class="partner-logo-item"><img src="../image/airtel.svg" alt="Airtel Money"></div>
           </div>
-
-          <button type="submit" class="btn-primary-lg" style="margin-top: 20px; width: 100%; border: none; cursor: pointer; text-align: center;">
-            <i data-lucide="search"></i>
-            Rechercher un trajet
-          </button>
-        </form>
-      </div>
-
-      <!-- Statistiques d'impact & Compteurs de communauté -->
-      <div class="hero-stats" style="margin-top: 40px; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px;">
-        <div class="stat-item">
-          <h3 id="statTravelers">10K+</h3>
-          <p>Voyageurs Actifs</p>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat-item">
-          <h3>100%</h3>
-          <p>Billet Sécurisé</p>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat-item">
-          <h3>24/7</h3>
-          <p>Disponibilité</p>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat-item">
-          <h3 id="statRoutes">15+</h3>
-            <p>Villes Desservies</p>
         </div>
       </div>
+    </section>
 
-    </div>
-  </section>  
-
-  <!-- PARTENAIRES DE PAIEMENT & CONFIANCE -->
-  <!-- BANDE DÉFILANTE DES PARTENAIRES -->
-<section class="partners-ticker">
-  <div class="ticker-track">
-    <!-- Premier bloc -->
-    <div class="partner-logo-item"><img src="image/mpesa.png" alt="M-Pesa" style="height: 30px;"></div>
-    <div class="partner-logo-item"><img src="image/orange.svg" alt="Orange" style="height: 30px;"></div>
-    <div class="partner-logo-item"><img src="image/airtel.svg" alt="Airtel" style="height: 30px;"></div>
-    <div class="partner-logo-item" style="color: #fff; font-weight: 600;">Transco</div>
-    
-    <!-- Deuxième bloc (pour la boucle infinie) -->
-    <div class="partner-logo-item"><img src="image/mpesa.png" alt="M-Pesa" style="height: 30px;"></div>
-    <div class="partner-logo-item"><img src="image/orange.svg" alt="Orange" style="height: 30px;"></div>
-    <div class="partner-logo-item"><img src="image/airtel.svg" alt="Airtel" style="height: 30px;"></div>
-    <div class="partner-logo-item" style="color: #fff; font-weight: 600;">Transco</div>
-  </div>
-</section>
-
-
-  <!-- FEATURES SECTION -->  
-  <section class="features-section">
-    <div class="container">
-      <div class="section-header">
-        <h2>Pourquoi choisir <span>TALA Trajet</span> ?</h2>
-        <p>Une expérience repensée pour éliminer le stress du voyage.</p>
-      </div>  
-
-      <div class="features-grid">
-        <div class="feature-card">
-          <div class="feature-icon">
-            <i data-lucide="zap"></i>
-          </div>
-          <h3>Zéro file d'attente</h3>
-          <p>Plus besoin de vous déplacer en agence des heures à l'avance. Obtenez votre place directement depuis votre téléphone.</p>
+    <section aria-labelledby="benefits-title">
+      <div class="container">
+        <div class="section-heading">
+          <h2 id="benefits-title">Pourquoi choisir <span class="accent">TALA Trajet</span> ?</h2>
+          <p>Une expérience pensée pour réduire le stress avant, pendant et après votre déplacement.</p>
         </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">
-            <i data-lucide="credit-card"></i>
-          </div>
-          <h3>Paiement Local Sécurisé</h3>
-          <p>Payez directement avec vos comptes Mobile Money habituels (M-Pesa, Orange Money, Airtel Money) en toute transparence.</p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">
-            <i data-lucide="ticket"></i>
-          </div>
-          <h3>Billet Digital QR Code</h3>
-          <p>Recevez un ticket numérique infalsifiable sur votre téléphone. Présentez-le simplement au moment d'embarquer.</p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">
-            <i data-lucide="bus-front"></i>
-          </div>
-          <h3>Agences Partenaires</h3>
-          <p>Accédez aux meilleures compagnies de transport routier et ferroviaire opérant en République Démocratique du Congo.</p>
+        <div class="feature-grid">
+          <article class="card"><div class="icon-box">⚡</div><h3>Recherche rapide</h3><p>Trouvez les trajets disponibles sans multiplier les déplacements en agence.</p></article>
+          <article class="card"><div class="icon-box">₣</div><h3>Paiement local</h3><p>Utilisez les solutions Mobile Money que vous connaissez déjà au quotidien.</p></article>
+          <article class="card"><div class="icon-box">▣</div><h3>Billet numérique</h3><p>Recevez un billet avec QR code et retrouvez vos informations depuis votre espace.</p></article>
+          <article class="card"><div class="icon-box">✓</div><h3>Partenaires vérifiés</h3><p>Comparez les offres des compagnies et consultez les détails avant de réserver.</p></article>
         </div>
       </div>
-    </div>
-  </section>  
+    </section>
 
-  <!-- HOW IT WORKS SECTION -->  
-  <section id="how-it-works" class="steps-showcase">
-    <div class="container">
-      <div class="section-header">
-        <h2>Comment ça marche ?</h2>
-        <p>Votre billet en 4 étapes chrono</p>
-      </div>  
-
-      <div class="steps-timeline">
-        <div class="step-card">
-          <div class="step-badge">01</div>
-          <h3>Compte</h3>
-          <p>Créez votre compte en quelques secondes.</p>
+    <section class="steps-section" id="fonctionnement" aria-labelledby="steps-title">
+      <div class="container">
+        <div class="section-heading">
+          <h2 id="steps-title">Comment ça marche ?</h2>
+          <p>Une réservation en quatre étapes simples.</p>
         </div>
-
-        <div class="step-card">
-          <div class="step-badge">02</div>
-          <h3>Recherche</h3>
-          <p>Indiquez vos villes de départ/d'arrivée et choisissez la date souhaitée.</p>
-        </div>
-
-        <div class="step-card">
-          <div class="step-badge">03</div>
-          <h3>Siège & Paiement</h3>
-          <p>Sélectionnez votre place sur le plan du véhicule et validez par Mobile Money.</p>
-        </div>
-
-        <div class="step-card">
-          <div class="step-badge">04</div>
-          <h3>Embarquement</h3>
-          <p>Présentez le QR Code de votre billet à l'agence le jour du départ et voyagez.</p>
+        <div class="steps">
+          <article class="step"><span class="step-number">01</span><h3>Recherchez</h3><p>Indiquez votre ville de départ, votre destination et la date souhaitée.</p></article>
+          <article class="step"><span class="step-number">02</span><h3>Comparez</h3><p>Consultez les horaires, les tarifs, les compagnies et les disponibilités.</p></article>
+          <article class="step"><span class="step-number">03</span><h3>Réservez</h3><p>Choisissez votre siège et confirmez votre paiement selon les options disponibles.</p></article>
+          <article class="step"><span class="step-number">04</span><h3>Embarquez</h3><p>Présentez votre billet numérique et votre QR code au moment du départ.</p></article>
         </div>
       </div>
-    </div>
-  </section>  
+    </section>
 
-  <!-- DESTINATIONS / ROUTES POPULAIRES -->  
-  <section class="routes-section">
-    <div class="container">
-      <div class="section-header">
-        <h2>Lignes populaires</h2>
-        <p>Des connexions quotidiennes vers les grands centres urbains</p>
-      </div>  
-
-      <div class="routes-grid">
-        <div class="route-card">
-          <div class="route-header">
-            <h4>Matadi ➔ Kinshasa</h4>
-            <span class="route-tag">Populaire</span>
-          </div>
-          <p class="route-info">Liaison quotidienne • Bus & Minibus</p>
-          <a href="#" onclick="handleRouteClick(event, 'Matadi', 'Kinshasa')" class="route-link">
-            Voir les horaires
-          </a>
+    <section id="lignes" aria-labelledby="routes-title">
+      <div class="container">
+        <div class="section-heading">
+          <h2 id="routes-title">Lignes populaires</h2>
+          <p>Commencez par rechercher l’un de nos itinéraires fréquemment consultés.</p>
         </div>
-
-        <div class="route-card">
-          <div class="route-header">
-            <h4>Kinshasa ➔ Moanda</h4>
-            <span class="route-tag">Direct</span>
-          </div>
-          <p class="route-info">Trajet confort • Climatisation disponible</p>
-          <a href="#" onclick="handleRouteClick(event, 'Kinshasa', 'Moanda')" class="route-link">
-            Voir les horaires
-          </a>
-        </div>
-
-        <div class="route-card">
-          <div class="route-header">
-            <h4>Kinshasa ➔ Boma</h4>
-            <span class="route-tag">Quotidien</span>
-          </div>
-          <p class="route-info">Départs matin & soir</p>
-          <a href="#" onclick="handleRouteClick(event, 'Kinshasa', 'Boma')" class="route-link">
-            Voir les horaires
-          </a>
+        <div class="route-grid">
+          <article class="card route-card">
+            <div class="route-top"><h3>Matadi → Kinshasa</h3><span class="tag">Populaire</span></div>
+            <p class="route-meta">Bus et minibus · Départs réguliers</p>
+            <button class="route-button" type="button" onclick="handleRouteClick(event, 'Matadi', 'Kinshasa')">Rechercher ce trajet →</button>
+          </article>
+          <article class="card route-card">
+            <div class="route-top"><h3>Kinshasa → Moanda</h3><span class="tag">Direct</span></div>
+            <p class="route-meta">Trajet confort · Options selon disponibilité</p>
+            <button class="route-button" type="button" onclick="handleRouteClick(event, 'Kinshasa', 'Moanda')">Rechercher ce trajet →</button>
+          </article>
+          <article class="card route-card">
+            <div class="route-top"><h3>Kinshasa → Boma</h3><span class="tag">Régulier</span></div>
+            <p class="route-meta">Départs matin et soir · Informations à confirmer</p>
+            <button class="route-button" type="button" onclick="handleRouteClick(event, 'Kinshasa', 'Boma')">Rechercher ce trajet →</button>
+          </article>
         </div>
       </div>
-    </div>
-  </section>  
+    </section>
 
-  <!-- TÉMOIGNAGES / AVIS CLIENTS DYNAMIQUES -->
-  <section style="padding: 80px 0; background: #131720;">
-    <div class="container">
-      <div class="section-header">
-        <h2>Ce que disent <span>nos voyageurs</span></h2>
-        <p>Découvrez les retours d'expérience de ceux qui utilisent TALA Trajet.</p>
+    <!-- TÉMOIGNAGES -->
+    <section style="padding: 80px 0; background: #131720;">
+      <div class="container">
+        <div class="section-heading">
+          <h2 id="reviews-title">Ce que disent <span>nos voyageurs</span></h2>
+          <p>Découvrez les retours d'expérience de ceux qui utilisent TALA Trajet.</p>
+        </div>
+        <div id="dynamicReviewsContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
+          <p style="text-align: center; color: #b0bcc9; grid-column: 1 / -1;">Chargement des avis clients...</p>
+        </div>
       </div>
+    </section>
 
-      <!-- Conteneur qui affichera les vrais avis globaux de la base de données -->
-      <div id="dynamicReviewsContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
-        <p style="text-align: center; color: #b0bcc9; grid-column: 1 / -1;">Chargement des avis clients...</p>
+    <section id="faq" aria-labelledby="faq-title">
+      <div class="container">
+        <div class="section-heading">
+          <h2 id="faq-title">Questions fréquentes</h2>
+          <p>Les informations essentielles avant de commencer.</p>
+        </div>
+        <div class="faq">
+          <details><summary>Comment vais-je recevoir mon billet ?</summary><p>Après confirmation de la réservation, votre billet numérique doit être disponible dans votre espace et, selon le dispositif mis en place, envoyé par le canal de contact associé à votre compte.</p></details>
+          <details><summary>Quels moyens de paiement sont acceptés ?</summary><p>TALA Trajet met en avant M-Pesa, Orange Money et Airtel Money.</p></details>
+          <details><summary>Que se passe-t-il si le paiement échoue ?</summary><p>La réservation ne doit être confirmée qu’après réception d’un statut de paiement validé.</p></details>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta" id="inscription">
+      <div class="container">
+        <h2>Prêt à simplifier vos déplacements ?</h2>
+        <a class="primary-button" href="mailto:contact@talatrajet.cd">Créer un compte gratuitement</a>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <div class="brand">TALA<span>Trajet</span></div>
+        <p>La plateforme intelligente de réservation de billets de transport en RDC.</p>
+      </div>
+      <div class="footer-links">
+        <a href="about.html">À propos</a>
+        <a href="contact.html">Contact</a>
+        <a href="terms.html">Conditions d'utilisation</a>
+        <a href="privacy.html">Politique de confidentialité</a>
       </div>
     </div>
-  </section>
-
-  <!-- FAQ RAPIDE -->
-  <section style="padding: 80px 0; border-top: 1px solid #1c222d;">
-    <div class="container" style="max-width: 800px;">
-      <div class="section-header">
-        <h2>Questions <span>Fréquentes</span></h2>
-        <p>Tout ce que vous devez savoir avant de réserver.</p>
-      </div>
-
-      <div style="display: flex; flex-direction: column; gap: 16px;">
-        <details style="background: #171b22; border: 1px solid #2a313b; border-radius: 10px; padding: 18px 24px; cursor: pointer;">
-          <summary style="font-weight: 600; color: #fff; font-size: 1.05rem;">Comment puis-je récupérer mon billet après le paiement ?</summary>
-          <p style="margin-top: 12px; color: #b0bcc9; font-size: 0.95rem; line-height: 1.5;">Votre billet numérique muni d'un QR code sécurisé s'affiche directement sur votre écran après validation et vous pouvez le retrouver à tout moment dans votre espace personnel "Mon Compte".</p>
-        </details>
-
-        <details style="background: #171b22; border: 1px solid #2a313b; border-radius: 10px; padding: 18px 24px; cursor: pointer;">
-          <summary style="font-weight: 600; color: #fff; font-size: 1.05rem;">Quels modes de paiement Mobile Money sont acceptés ?</summary>
-          <p style="margin-top: 12px; color: #b0bcc9; font-size: 0.95rem; line-height: 1.5;">Nous acceptons les principaux opérateurs mobiles en RDC, à savoir M-Pesa, Orange Money et Airtel Money.</p>
-        </details>
-
-        <details style="background: #171b22; border: 1px solid #2a313b; border-radius: 10px; padding: 18px 24px; cursor: pointer;">
-          <summary style="font-weight: 600; color: #fff; font-size: 1.05rem;">Puis-je modifier ou annuler mon voyage ?</summary>
-          <p style="margin-top: 12px; color: #b0bcc9; font-size: 0.95rem; line-height: 1.5;">Oui, vous pouvez gérer vos réservations directement depuis votre profil ou contacter notre support client disponible 24/7 pour toute assistance.</p>
-        </details>
-      </div>
+    <div class="footer-bottom">
+      <p>© <span id="currentYear">2026</span> TALA Trajet — Tous droits réservés.</p>
     </div>
-  </section>
+  </footer>
 
-  <!-- CTA FINAL -->  
-  <section class="cta-banner">
-    <div class="container cta-content">
-      <h2>Prêt à simplifier vos déplacements ?</h2>
-      <p>Inscrivez-vous dès maintenant et profitez de la meilleure expérience de réservation de billets en RDC.</p>
-      <a href="auth.html" class="btn-primary-lg">
-        Créer un compte gratuitement
-      </a>
-    </div>
-  </section>
-</main>
+  <script>
+    const { createClient } = window.supabase;
+    const supabaseUrl = "https://kfkifkstatbadtzosxai.supabase.co"; 
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma2lma3N0YXRiYWR0em9zeGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3MTYzMTAsImV4cCI6MjEwMTI5MjMxMH0.xPzFtl_OET2asSc5iH3liRHnPyuUYAfbbjZISwfnaA8";
+    const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
-<!-- FOOTER -->
-<footer>
-  <div class="container footer-inner">
-    <div class="footer-brand">
-      <div class="brand">TALA<span>Trajet</span></div>
-      <p>La plateforme intelligente de réservation de billets de transport en République Démocratique du Congo.</p>
-    </div>
-    <div class="footer-links">
-      <a href="about.html">À propos</a>
-      <a href="contact.html">Contact</a>
-      <a href="terms.html">Conditions d'utilisation</a>
-      <a href="privacy.html">Politique de confidentialité</a>
-    </div>
-  </div>
-  <div class="footer-bottom">
-    <p>© 2026 TALA Trajet — Tous droits réservés.</p>
-  </div>
-</footer>
+    // Initialisation du menu mobile
+    const menuToggle = document.getElementById('menuToggle');
+    const navMenu = document.getElementById('navMenu');
+    if (menuToggle && navMenu) {
+      menuToggle.addEventListener('click', () => {
+        navMenu.classList.toggle('open');
+      });
+    }
 
-<script>
-  // Initialisation Supabase
-  const { createClient } = window.supabase;
-  const supabaseUrl = "https://kfkifkstatbadtzosxai.supabase.co"; 
-  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma2lma3N0YXRiYWR0em9zeGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3MTYzMTAsImV4cCI6MjEwMTI5MjMxMH0.xPzFtl_OET2asSc5iH3liRHnPyuUYAfbbjZISwfnaA8";
-  const supabaseClient = createClient(supabaseUrl, supabaseKey);
+    // Vérification dynamique de l'authentification pour le menu
+    async function checkAuthStatus() {
+      const accountLink = document.getElementById("userAccountLink");
+      if (!accountLink) return;
 
-  // Menu Mobile Toggle
-  const menuToggle = document.getElementById('menuToggle');
-  const navMenu = document.getElementById('navMenu');
-  if (menuToggle && navMenu) {
-    menuToggle.addEventListener('click', () => {
-      navMenu.classList.toggle('open');
-      menuToggle.innerHTML = navMenu.classList.contains('open')
-        ? '<i data-lucide="x"></i>'
-        : '<i data-lucide="menu"></i>';
-      lucide.createIcons();
+      const { data: { session }, error } = await supabaseClient.auth.getSession();
+
+      if (error || !session || !session.user) {
+        accountLink.textContent = "Se connecter";
+        accountLink.href = "auth.html";
+      } else {
+        const fullName = session.user.user_metadata?.full_name || session.user.email.split('@')[0];
+        accountLink.textContent = fullName;
+        accountLink.href = "account.html";
+      }
+    }
+
+    // Chargement des avis
+    async function loadPublicReviews() {
+      const container = document.getElementById('dynamicReviewsContainer');
+      if (!container) return;
+      const { data: reviews, error } = await supabaseClient
+        .from('reviews')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(3);
+
+      if (error || !reviews || reviews.length === 0) {
+        container.innerHTML = `<p style="text-align: center; color: #b0bcc9; grid-column: 1 / -1;">Aucun avis pour le moment.</p>`;
+        return;
+      }
+      container.innerHTML = "";
+      reviews.forEach(rev => {
+        const card = document.createElement("div");
+        card.style.cssText = "background: #171b22; border: 1px solid #2a313b; padding: 24px; border-radius: 12px;";
+        card.innerHTML = `
+          <p style="color: #00d2ff; font-size: 1.1rem;">${"★".repeat(rev.rating)}</p>
+          <p style="color: #b0bcc9; margin: 16px 0;">"${rev.comment}"</p>
+          <h4 style="color: #fff;">${rev.user_name || 'Voyageur'}</h4>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      checkAuthStatus();
+      loadPublicReviews();
+      const yearEl = document.getElementById('currentYear');
+      if (yearEl) yearEl.textContent = new Date().getFullYear();
     });
-  }
 
-  // Vérification dynamique de l'authentification pour le menu
-  async function checkAuthStatus() {
-    const accountLink = document.getElementById("userAccountLink");
-    if (!accountLink) return;
+    // Fonction de recherche obligatoire avec validation des champs et vérification de session
+    async function handleSearch(e) {
+      e.preventDefault();
+      
+      const dep = document.getElementById('departureCity').value.trim();
+      const arr = document.getElementById('arrivalCity').value.trim();
+      const date = document.getElementById('travelDate').value;
 
-    const { data: { session }, error } = await supabaseClient.auth.getSession();
+      // Bloquer et avertir si un champ est vide
+      if (!dep || !arr || !date) {
+        alert("Veuillez renseigner la ville de départ, la ville d'arrivée et la date de voyage.");
+        return;
+      }
 
-    if (error || !session || !session.user) {
-      accountLink.textContent = "Se connecter / S'inscrire";
-      accountLink.href = "auth.html";
-    } else {
-      const fullName = session.user.user_metadata?.full_name || session.user.email.split('@')[0];
-      accountLink.textContent = fullName;
-      accountLink.href = "account.html";
-    }
-  }
+      // Vérifier si l'utilisateur est connecté
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      
+      if (!session || !session.user) {
+        window.location.href = 'auth.html';
+        return;
+      }
 
-  // Fonction pour charger et afficher les avis globaux dynamiquement
-  async function loadPublicReviews() {
-    const container = document.getElementById('dynamicReviewsContainer');
-    if (!container) return;
-
-    const { data: reviews, error } = await supabaseClient
-      .from('reviews')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(3);
-
-    if (error || !reviews || reviews.length === 0) {
-      container.innerHTML = `<p style="text-align: center; color: #b0bcc9; grid-column: 1 / -1;">Aucun avis pour le moment.</p>`;
-      return;
+      // Rediriger vers results.html avec les paramètres encodés
+      window.location.href = `results.html?departure=${encodeURIComponent(dep)}&arrival=${encodeURIComponent(arr)}&date=${date}`;
     }
 
-    container.innerHTML = "";
-    reviews.forEach(rev => {
-      const card = document.createElement("div");
-      card.style.cssText = "background: #171b22; border: 1px solid #2a313b; padding: 24px; border-radius: 12px;";
-      card.innerHTML = `
-        <p style="color: #00d2ff; font-size: 1.1rem;">${"★".repeat(rev.rating)}</p>
-        <p style="color: #b0bcc9; margin: 16px 0;">"${rev.comment}"</p>
-        <h4 style="color: #fff;">${rev.user_name || 'Voyageur'}</h4>
-      `;
-      container.appendChild(card);
-    });
-  }
+    // Redirection sécurisée pour les lignes populaires
+    async function handleRouteClick(e, dep, arr) {
+      e.preventDefault();
+      
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      
+      if (!session || !session.user) {
+        window.location.href = 'auth.html';
+        return;
+      }
 
-  document.addEventListener('DOMContentLoaded', () => {
-    checkAuthStatus();
-    loadPublicReviews();
-  });
-
-  // Fonction de recherche obligatoire avec validation des champs
-  async function handleSearch(e) {
-    e.preventDefault();
-    
-    const dep = document.getElementById('departureCity').value.trim();
-    const arr = document.getElementById('arrivalCity').value.trim();
-    const date = document.getElementById('travelDate').value;
-
-    // Bloquer et avertir si un champ est vide
-    if (!dep || !arr || !date) {
-      alert("Veuillez renseigner la ville de départ, la ville d'arrivée et la date de voyage.");
-      return;
+      window.location.href = `results.html?departure=${encodeURIComponent(dep)}&arrival=${encodeURIComponent(arr)}`;
     }
-
-    // Vérifier si l'utilisateur est connecté avant d'afficher les résultats
-    const { data: { session } } = await supabaseClient.auth.getSession();
-    
-    if (!session || !session.user) {
-      window.location.href = 'auth.html';
-      return;
-    }
-
-    // Rediriger vers results.html avec les paramètres obligatoires
-    window.location.href = `results.html?departure=${encodeURIComponent(dep)}&arrival=${encodeURIComponent(arr)}&date=${date}`;
-  }
-
-  // Redirection sécurisée pour les lignes populaires
-  async function handleRouteClick(e, dep, arr) {
-    e.preventDefault();
-    
-    const { data: { session } } = await supabaseClient.auth.getSession();
-    
-    if (!session || !session.user) {
-      window.location.href = 'auth.html';
-      return;
-    }
-
-    window.location.href = `results.html?departure=${encodeURIComponent(dep)}&arrival=${encodeURIComponent(arr)}`;
-  }
-</script>
+  </script>
 </body>
-</html> 
+</html>
