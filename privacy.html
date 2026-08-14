@@ -3,203 +3,120 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Politique de Confidentialité — TALA Trajet</title>
-  
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
-
-  <!-- Icônes Lucide -->
-  <script src="https://unpkg.com/lucide@latest"></script>
-
+  <meta name="description" content="Politique de confidentialité de TALA Trajet : protection et gestion de vos données personnelles." />
+  <meta name="theme-color" content="#0b1018" />
+  <title>Confidentialité — TALA Trajet</title>
   <style>
-    .legal-content {
-      max-width: 850px;
-      margin: -30px auto 0;
-      position: relative;
-      z-index: 10;
+    :root {
+      --bg: #0b1018; --bg-soft: #111923; --surface: #151e2a; --border: #2a394b;
+      --text: #f5f8fc; --muted: #a8b5c5; --primary: #25a5ff; --primary-2: #00d7c8;
+      --radius: 18px; --container: 1160px;
     }
-    .legal-section {
-      background: #171b22;
-      border: 1px solid #2a313b;
-      border-radius: 16px;
-      padding: 28px;
-      margin-bottom: 20px;
-      transition: border-color 0.2s ease;
-    }
-    .legal-section:hover {
-      border-color: #00d2ff;
-    }
-    .legal-section h2 {
-      color: #00d2ff;
-      font-size: 1.2rem;
-      margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .legal-section h2 i {
-      width: 22px;
-      height: 22px;
-      stroke-width: 2;
-      flex-shrink: 0;
-    }
-    .legal-section p, .legal-section ul {
-      color: #b0bcc9;
-      font-size: 0.95rem;
-      line-height: 1.7;
-      margin: 0;
-    }
-    .legal-section ul {
-      padding-left: 20px;
-      margin-top: 10px;
-    }
-    .legal-section li {
-      margin-bottom: 8px;
-    }
-    .main-nav a {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .main-nav a i {
-      width: 16px;
-      height: 16px;
+    * { box-sizing: border-box; }
+    body { margin: 0; color: var(--text); background: var(--bg); font-family: Inter, system-ui, sans-serif; line-height: 1.6; }
+    a { color: inherit; text-decoration: none; }
+    .container { width: min(var(--container), calc(100% - 40px)); margin-inline: auto; }
+    
+    /* Header & Footer partagés */
+    .site-header { position: sticky; top: 0; z-index: 20; border-bottom: 1px solid rgba(255,255,255,.08); background: rgba(11,16,24,.88); backdrop-filter: blur(16px); }
+    .header-inner { min-height: 72px; display: flex; align-items: center; justify-content: space-between; }
+    .brand { font-weight: 900; font-size: 1.4rem; letter-spacing: -.05em; }
+    .brand span { color: var(--primary-2); }
+    .main-nav { display: flex; align-items: center; gap: 24px; }
+    .main-nav a { color: var(--muted); font-weight: 650; font-size: .94rem; display: inline-flex; align-items: center; gap: 6px; }
+    .main-nav a.active { color: var(--text); }
+    .menu-button { display: none; border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 10px; padding: 8px 11px; cursor: pointer; }
+    
+    /* Hero */
+    .hero { padding: 60px 0; text-align: center; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px; color: var(--primary-2); border: 1px solid rgba(0,215,200,.35); background: rgba(0,215,200,.08); border-radius: 999px; font-weight: 750; font-size: .82rem; }
+    
+    /* Legal Grid */
+    .legal-grid { display: grid; gap: 20px; max-width: 900px; margin: 0 auto 80px; }
+    .card { padding: 30px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
+    .card h2 { color: var(--primary-2); margin-top: 0; display: flex; align-items: center; gap: 12px; font-size: 1.25rem; }
+    .card p, .card li { color: var(--muted); font-size: 0.95rem; }
+    .card ul { padding-left: 20px; margin-bottom: 0; }
+    
+    footer { padding: 45px 0 20px; background: #080d13; border-top: 1px solid var(--border); }
+    .footer-inner { display: flex; justify-content: space-between; gap: 30px; }
+    
+    @media (max-width: 680px) {
+      .menu-button { display: block; }
+      .main-nav { display: none; position: absolute; top: 64px; left: 14px; right: 14px; flex-direction: column; background: #121b26; padding: 13px; border-radius: 14px; border: 1px solid var(--border); }
+      .main-nav.open { display: flex; }
+      .footer-inner { flex-direction: column; text-align: center; }
     }
   </style>
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
 
-<!-- HEADER -->
-<header class="site-header">
-  <div class="brand">TALA<span>Trajet</span></div>
-  <nav class="main-nav" id="navMenu">
-    <a href="index.html"><i data-lucide="home"></i>Accueil</a>
-    <a href="search.html"><i data-lucide="search"></i>Rechercher</a>
-    <a href="about.html"><i data-lucide="info"></i>À propos</a>
-    <a href="contact.html"><i data-lucide="mail"></i>Contact</a>
-    <a href="account.html" class="nav-auth-btn"><i data-lucide="user"></i>Mon Compte</a>
-  </nav>
-  <button class="menu-btn" id="menuToggle" aria-label="Ouvrir le menu">☰</button>
-</header>
-
-<!-- MAIN -->
-<main style="padding-bottom: 80px;">
-  
-  <!-- HERO POLITIQUE -->
-  <section class="hero-showcase" style="padding: 50px 20px 50px;">
-    <div class="hero-content">
-      <span class="badge-hero"><i data-lucide="shield-check"></i> Protection des données</span>
-      <h1 class="hero-title">Politique de <span>confidentialité</span></h1>
-      <p class="hero-sub">Comment nous collectons, protégeons et traitons vos données personnelles.</p>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="index.html">TALA<span>Trajet</span></a>
+      <button class="menu-button" id="menuToggle">☰</button>
+      <nav class="main-nav" id="navMenu">
+        <a href="index.html"><i data-lucide="home" style="width:16px;"></i>Accueil</a>
+        <a href="about.html"><i data-lucide="info" style="width:16px;"></i>À propos</a>
+        <a href="privacy.html" class="active"><i data-lucide="shield-check" style="width:16px;"></i>Confidentialité</a>
+      </nav>
     </div>
-  </section>
+  </header>
 
-  <!-- CONTENU JURIDIQUE -->
-  <div class="container legal-content">
-    
-    <div class="legal-section">
-      <h2><i data-lucide="database"></i>1. Collecte des données personnelles</h2>
-      <p>
-        Dans le cadre de l'utilisation de nos services de réservation de transport, nous collectons les informations strictement nécessaires à la bonne exécution de votre commande :
-      </p>
-      <ul>
-        <li><strong>Identité :</strong> Nom, prénom.</li>
-        <li><strong>Coordonnées :</strong> Numéro de téléphone, adresse e-mail.</li>
-        <li><strong>Informations de voyage :</strong> Trajets recherchés, dates, sièges sélectionnés et agences choisies.</li>
-        <li><strong>Données de transaction :</strong> Identifiants de paiement (ex. référence Mobile Money) transmis de manière sécurisée.</li>
-      </ul>
+  <main>
+    <section class="hero">
+      <div class="container">
+        <span class="eyebrow"><i data-lucide="shield-check" style="width:14px;"></i> Protection des données</span>
+        <h1>Politique de <span>confidentialité</span></h1>
+        <p style="color: var(--muted);">Dernière mise à jour : Août 2026</p>
+      </div>
+    </section>
+
+    <div class="container legal-grid">
+      <article class="card">
+        <h2><i data-lucide="database"></i> 1. Collecte des données</h2>
+        <p>Nous collectons uniquement les informations nécessaires : identité, contacts, détails de vos trajets et références de paiement sécurisé.</p>
+      </article>
+
+      <article class="card">
+        <h2><i data-lucide="file-check"></i> 2. Utilisation</h2>
+        <p>Vos données servent à générer vos billets, faciliter l'embarquement chez nos partenaires et assurer un support client réactif.</p>
+      </article>
+
+      <article class="card">
+        <h2><i data-lucide="shield-lock"></i> 3. Sécurité</h2>
+        <p>Toutes les connexions sont chiffrées (SSL/TLS). Vos informations sont hébergées sur des infrastructures cloud hautement sécurisées.</p>
+      </article>
+
+      <article class="card">
+        <h2><i data-lucide="share-2"></i> 4. Partage</h2>
+        <p>Vos données ne sont <strong>jamais vendues</strong>. Elles sont transmises uniquement aux agences de transport et partenaires de paiement pour valider votre voyage.</p>
+      </article>
+
+      <article class="card">
+        <h2><i data-lucide="user-check"></i> 5. Vos droits</h2>
+        <p>Vous disposez d'un droit d'accès, de rectification et de suppression via votre espace "Mon Compte" ou par demande via notre page Contact.</p>
+      </article>
     </div>
+  </main>
 
-    <div class="legal-section">
-      <h2><i data-lucide="file-check"></i>2. Utilisation de vos informations</h2>
-      <p>
-        Les données collectées par <strong>TALA Trajet</strong> sont exclusivement exploitées pour :
-      </p>
-      <ul>
-        <li>Générer et valider vos billets de voyage officiels (avec QR Code).</li>
-        <li>Transmettre vos listes de passagers aux compagnies de transport partenaires.</li>
-        <li>Vous envoyer des confirmations de réservation par SMS ou e-mail.</li>
-        <li>Assurer le support client et la gestion des réclamations.</li>
-      </ul>
-    </div>
-
-    <div class="legal-section">
-      <h2><i data-lucide="shield-check"></i>3. Sécurité et Hébergement</h2>
-      <p>
-        La sécurité de vos données est une priorité fondamentale. Toutes les interactions réseau entre votre navigateur et nos serveurs sont chiffrées via le protocole SSL/TLS (HTTPS). Vos données de réservation et comptes utilisateurs sont hébergés et protégés sur des infrastructures cloud hautement sécurisées (Supabase).
-      </p>
-    </div>
-
-    <div class="legal-section">
-      <h2><i data-lucide="share-2"></i>4. Partage avec des tiers</h2>
-      <p>
-        Vos données personnelles ne sont <strong>jamais vendues ni louées</strong> à des fins publicitaires. Elles sont partagées uniquement avec :
-      </p>
-      <ul>
-        <li><strong>Les Agences de Transport :</strong> Afin de garantir votre enregistrement au guichet d'embarquement.</li>
-        <li><strong>Les Partenaires de Paiement :</strong> Afin de valider et sécuriser le règlement de vos billets.</li>
-      </ul>
-    </div>
-
-    <div class="legal-section">
-      <h2><i data-lucide="user-check"></i>5. Vos droits (Accès, Modification et Suppression)</h2>
-      <p>
-        Conformément aux réglementations en vigueur, vous disposez d'un droit d'accès, de rectification et de suppression de l'ensemble de vos données personnelles enregistrées sur notre plateforme. Vous pouvez exercer ce droit à tout moment :
-      </p>
-      <ul>
-        <li>Depuis votre espace personnel <a href="account.html" style="color: #00d2ff;">Mon Compte</a>.</li>
-        <li>En nous envoyant une demande via la page de <a href="contact.html" style="color: #00d2ff;">Contact</a>.</li>
-      </ul>
-    </div>
-
-    <div class="legal-section">
-      <h2><i data-lucide="refresh-cw"></i>6. Mise à jour de la politique</h2>
-      <p>
-        TALA Trajet se réserve le droit de modifier la présente Politique de Confidentialité à tout moment afin de se conformer aux évolutions légales et technologiques. Toute mise à jour sera répercutée directement sur cette page avec effet immédiat.
-      </p>
-      <p style="margin-top: 15px; font-size: 0.85rem; color: #6b7c93;">
-        Dernière mise à jour : <strong>Août 2026</strong>
-      </p>
-    </div>
-
-  </div>
-
-</main>
-
-<!-- FOOTER -->
-<footer>
-  <div class="container footer-inner">
-    <div class="footer-brand">
+  <footer>
+    <div class="container footer-inner">
       <div class="brand">TALA<span>Trajet</span></div>
-      <p>La plateforme intelligente de réservation de billets de transport en République Démocratique du Congo.</p>
+      <p style="color: var(--muted); font-size: 0.85rem;">© 2026 TALA Trajet — Tous droits réservés.</p>
     </div>
-    
-    <div class="footer-links">
-      <a href="about.html">À propos</a>
-      <a href="contact.html">Contact</a>
-      <a href="terms.html">Conditions d'utilisation</a>
-      <a href="privacy.html" style="color: #00d2ff;">Politique de confidentialité</a>
-    </div>
-  </div>
-  <div class="footer-bottom">
-    <p>© 2026 TALA Trajet — Tous droits réservés.</p>
-  </div>
-</footer>
+  </footer>
 
-<script>
-  // Menu Mobile Toggle
-  const menuToggle = document.getElementById('menuToggle');
-  const navMenu = document.getElementById('navMenu');
-  if (menuToggle && navMenu) {
+  <script>
+    const menuToggle = document.getElementById('menuToggle');
+    const navMenu = document.getElementById('navMenu');
     menuToggle.addEventListener('click', () => {
       navMenu.classList.toggle('open');
-      menuToggle.textContent = navMenu.classList.contains('open') ? '✕' : '☰';
+      menuToggle.innerHTML = navMenu.classList.contains('open') ? '<i data-lucide="x"></i>' : '☰';
+      lucide.createIcons();
     });
-  }
-
-  // Initialisation des icônes
-  lucide.createIcons();
-</script>
-
+    lucide.createIcons();
+  </script>
 </body>
 </html>
