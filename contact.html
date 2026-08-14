@@ -3,253 +3,273 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Contactez l'équipe TALA Trajet pour toute question sur vos billets, réservations ou partenariats en RDC." />
+  <meta name="theme-color" content="#0b1018" />
   <title>Contact — TALA Trajet</title>
-  
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
-  
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
-  
   <style>
-    /* Ajustements spécifiques pour la page Contact s'harmonisant avec style.css */
-    .field-label {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      margin-bottom: 8px;
-      font-size: 0.85rem;
-      color: var(--text-light, #e7edf3);
+    :root {
+      --bg: #0b1018;
+      --bg-soft: #111923;
+      --surface: #151e2a;
+      --surface-2: #1b2634;
+      --border: #2a394b;
+      --text: #f5f8fc;
+      --muted: #a8b5c5;
+      --primary: #25a5ff;
+      --primary-2: #00d7c8;
+      --success: #35d07f;
+      --warning: #ffbf55;
+      --danger: #ff6b6b;
+      --shadow: 0 20px 60px rgba(0, 0, 0, .28);
+      --radius: 18px;
+      --container: 1160px;
     }
 
-    .field-label svg {
-      width: 16px;
-      height: 16px;
-      stroke-width: 2;
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 50% -10%, rgba(37, 165, 255, .16), transparent 35rem),
+        var(--bg);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.6;
     }
 
-    .submit-icon {
-      width: 19px;
-      height: 19px;
-      vertical-align: -4px;
-      margin-left: 5px;
-      transition: transform 0.2s ease;
-    }
+    a { color: inherit; text-decoration: none; }
+    button, input, select, textarea { font: inherit; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    img { max-width: 100%; display: block; }
+    .container { width: min(var(--container), calc(100% - 40px)); margin-inline: auto; }
 
-    .btn-primary-lg:hover .submit-icon {
-      transform: translateX(4px);
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      background: rgba(11,16,24,.88);
+      backdrop-filter: blur(16px);
     }
+    .header-inner { min-height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+    .brand { font-weight: 900; font-size: 1.4rem; letter-spacing: -.05em; }
+    .brand span { color: var(--primary-2); }
+    .main-nav { display: flex; align-items: center; gap: 24px; }
+    .main-nav a { color: var(--muted); font-weight: 650; font-size: .94rem; transition: color .2s ease; display: inline-flex; align-items: center; gap: 6px; }
+    .main-nav a:hover, .main-nav a.active { color: var(--text); }
+    .auth-link { border: 1px solid rgba(0,215,200,.55); color: var(--primary-2) !important; padding: 9px 15px; border-radius: 10px; }
+    .auth-link:hover { background: rgba(0,215,200,.1); }
+    .menu-button { display: none; border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 10px; padding: 8px 11px; cursor: pointer; }
 
-    /* Bouton principal avec effet de lueur (glow) homogène */
-    .btn-primary-lg {
+    .hero { padding: 64px 0 48px; text-align: center; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px; color: var(--primary-2); border: 1px solid rgba(0,215,200,.35); background: rgba(0,215,200,.08); border-radius: 999px; font-weight: 750; font-size: .82rem; }
+    .hero h1 { max-width: 840px; margin: 20px auto 14px; font-size: clamp(2.25rem, 5vw, 3.8rem); line-height: 1.08; letter-spacing: -.065em; }
+    .gradient-text { background: linear-gradient(120deg, var(--primary), var(--primary-2)); color: transparent; background-clip: text; -webkit-background-clip: text; }
+    .hero-lead { max-width: 680px; margin: 0 auto; color: var(--muted); font-size: clamp(1rem, 2vw, 1.12rem); }
+
+    section { padding: 60px 0 80px; }
+    .section-heading { max-width: 650px; margin: 0 auto 32px; text-align: center; }
+    .section-heading h2 { margin: 0 0 10px; font-size: clamp(1.6rem, 3.5vw, 2.2rem); letter-spacing: -.04em; }
+    .section-heading p { margin: 0; color: var(--muted); font-size: .95rem; }
+
+    .feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-bottom: 40px; }
+    .card { height: 100%; padding: 25px; background: linear-gradient(145deg, var(--surface), #111a25); border: 1px solid var(--border); border-radius: var(--radius); transition: transform .2s ease, border-color .2s ease; }
+    .card:hover { transform: translateY(-4px); border-color: rgba(37,165,255,.75); }
+    .icon-box { display: grid; place-items: center; width: 46px; height: 46px; margin-bottom: 17px; border-radius: 13px; color: var(--primary-2); background: rgba(0,215,200,.1); font-size: 1.35rem; }
+    .card h3 { margin: 0 0 9px; font-size: 1.15rem; }
+    .card p { margin: 0; color: var(--muted); font-size: .93rem; }
+
+    /* Formulaire de contact stylisé */
+    .contact-form-card { max-width: 860px; margin: 0 auto; padding: 36px; background: linear-gradient(145deg, rgba(21,30,42,.96), rgba(15,23,33,.96)); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .field { margin-bottom: 18px; text-align: left; }
+    .field label { display: block; margin-bottom: 7px; color: var(--muted); font-weight: 700; font-size: .82rem; }
+    .field input, .field select, .field textarea { width: 100%; padding: 12px 14px; border: 1px solid var(--border); border-radius: 11px; outline: none; color: var(--text); background: #0b121b; font-size: .95rem; }
+    .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,165,255,.15); }
+    .field select { appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a8b5c5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3cpolyline points='6 9 12 15 18 9'%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 14px center; background-size: 16px; padding-right: 40px; }
+    
+    /* Bouton principal avec effet de lueur moderne (glow) harmonisé */
+    .primary-button {
       width: 100%;
       min-height: 50px;
-      padding: 0 20px;
-      background: linear-gradient(120deg, #45c0ff, #00d7c8);
-      color: #03131c;
-      border: none;
+      border: 0;
       border-radius: 11px;
+      padding: 0 20px;
+      color: #03131c;
+      background: linear-gradient(120deg, #45c0ff, #00d7c8);
       font-weight: 850;
       cursor: pointer;
-      margin-top: 20px;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      font-size: 1rem;
+      margin-top: 6px;
       box-shadow: 0 4px 15px rgba(0, 215, 200, 0.2);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
     }
-
-    .btn-primary-lg:hover {
+    .primary-button:hover {
       transform: translateY(-2px);
       filter: brightness(1.1);
       box-shadow: 0 8px 25px rgba(0, 215, 200, 0.4);
     }
-
-    .btn-primary-lg:active {
+    .primary-button:active {
       transform: translateY(0);
     }
+
+    footer { padding: 45px 0 20px; background: #080d13; border-top: 1px solid var(--border); }
+    .footer-inner { display: flex; align-items: start; justify-content: space-between; gap: 30px; padding-bottom: 28px; border-bottom: 1px solid var(--border); }
+    .footer-description { max-width: 340px; margin: 10px 0 0; color: var(--muted); font-size: .9rem; }
+    .footer-links { display: flex; flex-wrap: wrap; gap: 17px; }
+    .footer-links a { color: var(--muted); font-size: .88rem; display: inline-flex; align-items: center; gap: 5px; }
+    .footer-links a:hover { color: var(--primary-2); }
+    .footer-bottom { margin: 19px 0 0; color: #718095; text-align: center; font-size: .8rem; }
+
+    @media (max-width: 900px) {
+      .feature-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 680px) {
+      .container { width: min(var(--container), calc(100% - 28px)); }
+      .header-inner { min-height: 64px; }
+      .menu-button { display: block; }
+      .main-nav { display: none; position: absolute; top: 64px; left: 14px; right: 14px; flex-direction: column; align-items: stretch; gap: 5px; padding: 13px; background: #121b26; border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow); }
+      .main-nav.open { display: flex; }
+      .main-nav a { padding: 11px 12px; }
+      .hero { padding: 45px 0 35px; }
+      .feature-grid { grid-template-columns: 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      .contact-form-card { padding: 20px; }
+      .footer-inner { flex-direction: column; text-align: center; align-items: center; }
+      .footer-links { justify-content: center; }
+    }
   </style>
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
 
-  <!-- HEADER -->
   <header class="site-header">
-    <div class="brand">
-      TALA<span>Trajet</span>
+    <div class="container header-inner">
+      <a class="brand" href="index.html" aria-label="TALA Trajet, accueil">TALA<span>Trajet</span></a>
+      <button class="menu-button" id="menuToggle" type="button" aria-controls="navMenu" aria-expanded="false" aria-label="Ouvrir le menu">☰</button>
+      <nav class="main-nav" id="navMenu" aria-label="Navigation principale">
+        <a href="index.html"><i data-lucide="house" style="width:16px;height:16px;"></i>Accueil</a>
+        <a href="about.html"><i data-lucide="info" style="width:16px;height:16px;"></i>À propos</a>
+        <a href="contact.html" class="active"><i data-lucide="mail" style="width:16px;height:16px;"></i>Contact</a>
+        <a class="auth-link" href="auth.html"><i data-lucide="log-in" style="width:16px;height:16px;"></i>Se connecter</a>
+      </nav>
     </div>
-    
-    <nav class="main-nav" id="navMenu">
-      <a href="index.html">
-        <i data-lucide="house" class="nav-icon"></i> Accueil
-      </a>
-      <a href="about.html">
-        <i data-lucide="info" class="nav-icon"></i> À propos
-      </a>
-      <a href="contact.html" class="active">
-        <i data-lucide="headphones" class="nav-icon"></i> Contact
-      </a>
-    </nav>
-
-    <button class="menu-btn" id="menuToggle" aria-label="Ouvrir le menu">
-      <i data-lucide="menu"></i>
-    </button>
   </header>
 
-  <!-- MAIN -->
   <main>
-    <!-- HERO CONTACT -->
-    <section class="hero-showcase">
-      <div class="hero-content">
-        <span class="badge-hero">
-          <i data-lucide="life-buoy" class="hero-icon"></i> Besoin d'aide ?
-        </span>
-
-        <h1 class="hero-title">
-          Contactez l'équipe <span>TALA Trajet</span>
-        </h1>
-
-        <p class="hero-sub">
-          Une question sur votre billet, un trajet ou une agence partenaire ?
-          Notre équipe est à votre disposition pour vous assister.
-        </p>
+    <section class="hero">
+      <div class="container">
+        <span class="eyebrow"><i data-lucide="life-buoy" style="width:14px;height:14px;"></i> Besoin d'aide ?</span>
+        <h1>Contactez l'équipe <span class="gradient-text">TALA Trajet</span></h1>
+        <p class="hero-lead">Une question sur votre billet, un trajet ou une agence partenaire ? Notre équipe est à votre disposition pour vous assister.</p>
       </div>
     </section>
 
-    <!-- FORMULAIRE ET INFOS -->
-    <section class="features-section" style="padding-top: 20px;">
-      <div class="container" style="max-width: 900px;">
+    <section aria-labelledby="contact-content">
+      <div class="container">
         
-        <div class="routes-grid" style="grid-template-columns: 1fr; margin-bottom: 40px;">
+        <div class="feature-grid">
+          <article class="card">
+            <div class="icon-box"><i data-lucide="phone"></i></div>
+            <h3>Téléphone & WhatsApp</h3>
+            <p style="margin-bottom: 8px; color: var(--muted);">Assistance rapide 7j/7</p>
+            <a href="tel:+243812345678" style="color: var(--primary-2); font-weight: 750; font-size: .95rem;">+243 812 345 678</a>
+          </article>
 
-          <!-- Formulaire de contact -->
-          <div class="card" style="padding: 30px 24px; border-radius: 16px;">
-            <div class="section-header" style="margin-bottom: 30px;">
-              <h2 style="font-size: 1.6rem;">
-                <i data-lucide="message-circle" class="icon"></i> Envoyez-nous un message
-              </h2>
-              <p>
-                Remplissez ce formulaire et nous vous répondrons dans les plus brefs délais.
-              </p>
-            </div>
+          <article class="card">
+            <div class="icon-box"><i data-lucide="mail"></i></div>
+            <h3>Adresse E-mail</h3>
+            <p style="margin-bottom: 8px; color: var(--muted);">Pour vos demandes officielles</p>
+            <a href="mailto:talatrajet@gmail.com" style="color: var(--primary-2); font-weight: 750; font-size: .95rem;">talatrajet@gmail.com</a>
+          </article>
 
-            <form onsubmit="handleContactSubmit(event)" class="search-form">
-              <!-- NOM + TELEPHONE -->
-              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;">
-                <!-- NOM -->
-                <div style="text-align: left;">
-                  <label for="contactName" class="field-label">
-                    <i data-lucide="user"></i> Nom complet
-                  </label>
-                  <input type="text" id="contactName" placeholder="Votre nom et prénom" required>
-                </div>
+          <article class="card">
+            <div class="icon-box"><i data-lucide="map-pin"></i></div>
+            <h3>Bureau Principal</h3>
+            <p style="color: var(--text); font-weight: 600;">Kinshasa & Matadi</p>
+            <p style="color: var(--muted); font-size: .88rem; margin-top: 4px;">République Démocratique du Congo</p>
+          </article>
+        </div>
 
-                <!-- TELEPHONE -->
-                <div style="text-align: left;">
-                  <label for="contactPhone" class="field-label">
-                    <i data-lucide="phone"></i> Téléphone / WhatsApp
-                  </label>
-                  <input type="tel" id="contactPhone" placeholder="+243..." required>
-                </div>
-              </div>
-
-              <!-- SUJET -->
-              <div style="text-align: left; margin-top: 16px;">
-                <label for="contactSubject" class="field-label">
-                  <i data-lucide="list-filter"></i> Sujet de votre demande
-                </label>
-                <select id="contactSubject" required>
-                  <option value="">Sélectionnez un sujet</option>
-                  <option value="reservation">Problème avec une réservation</option>
-                  <option value="payment">Question sur un paiement Mobile Money</option>
-                  <option value="partnership">Devenir une agence partenaire</option>
-                  <option value="other">Autre demande</option>
-                </select>
-              </div>
-
-              <!-- MESSAGE -->
-              <div style="text-align: left; margin-top: 16px;">
-                <label for="contactMessage" class="field-label">
-                  <i data-lucide="message-square"></i> Message
-                </label>
-                <textarea id="contactMessage" rows="5" placeholder="Expliquez-nous votre demande en détail..." required></textarea>
-              </div>
-
-              <!-- BOUTON ENVOYER -->
-              <button type="submit" class="btn-primary-lg">
-                Envoyer le message
-                <i data-lucide="send" class="submit-icon"></i>
-              </button>
-            </form>
+        <div class="contact-form-card">
+          <div class="section-heading" style="margin-bottom: 24px;">
+            <h2>Envoyez-nous un message</h2>
+            <p>Remplissez ce formulaire et nous vous répondrons dans les plus brefs délais.</p>
           </div>
 
+          <form onsubmit="handleContactSubmit(event)" novalidate>
+            <div class="form-grid">
+              <div class="field">
+                <label for="contactName">Nom complet</label>
+                <input type="text" id="contactName" placeholder="Votre nom et prénom" required>
+              </div>
+
+              <div class="field">
+                <label for="contactPhone">Téléphone / WhatsApp</label>
+                <input type="tel" id="contactPhone" placeholder="+243..." required>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="contactSubject">Sujet de votre demande</label>
+              <select id="contactSubject" required>
+                <option value="">Sélectionnez un sujet</option>
+                <option value="reservation">Problème avec une réservation</option>
+                <option value="payment">Question sur un paiement Mobile Money</option>
+                <option value="partnership">Devenir une agence partenaire</option>
+                <option value="other">Autre demande</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="contactMessage">Message</label>
+              <textarea id="contactMessage" rows="5" placeholder="Expliquez-nous votre demande en détail..." required></textarea>
+            </div>
+
+            <button type="submit" class="primary-button">Envoyer le message →</button>
+          </form>
         </div>
 
       </div>
     </section>
   </main>
 
-  <!-- FOOTER -->
   <footer>
     <div class="container footer-inner">
-      <div class="footer-brand">
-        <div class="brand">
-          TALA<span>Trajet</span>
-        </div>
-        <p>
-          La plateforme intelligente de réservation de billets de transport
-          en République Démocratique du Congo.
-        </p>
+      <div>
+        <a class="brand" href="index.html">TALA<span>Trajet</span></a>
+        <p class="footer-description">La plateforme intelligente de réservation de billets de transport en République Démocratique du Congo.</p>
       </div>
-
-      <div class="footer-links">
-        <a href="about.html">
-          <i data-lucide="info" class="footer-icon"></i> À propos
-        </a>
-        <a href="contact.html">
-          <i data-lucide="headphones" class="footer-icon"></i> Contact
-        </a>
-        <a href="terms.html">
-          <i data-lucide="file-text" class="footer-icon"></i> Conditions d'utilisation
-        </a>
-        <a href="privacy.html">
-          <i data-lucide="shield-check" class="footer-icon"></i> Politique de confidentialité
-        </a>
-      </div>
+      <nav class="footer-links" aria-label="Liens de pied de page">
+        <a href="about.html"><i data-lucide="info" style="width:14px;height:14px;"></i>À propos</a>
+        <a href="contact.html"><i data-lucide="mail" style="width:14px;height:14px;"></i>Contact</a>
+        <a href="terms.html"><i data-lucide="file-text" style="width:14px;height:14px;"></i>Conditions d'utilisation</a>
+        <a href="privacy.html"><i data-lucide="shield-check" style="width:14px;height:14px;"></i>Politique de confidentialité</a>
+      </nav>
     </div>
-
-    <div class="footer-bottom">
-      <p>© 2026 TALA Trajet — Tous droits réservés.</p>
-    </div>
+    <p class="container footer-bottom">© 2026 TALA Trajet — Tous droits réservés.</p>
   </footer>
 
   <script>
-    // Initialisation des icônes Lucide
-    lucide.createIcons();
-
-    // Gestion du menu mobile
     const menuToggle = document.getElementById('menuToggle');
     const navMenu = document.getElementById('navMenu');
 
     if (menuToggle && navMenu) {
       menuToggle.addEventListener('click', () => {
         navMenu.classList.toggle('open');
-        if (navMenu.classList.contains('open')) {
-          menuToggle.innerHTML = '<i data-lucide="x"></i>';
-        } else {
-          menuToggle.innerHTML = '<i data-lucide="menu"></i>';
-        }
+        menuToggle.innerHTML = navMenu.classList.contains('open')
+          ? '<i data-lucide="x"></i>'
+          : '<i data-lucide="menu"></i>';
         lucide.createIcons();
       });
     }
 
-    // Gestion de la soumission du formulaire
     function handleContactSubmit(e) {
       e.preventDefault();
       alert("Merci ! Votre message a été envoyé avec succès. Notre équipe va vous recontacter.");
       e.target.reset();
     }
-  </script>
 
+    lucide.createIcons();
+  </script>
 </body>
 </html>
