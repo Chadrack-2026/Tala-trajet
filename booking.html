@@ -399,15 +399,15 @@
     return dateString;
   }
 
-  async function loadTrip() {
+  document.addEventListener('DOMContentLoaded', async () => {
     if (!trajetId) {
       alert("Aucun trajet sélectionné.");
       window.location.href = "index.html";
       return;
     }
 
-    const { data: { session } } = await supabaseClient.auth.getSession();
-    if (!session || !session.user) {
+    const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+    if (sessionError || !session || !session.user) {
       alert("Vous devez être connecté à votre compte pour réserver un trajet.");
       window.location.href = "auth.html";
       return;
@@ -421,6 +421,10 @@
       document.getElementById("email").value = session.user.email;
     }
 
+    await loadTrip();
+  });
+
+  async function loadTrip() {
     const { data, error } = await supabaseClient
       .from("trips")
       .select(`
@@ -431,7 +435,7 @@
         prix,
         places_totales,
         places_disponibles,
-        agency:agencies!left ( id, nom )
+        agency:agencies ( nom )
       `)
       .eq("id", trajetId)
       .maybeSingle();
@@ -469,12 +473,15 @@
 
     document.getElementById("remainingCount").textContent = remainingSeats;
 
+    const agenceObj = Array.isArray(trajet.agency) ? trajet.agency[0] : trajet.agency;
+    const agenceNom = agenceObj?.nom || 'Agence Partenaire';
+
     document.getElementById("tripDetails").innerHTML = `
       <h3 style="margin-top:0; color:var(--primary-2); font-size:1.25rem;">
         <i data-lucide="map-pin" class="info-icon"></i> ${trajet.ville_depart} <span style="color:#ffffff;">➔</span> ${trajet.ville_arrivee}
       </h3>
       <p style="margin:8px 0; color:var(--muted); font-size:.9rem;">
-        <i data-lucide="building-2" class="info-icon"></i> <strong>Compagnie :</strong> ${trajet.agency ? trajet.agency.nom : 'Agence Partenaire'}
+        <i data-lucide="building-2" class="info-icon"></i> <strong>Compagnie :</strong> ${agenceNom}
       </p>
       <p style="margin:8px 0; color:var(--muted); font-size:.9rem;">
         <i data-lucide="calendar-days" class="info-icon"></i> <strong>Date de départ :</strong> ${formatDate(trajet.date_depart)}
@@ -574,6 +581,9 @@
     const rawPhone = formData.get("phone").trim();
     const fullPhone = "+243" + rawPhone.replace(/\s+/g, '');
 
+    const agenceObj = Array.isArray(trajet.agency) ? trajet.agency[0] : trajet.agency;
+    const agenceNom = agenceObj?.nom || 'Agence Partenaire';
+
     const reservationInfoToSave = {
       trip_id: trajetId,
       user_id: currentUserId,
@@ -585,7 +595,7 @@
       total_price: totalAmount,
       ville_depart: trajet.ville_depart,
       ville_arrivee: trajet.ville_arrivee,
-      agence: trajet.agency ? trajet.agency.nom : 'Agence Partenaire',
+      agence: agenceNom,
       date: trajet.date_depart,
       statut: "EN_ATTENTE_PAIEMENT"
     };
@@ -593,8 +603,6 @@
     localStorage.setItem("reservationInfo", JSON.stringify(reservationInfoToSave));
     window.location.href = "payment.html";
   });
-
-  loadTrip();
 </script>
 
 </body>
