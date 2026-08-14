@@ -245,23 +245,31 @@
       font-size: 1.2rem;
     }
 
+    /* Bouton principal avec effet de lueur (glow) et transition fluide */
     button {
       width: 100%;
-      padding: 15px;
-      background: var(--primary-blue);
-      color: #0c0f13;
+      min-height: 50px;
+      padding: 0 20px;
+      background: linear-gradient(120deg, #45c0ff, #00d7c8);
+      color: #03131c;
       border: none;
-      border-radius: 10px;
-      font-weight: 700;
+      border-radius: 11px;
+      font-weight: 850;
       cursor: pointer;
       margin-top: 15px;
-      transition: all 0.3s ease;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       font-size: 1rem;
+      box-shadow: 0 4px 15px rgba(0, 215, 200, 0.2);
     }
 
     button:hover {
-      opacity: 0.9;
       transform: translateY(-2px);
+      filter: brightness(1.1);
+      box-shadow: 0 8px 25px rgba(0, 215, 200, 0.4);
+    }
+
+    button:active {
+      transform: translateY(0);
     }
 
     .form input {
@@ -453,7 +461,6 @@
   let totalCapacity = 57;
   let occupiedSeatsCount = 0;
 
-  // Fonction pour formater proprement la date (AAAA-MM-JJ ➔ JJ/MM/AAAA)
   function formatDate(dateString) {
     if (!dateString) return '';
     const cleanDate = dateString.split('T')[0];
