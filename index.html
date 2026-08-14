@@ -35,7 +35,8 @@
         <p class="hero-lead">Comparez les compagnies, consultez les disponibilités, sélectionnez votre siège et préparez votre réservation avec TALA Trajet.</p>
 
         <div class="search-card">
-          <form id="searchForm" onsubmit="handleSearch(event)" novalidate>
+          <!-- Suppression de novalidate pour forcer la vérification HTML native et JS des champs -->
+          <form id="searchForm" onsubmit="handleSearch(event)">
             <div class="search-grid">
               <div class="field">
                 <label for="departureCity">Ville de départ</label>
@@ -264,7 +265,7 @@
       if (yearEl) yearEl.textContent = new Date().getFullYear();
     });
 
-    // Fonction de recherche obligatoire avec validation des champs et vérification de session
+    // Fonction de recherche obligatoire avec validation stricte des champs et vérification de session
     async function handleSearch(e) {
       e.preventDefault();
       
@@ -272,9 +273,9 @@
       const arr = document.getElementById('arrivalCity').value.trim();
       const date = document.getElementById('travelDate').value;
 
-      // Bloquer et avertir si un champ est vide
+      // Double vérification de sécurité pour bloquer si l'un des champs est vide
       if (!dep || !arr || !date) {
-        alert("Veuillez renseigner la ville de départ, la ville d'arrivée et la date de voyage.");
+        alert("Veuillez remplir tous les champs obligatoires (Ville de départ, ville d'arrivée et date de voyage).");
         return;
       }
 
