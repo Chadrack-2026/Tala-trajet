@@ -147,10 +147,10 @@
       accountLink.textContent = "Mon Compte";
       accountLink.href = "auth.html";
     } else {
-      // Récupération du nom complet depuis les métadonnées ou par défaut le pseudo de l'email
+      // Récupération du nom complet depuis les métadonnées ou le pseudo de l'email
       const fullName = session.user.user_metadata?.full_name || session.user.email.split('@')[0];
       accountLink.textContent = fullName;
-      accountLink.href = "dashboard.html"; // Redirige vers le profil ou espace client
+      accountLink.href = "account.html"; // Redirige vers la page account.html si connecté
     }
   }
 
