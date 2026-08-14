@@ -195,7 +195,7 @@
     </div>
   </div>
   <div class="footer-bottom">
-    <p>© 2026 TALA Trajet — Tous droits réservés.</p>
+    <p>© <span id="currentYear">2026</span> TALA Trajet — Tous droits réservés.</p>
   </div>
 </footer>
 
@@ -205,13 +205,30 @@
     const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma2lma3N0YXRiYWR0em9zeGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3MTYzMTAsImV4cCI6MjEwMTI5MjMxMH0.xPzFtl_OET2asSc5iH3liRHnPyuUYAfbbjZISwfnaA8";
     const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
-    // Initialisation du menu
+    // Initialisation du menu mobile
     const menuToggle = document.getElementById('menuToggle');
     const navMenu = document.getElementById('navMenu');
     if (menuToggle && navMenu) {
       menuToggle.addEventListener('click', () => {
         navMenu.classList.toggle('open');
       });
+    }
+
+    // Vérification dynamique de l'authentification pour le menu
+    async function checkAuthStatus() {
+      const accountLink = document.getElementById("userAccountLink");
+      if (!accountLink) return;
+
+      const { data: { session }, error } = await supabaseClient.auth.getSession();
+
+      if (error || !session || !session.user) {
+        accountLink.textContent = "Se connecter";
+        accountLink.href = "auth.html";
+      } else {
+        const fullName = session.user.user_metadata?.full_name || session.user.email.split('@')[0];
+        accountLink.textContent = fullName;
+        accountLink.href = "account.html";
+      }
     }
 
     // Chargement des avis
@@ -242,8 +259,10 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+      checkAuthStatus();
       loadPublicReviews();
-      document.getElementById('currentYear').textContent = new Date().getFullYear();
+      const yearEl = document.getElementById('currentYear');
+      if (yearEl) yearEl.textContent = new Date().getFullYear();
     });
 
     function handleSearch(e) {
