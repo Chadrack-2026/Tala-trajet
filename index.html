@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#0b1018" />
   <title>TALA Trajet — Réservez vos trajets en RDC</title>
   <link rel="stylesheet" href="style.css">
-  <!-- Inclusion de la bibliothèque Supabase et Lucide Icons -->
+  <!-- Inclusion de la bibliothèque Supabase et Lucide Icons pour le script JS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
@@ -75,38 +75,129 @@
       </div>
     </section>
 
-    <!-- ... (Section partenaires, bénéfices, fonctionnement inchangés) ... -->
+    <section class="partners-section" aria-label="Partenaires de paiement">
+      <div class="container">
+        <p class="partners-title">Partenaires de paiement officiels</p>
+        <div class="partners-ticker">
+          <div class="ticker-track">
+            <div class="partner-logo-item"><img src="../image/vodacom.svg" alt="Vodacom M-Pesa"></div>
+            <div class="partner-logo-item"><img src="../image/orange.svg" alt="Orange Money"></div>
+            <div class="partner-logo-item"><img src="../image/airtel.svg" alt="Airtel Money"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section aria-labelledby="benefits-title">
+      <div class="container">
+        <div class="section-heading">
+          <h2 id="benefits-title">Pourquoi choisir <span class="accent">TALA Trajet</span> ?</h2>
+          <p>Une expérience pensée pour réduire le stress avant, pendant et après votre déplacement.</p>
+        </div>
+        <div class="feature-grid">
+          <article class="card"><div class="icon-box">⚡</div><h3>Recherche rapide</h3><p>Trouvez les trajets disponibles sans multiplier les déplacements en agence.</p></article>
+          <article class="card"><div class="icon-box">₣</div><h3>Paiement local</h3><p>Utilisez les solutions Mobile Money que vous connaissez déjà au quotidien.</p></article>
+          <article class="card"><div class="icon-box">▣</div><h3>Billet numérique</h3><p>Recevez un billet avec QR code et retrouvez vos informations depuis votre espace.</p></article>
+          <article class="card"><div class="icon-box">✓</div><h3>Partenaires vérifiés</h3><p>Comparez les offres des compagnies et consultez les détails avant de réserver.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="steps-section" id="fonctionnement" aria-labelledby="steps-title">
+      <div class="container">
+        <div class="section-heading">
+          <h2 id="steps-title">Comment ça marche ?</h2>
+          <p>Une réservation en quatre étapes simples.</p>
+        </div>
+        <div class="steps">
+          <article class="step"><span class="step-number">01</span><h3>Recherchez</h3><p>Indiquez votre ville de départ, votre destination et la date souhaitée.</p></article>
+          <article class="step"><span class="step-number">02</span><h3>Comparez</h3><p>Consultez les horaires, les tarifs, les compagnies et les disponibilités.</p></article>
+          <article class="step"><span class="step-number">03</span><h3>Réservez</h3><p>Choisissez votre siège et confirmez votre paiement selon les options disponibles.</p></article>
+          <article class="step"><span class="step-number">04</span><h3>Embarquez</h3><p>Présentez votre billet numérique et votre QR code au moment du départ.</p></article>
+        </div>
+      </div>
+    </section>
 
     <section id="lignes" aria-labelledby="routes-title">
       <div class="container">
         <div class="section-heading">
           <h2 id="routes-title">Lignes populaires</h2>
+          <p>Commencez par rechercher l’un de nos itinéraires fréquemment consultés.</p>
         </div>
         <div class="route-grid">
           <article class="card route-card">
-            <div class="route-top"><h3>Matadi → Kinshasa</h3></div>
+            <div class="route-top"><h3>Matadi → Kinshasa</h3><span class="tag">Populaire</span></div>
+            <p class="route-meta">Bus et minibus · Départs réguliers</p>
             <button class="route-button" type="button" onclick="handleRouteClick(event, 'Matadi', 'Kinshasa')">Rechercher ce trajet →</button>
           </article>
           <article class="card route-card">
-            <div class="route-top"><h3>Kinshasa → Moanda</h3></div>
+            <div class="route-top"><h3>Kinshasa → Moanda</h3><span class="tag">Direct</span></div>
+            <p class="route-meta">Trajet confort · Options selon disponibilité</p>
             <button class="route-button" type="button" onclick="handleRouteClick(event, 'Kinshasa', 'Moanda')">Rechercher ce trajet →</button>
           </article>
           <article class="card route-card">
-            <div class="route-top"><h3>Kinshasa → Boma</h3></div>
+            <div class="route-top"><h3>Kinshasa → Boma</h3><span class="tag">Régulier</span></div>
+            <p class="route-meta">Départs matin et soir · Informations à confirmer</p>
             <button class="route-button" type="button" onclick="handleRouteClick(event, 'Kinshasa', 'Boma')">Rechercher ce trajet →</button>
           </article>
         </div>
       </div>
     </section>
 
-    <!-- ... (Reste de la page) ... -->
+    <!-- TÉMOIGNAGES -->
+    <section style="padding: 80px 0; background: #131720;">
+      <div class="container">
+        <div class="section-heading">
+          <h2 id="reviews-title">Ce que disent <span>nos voyageurs</span></h2>
+          <p>Découvrez les retours d'expérience de ceux qui utilisent TALA Trajet.</p>
+        </div>
+        <div id="dynamicReviewsContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
+          <p style="text-align: center; color: #b0bcc9; grid-column: 1 / -1;">Chargement des avis clients...</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="faq" aria-labelledby="faq-title">
+      <div class="container">
+        <div class="section-heading">
+          <h2 id="faq-title">Questions fréquentes</h2>
+          <p>Les informations essentielles avant de commencer.</p>
+        </div>
+        <div class="faq">
+          <details><summary>Comment vais-je recevoir mon billet ?</summary><p>Après confirmation de la réservation, votre billet numérique doit être disponible dans votre espace et, selon le dispositif mis en place, envoyé par le canal de contact associé à votre compte.</p></details>
+          <details><summary>Quels moyens de paiement sont acceptés ?</summary><p>TALA Trajet met en avant M-Pesa, Orange Money et Airtel Money.</p></details>
+          <details><summary>Que se passe-t-il si le paiement échoue ?</summary><p>La réservation ne doit être confirmée qu’après réception d’un statut de paiement validé.</p></details>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta" id="inscription">
+      <div class="container">
+        <h2>Prêt à simplifier vos déplacements ?</h2>
+        <a class="primary-button" href="mailto:contact@talatrajet.cd">Créer un compte gratuitement</a>
+      </div>
+    </section>
   </main>
 
-  <footer>
-    <div class="container">
-      <p>© 2026 TALA Trajet — Tous droits réservés.</p>
+  
+<!-- FOOTER -->
+<footer>
+  <div class="container footer-inner">
+    <div class="footer-brand">
+      <div class="brand">TALA<span>Trajet</span></div>
+      <p>La plateforme intelligente de réservation de billets de transport en RDC.</p>
     </div>
-  </footer>
+    <div class="footer-links">
+      <a href="about.html">À propos</a>
+      <a href="contact.html">Contact</a>
+      <a href="terms.html">Conditions d'utilisation</a>
+      <a href="privacy.html">Politique de confidentialité</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© <span id="currentYear">2026</span> TALA Trajet — Tous droits réservés.</p>
+  </div>
+</footer>
 
   <script>
     const { createClient } = window.supabase;
@@ -114,14 +205,73 @@
     const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma2lma3N0YXRiYWR0em9zeGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3MTYzMTAsImV4cCI6MjEwMTI5MjMxMH0.xPzFtl_OET2asSc5iH3liRHnPyuUYAfbbjZISwfnaA8";
     const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
-    // Fonction de recherche sécurisée
+    // Initialisation du menu mobile
+    const menuToggle = document.getElementById('menuToggle');
+    const navMenu = document.getElementById('navMenu');
+    if (menuToggle && navMenu) {
+      menuToggle.addEventListener('click', () => {
+        navMenu.classList.toggle('open');
+      });
+    }
+
+    // Vérification dynamique de l'authentification pour le menu
+    async function checkAuthStatus() {
+      const accountLink = document.getElementById("userAccountLink");
+      if (!accountLink) return;
+
+      const { data: { session }, error } = await supabaseClient.auth.getSession();
+
+      if (error || !session || !session.user) {
+        accountLink.textContent = "Se connecter";
+        accountLink.href = "auth.html";
+      } else {
+        const fullName = session.user.user_metadata?.full_name || session.user.email.split('@')[0];
+        accountLink.textContent = fullName;
+        accountLink.href = "account.html";
+      }
+    }
+
+    // Chargement des avis
+    async function loadPublicReviews() {
+      const container = document.getElementById('dynamicReviewsContainer');
+      if (!container) return;
+      const { data: reviews, error } = await supabaseClient
+        .from('reviews')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(3);
+
+      if (error || !reviews || reviews.length === 0) {
+        container.innerHTML = `<p style="text-align: center; color: #b0bcc9; grid-column: 1 / -1;">Aucun avis pour le moment.</p>`;
+        return;
+      }
+      container.innerHTML = "";
+      reviews.forEach(rev => {
+        const card = document.createElement("div");
+        card.style.cssText = "background: #171b22; border: 1px solid #2a313b; padding: 24px; border-radius: 12px;";
+        card.innerHTML = `
+          <p style="color: #00d2ff; font-size: 1.1rem;">${"★".repeat(rev.rating)}</p>
+          <p style="color: #b0bcc9; margin: 16px 0;">"${rev.comment}"</p>
+          <h4 style="color: #fff;">${rev.user_name || 'Voyageur'}</h4>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      checkAuthStatus();
+      loadPublicReviews();
+      const yearEl = document.getElementById('currentYear');
+      if (yearEl) yearEl.textContent = new Date().getFullYear();
+    });
+
+    // Fonction de recherche sécurisée (corrigée avec async/await)
     async function handleSearch(e) {
       e.preventDefault();
       
-      // On attend la réponse de Supabase avant de continuer
       const { data: { session } } = await supabaseClient.auth.getSession();
       
-      if (!session) {
+      if (!session || !session.user) {
         window.location.href = 'auth.html';
         return;
       }
@@ -131,35 +281,19 @@
       window.location.href = `results.html?departure=${dep}&arrival=${arr}`;
     }
 
-    // Redirection sécurisée pour les lignes populaires
+    // Redirection sécurisée pour les lignes populaires (corrigée avec async/await)
     async function handleRouteClick(e, dep, arr) {
       e.preventDefault();
       
       const { data: { session } } = await supabaseClient.auth.getSession();
       
-      if (!session) {
+      if (!session || !session.user) {
         window.location.href = 'auth.html';
         return;
       }
 
       window.location.href = `results.html?departure=${dep}&arrival=${arr}`;
     }
-
-    // Vérification authentification menu
-    async function checkAuthStatus() {
-      const accountLink = document.getElementById("userAccountLink");
-      if (!accountLink) return;
-      const { data: { session } } = await supabaseClient.auth.getSession();
-      if (!session) {
-        accountLink.textContent = "Se connecter";
-        accountLink.href = "auth.html";
-      } else {
-        accountLink.textContent = "Mon Compte";
-        accountLink.href = "account.html";
-      }
-    }
-
-    document.addEventListener('DOMContentLoaded', checkAuthStatus);
   </script>
 </body>
 </html>
