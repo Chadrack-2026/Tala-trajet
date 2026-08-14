@@ -265,15 +265,31 @@
       if (yearEl) yearEl.textContent = new Date().getFullYear();
     });
 
-    function handleSearch(e) {
+    // Fonction de recherche sécurisée (redirection vers auth.html si non connecté)
+    async function handleSearch(e) {
       e.preventDefault();
+      
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (!session || !session.user) {
+        window.location.href = 'auth.html';
+        return;
+      }
+
       const dep = document.getElementById('departureCity').value;
       const arr = document.getElementById('arrivalCity').value;
       window.location.href = `results.html?departure=${dep}&arrival=${arr}`;
     }
 
-    function handleRouteClick(e, dep, arr) {
+    // Redirection sécurisée pour les lignes populaires
+    async function handleRouteClick(e, dep, arr) {
       e.preventDefault();
+      
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (!session || !session.user) {
+        window.location.href = 'auth.html';
+        return;
+      }
+
       window.location.href = `results.html?departure=${dep}&arrival=${arr}`;
     }
   </script>
