@@ -3,285 +3,381 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Connectez-vous ou créez un compte sur TALA Trajet pour gérer vos réservations de transport en RDC." />
+  <meta name="theme-color" content="#0b1018" />
   <title>Authentification — TALA Trajet</title>
-  
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
-  
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  
   <style>
-    .auth-container {
-      max-width: 480px;
-      margin: 60px auto;
-      padding: 0 20px;
+    :root {
+      --bg: #0b1018;
+      --bg-soft: #111923;
+      --surface: #151e2a;
+      --surface-2: #1b2634;
+      --border: #2a394b;
+      --text: #f5f8fc;
+      --muted: #a8b5c5;
+      --primary: #25a5ff;
+      --primary-2: #00d7c8;
+      --danger: #ff6b6b;
+      --shadow: 0 20px 60px rgba(0, 0, 0, .28);
+      --radius: 18px;
+      --container: 1160px;
     }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 50% -10%, rgba(37, 165, 255, .16), transparent 35rem),
+        var(--bg);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.6;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    button, input, select, textarea { font: inherit; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    img { max-width: 100%; display: block; }
+    .container { width: min(var(--container), calc(100% - 40px)); margin-inline: auto; }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      background: rgba(11,16,24,.88);
+      backdrop-filter: blur(16px);
+    }
+    .header-inner { min-height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+    .brand { font-weight: 900; font-size: 1.4rem; letter-spacing: -.05em; }
+    .brand span { color: var(--primary-2); }
+    .main-nav { display: flex; align-items: center; gap: 24px; }
+    .main-nav a { color: var(--muted); font-weight: 650; font-size: .94rem; transition: color .2s ease; display: inline-flex; align-items: center; gap: 6px; }
+    .main-nav a:hover, .main-nav a.active { color: var(--text); }
+    .auth-link { border: 1px solid rgba(0,215,200,.55); color: var(--primary-2) !important; padding: 9px 15px; border-radius: 10px; }
+    .auth-link:hover { background: rgba(0,215,200,.1); }
+    .menu-button { display: none; border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 10px; padding: 8px 11px; cursor: pointer; }
+
+    /* Auth Wrapper & Card */
+    .auth-container { max-width: 480px; margin: 60px auto 80px; padding: 0 20px; }
     .auth-card {
-      background: #171b22;
-      border: 1px solid #2a313b;
-      border-radius: 16px;
-      padding: 35px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      background: linear-gradient(145deg, rgba(21,30,42,.96), rgba(15,23,33,.96));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 36px;
+      box-shadow: var(--shadow);
     }
-    .auth-tabs {
-      display: flex;
-      margin-bottom: 25px;
-      border-bottom: 1px solid #2a313b;
-    }
+
+    .auth-tabs { display: flex; margin-bottom: 25px; border-bottom: 1px solid var(--border); background: rgba(11,18,27,.5); border-radius: 12px 12px 0 0; padding: 4px; }
     .auth-tab {
       flex: 1;
       background: none;
       border: none;
-      color: #b0bcc9;
-      font-weight: 600;
-      font-size: 1rem;
-      padding: 12px;
+      color: var(--muted);
+      font-weight: 700;
+      font-size: .9rem;
+      padding: 10px;
       cursor: pointer;
-      border-bottom: 2px solid transparent;
-      transition: all 0.3s ease;
+      border-radius: 9px;
+      transition: all .2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
     }
     .auth-tab.active {
-      color: #00d2ff;
-      border-bottom-color: #00d2ff;
+      color: var(--text);
+      background: var(--surface-2);
+      box-shadow: 0 2px 8px rgba(0,0,0,.2);
     }
-    .form-group {
-      margin-bottom: 20px;
-    }
-    .form-group label {
-      display: block;
-      color: #b0bcc9;
-      font-size: 0.85rem;
-      margin-bottom: 8px;
-    }
+
+    .form-group { margin-bottom: 18px; text-align: left; }
+    .form-group label { display: block; color: var(--muted); font-weight: 700; font-size: .82rem; margin-bottom: 7px; display: flex; align-items: center; gap: 6px; }
+    .form-group input { width: 100%; padding: 12px 14px; border: 1px solid var(--border); border-radius: 11px; outline: none; color: var(--text); background: #0b121b; font-size: .95rem; }
+    .form-group input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,165,255,.15); }
+
     .google-btn {
       width: 100%;
       background: #ffffff;
       color: #0f1216;
-      border: 1px solid #2a313b;
+      border: 1px solid var(--border);
       padding: 12px;
-      border-radius: 8px;
-      font-weight: 600;
+      border-radius: 11px;
+      font-weight: 750;
+      font-size: .93rem;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 12px;
       cursor: pointer;
-      transition: background 0.3s ease;
+      transition: background .2s ease, transform .2s ease;
       margin-bottom: 20px;
     }
-    .google-btn:hover {
-      background: #f1f5f9;
-    }
-    .divider {
-      display: flex;
-      align-items: center;
-      text-align: center;
-      color: #6b7a90;
-      font-size: 0.85rem;
-      margin: 20px 0;
-    }
-    .divider::before, .divider::after {
-      content: '';
-      flex: 1;
-      border-bottom: 1px solid #2a313b;
-    }
-    .divider::before { margin-right: 15px; }
-    .divider::after { margin-left: 15px; }
+    .google-btn:hover { background: #f1f5f9; transform: translateY(-1px); }
+
+    .divider { display: flex; align-items: center; text-align: center; color: var(--muted); font-size: .82rem; font-weight: 600; margin: 20px 0; }
+    .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid var(--border); }
+    .divider::before { margin-right: 12px; }
+    .divider::after { margin-left: 12px; }
+
     .error-msg {
-      background: rgba(231, 76, 60, 0.1);
-      border: 1px solid #e74c3c;
-      color: #e74c3c;
-      padding: 10px;
-      border-radius: 8px;
-      font-size: 0.85rem;
+      background: rgba(255, 107, 107, 0.1);
+      border: 1px solid rgba(255, 107, 107, 0.4);
+      color: var(--danger);
+      padding: 11px 14px;
+      border-radius: 10px;
+      font-size: .86rem;
+      font-weight: 600;
       margin-bottom: 20px;
       display: none;
     }
+
+    .primary-button {
+      width: 100%;
+      min-height: 50px;
+      border: 0;
+      border-radius: 11px;
+      padding: 0 20px;
+      color: #03131c;
+      background: linear-gradient(120deg, #45c0ff, #00d7c8);
+      font-weight: 850;
+      cursor: pointer;
+      transition: transform .2s ease, filter .2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .primary-button:hover { transform: translateY(-2px); filter: brightness(1.08); }
+
+    footer { padding: 45px 0 20px; background: #080d13; border-top: 1px solid var(--border); }
+    .footer-inner { display: flex; align-items: start; justify-content: space-between; gap: 30px; padding-bottom: 28px; border-bottom: 1px solid var(--border); }
+    .footer-description { max-width: 340px; margin: 10px 0 0; color: var(--muted); font-size: .9rem; }
+    .footer-links { display: flex; flex-wrap: wrap; gap: 17px; }
+    .footer-links a { color: var(--muted); font-size: .88rem; display: inline-flex; align-items: center; gap: 5px; }
+    .footer-links a:hover { color: var(--primary-2); }
+    .footer-bottom { margin: 19px 0 0; color: #718095; text-align: center; font-size: .8rem; }
+
+    @media (max-width: 680px) {
+      .container { width: min(var(--container), calc(100% - 28px)); }
+      .header-inner { min-height: 64px; }
+      .menu-button { display: block; }
+      .main-nav { display: none; position: absolute; top: 64px; left: 14px; right: 14px; flex-direction: column; align-items: stretch; gap: 5px; padding: 13px; background: #121b26; border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow); }
+      .main-nav.open { display: flex; }
+      .main-nav a { padding: 11px 12px; }
+      .auth-container { margin: 30px auto; padding: 0 10px; }
+      .auth-card { padding: 22px; }
+      .footer-inner { flex-direction: column; text-align: center; align-items: center; }
+      .footer-links { justify-content: center; }
+    }
   </style>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-<!-- HEADER -->
-<header class="site-header">
-  <div class="brand">TALA<span>Trajet</span></div>
-  <nav class="main-nav" id="navMenu">
-    <a href="index.html">Accueil</a>
-    <a href="about.html">À propos</a>
-    <a href="contact.html">Contact</a>
-    <a href="auth.html" class="active nav-auth-btn">Connexion</a>
-  </nav>
-  <button class="menu-btn" id="menuToggle" aria-label="Ouvrir le menu">☰</button>
-</header>
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="index.html" aria-label="TALA Trajet, accueil">TALA<span>Trajet</span></a>
+      <button class="menu-button" id="menuToggle" type="button" aria-controls="navMenu" aria-expanded="false" aria-label="Ouvrir le menu">☰</button>
+      <nav class="main-nav" id="navMenu" aria-label="Navigation principale">
+        <a href="index.html"><i data-lucide="house" style="width:16px;height:16px;"></i>Accueil</a>
+        <a href="search.html"><i data-lucide="search" style="width:16px;height:16px;"></i>Rechercher</a>
+        <a href="about.html"><i data-lucide="info" style="width:16px;height:16px;"></i>À propos</a>
+        <a href="contact.html"><i data-lucide="mail" style="width:16px;height:16px;"></i>Contact</a>
+        <a class="auth-link active" href="auth.html"><i data-lucide="log-in" style="width:16px;height:16px;"></i>Connexion</a>
+      </nav>
+    </div>
+  </header>
 
-<!-- MAIN -->
-<main>
-  <div class="auth-container">
-    <div class="auth-card">
-      
-      <div style="text-align: center; margin-bottom: 25px;">
-        <h1 style="color: #ffffff; font-size: 1.8rem; margin-bottom: 6px;" id="formTitle">Connexion</h1>
-        <p style="color: #b0bcc9; font-size: 0.9rem;" id="formSubtitle">Accédez à votre espace personnel TALA Trajet.</p>
-      </div>
-
-      <div class="auth-tabs">
-        <button class="auth-tab active" id="tabLogin" onclick="switchMode('login')">Se connecter</button>
-        <button class="auth-tab" id="tabRegister" onclick="switchMode('register')">S'inscrire</button>
-      </div>
-
-      <div class="error-msg" id="errorAlert"></div>
-
-      <!-- BOUTON GOOGLE OAUTH -->
-      <button type="button" class="google-btn" onclick="loginWithGoogle()">
-        <svg width="18" height="18" viewBox="0 0 24 24">
-          <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
-          <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.13 0-5.78-2.11-6.73-4.96H1.19v3.15C3.17 21.31 7.22 24 12 24z"/>
-          <path fill="#FBBC05" d="M5.27 14.24c-.25-.72-.38-1.49-.38-2.24s.13-1.52.38-2.24V6.61H1.19C.43 8.15 0 9.89 0 11.75s.43 3.6 1.19 5.14l4.08-2.65z"/>
-          <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.22 0 3.17 2.69 1.19 6.61l4.08 3.15c.95-2.85 3.6-4.96 6.73-4.96z"/>
-        </svg>
-        Continuer avec Google
-      </button>
-
-      <div class="divider">ou avec votre email</div>
-
-      <!-- FORMULAIRE EMAIL / PASSWORD -->
-      <form id="authForm" onsubmit="handleAuth(event)">
+  <!-- MAIN -->
+  <main>
+    <div class="auth-container">
+      <div class="auth-card">
         
-        <div class="form-group" id="nameGroup" style="display: none;">
-          <label for="fullName">Nom complet</label>
-          <input type="text" id="fullName" placeholder="Ex: Jean Mukendi" style="width: 100%; padding: 12px; border-radius: 8px; background: #0c0f13; border: 1px solid #2a313b; color: #ffffff; font-family: 'Poppins', sans-serif;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <h1 style="color: #ffffff; font-size: 1.65rem; margin: 0 0 6px; letter-spacing: -.03em;" id="formTitle">
+            Connexion
+          </h1>
+          <p style="color: var(--muted); font-size: 0.9rem; margin: 0;" id="formSubtitle">
+            Accédez à votre espace personnel TALA Trajet.
+          </p>
         </div>
 
-        <div class="form-group">
-          <label for="email">Adresse email</label>
-          <input type="email" id="email" required placeholder="nom@exemple.com" style="width: 100%; padding: 12px; border-radius: 8px; background: #0c0f13; border: 1px solid #2a313b; color: #ffffff; font-family: 'Poppins', sans-serif;">
+        <div class="auth-tabs" role="tablist">
+          <button class="auth-tab active" id="tabLogin" role="tab" aria-selected="true" onclick="switchMode('login')">
+            <i data-lucide="log-in" style="width:16px;height:16px;"></i> Se connecter
+          </button>
+          <button class="auth-tab" id="tabRegister" role="tab" aria-selected="false" onclick="switchMode('register')">
+            <i data-lucide="user-plus" style="width:16px;height:16px;"></i> S'inscrire
+          </button>
         </div>
 
-        <div class="form-group">
-          <label for="password">Mot de passe</label>
-          <input type="password" id="password" required placeholder="••••••••" style="width: 100%; padding: 12px; border-radius: 8px; background: #0c0f13; border: 1px solid #2a313b; color: #ffffff; font-family: 'Poppins', sans-serif;">
-        </div>
+        <div class="error-msg" id="errorAlert" role="alert"></div>
 
-        <button type="submit" class="btn-primary-lg" style="width: 100%; border: none; cursor: pointer; padding: 14px;" id="submitBtn">
-          Se connecter
+        <!-- BOUTON GOOGLE OAUTH -->
+        <button type="button" class="google-btn" onclick="loginWithGoogle()">
+          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
+            <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.13 0-5.78-2.11-6.73-4.96H1.19v3.15C3.17 21.31 7.22 24 12 24z"/>
+            <path fill="#FBBC05" d="M5.27 14.24c-.25-.72-.38-1.49-.38-2.24s.13-1.52.38-2.24V6.61H1.19C.43 8.15 0 9.89 1.19 11.75s.43 3.6 1.19 5.14l4.08-2.65z"/>
+            <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.22 0 3.17 2.69 1.19 6.61l4.08 3.15c.95-2.85 3.6-4.96 6.73-4.96z"/>
+          </svg>
+          Continuer avec Google
         </button>
 
-      </form>
+        <div class="divider">
+          ou avec votre email
+        </div>
 
+        <!-- FORMULAIRE EMAIL / PASSWORD -->
+        <form id="authForm" onsubmit="handleAuth(event)" novalidate>
+          
+          <div class="form-group" id="nameGroup" style="display: none;">
+            <label for="fullName">
+              <i data-lucide="user" style="width:15px;height:15px;"></i> Nom complet
+            </label>
+            <input type="text" id="fullName" placeholder="Ex: Jean Mukendi">
+          </div>
+
+          <div class="form-group">
+            <label for="email">
+              <i data-lucide="mail" style="width:15px;height:15px;"></i> Adresse email
+            </label>
+            <input type="email" id="email" required placeholder="nom@exemple.com">
+          </div>
+
+          <div class="form-group">
+            <label for="password">
+              <i data-lucide="lock" style="width:15px;height:15px;"></i> Mot de passe
+            </label>
+            <input type="password" id="password" required placeholder="••••••••">
+          </div>
+
+          <button type="submit" class="primary-button" id="submitBtn">
+            <i data-lucide="log-in" style="width:17px;height:17px;"></i> Se connecter
+          </button>
+
+        </form>
+
+      </div>
     </div>
-  </div>
-</main>
+  </main>
 
-<footer>
-  <div class="container footer-inner">
-    <div class="footer-brand">
-      <div class="brand">TALA<span>Trajet</span></div>
-      <p>La plateforme intelligente de réservation de billets de transport en République Démocratique du Congo.</p>
+  <footer>
+    <div class="container footer-inner">
+      <div>
+        <a class="brand" href="index.html">TALA<span>Trajet</span></a>
     </div>
-    
-    <div class="footer-links">
-      <a href="about.html">À propos</a>
-      <a href="contact.html">Contact</a>
-      <a href="terms.html">Conditions d'utilisation</a>
-      <a href="privacy.html">Politique de confidentialité</a>
-    </div>
-  </div>
-  <div class="footer-bottom">
-    <p>© 2026 TALA Trajet — Tous droits réservés.</p>
-  </div>
-</footer>
+    <p class="container footer-bottom">© 2026 TALA Trajet — Tous droits réservés.</p>
+  </footer>
 
-<script>
-  // Menu mobile
-  const menuToggle = document.getElementById('menuToggle');
-  const navMenu = document.getElementById('navMenu');
-  if (menuToggle && navMenu) {
-    menuToggle.addEventListener('click', () => {
-      navMenu.classList.toggle('open');
-      menuToggle.textContent = navMenu.classList.contains('open') ? '✕' : '☰';
-    });
-  }
+  <script>
+    // Menu mobile toggle
+    const menuToggle = document.getElementById('menuToggle');
+    const navMenu = document.getElementById('navMenu');
 
-  // Supabase Initialisation
-  const { createClient } = window.supabase;
-  const supabaseUrl = "https://kfkifkstatbadtzosxai.supabase.co"; 
-  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma2lma3N0YXRiYWR0em9zeGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3MTYzMTAsImV4cCI6MjEwMTI5MjMxMH0.xPzFtl_OET2asSc5iH3liRHnPyuUYAfbbjZISwfnaA8";
-  const supabaseClient = createClient(supabaseUrl, supabaseKey);
-
-  let isRegisterMode = false;
-
-  function switchMode(mode) {
-    isRegisterMode = (mode === 'register');
-    
-    document.getElementById('tabLogin').classList.toggle('active', !isRegisterMode);
-    document.getElementById('tabRegister').classList.toggle('active', isRegisterMode);
-    
-    document.getElementById('formTitle').textContent = isRegisterMode ? "Créer un compte" : "Connexion";
-    document.getElementById('formSubtitle').textContent = isRegisterMode ? "Inscrivez-vous pour gérer vos voyages." : "Accédez à votre espace personnel TALA Trajet.";
-    document.getElementById('submitBtn').textContent = isRegisterMode ? "S'inscrire" : "Se connecter";
-    document.getElementById('nameGroup').style.display = isRegisterMode ? "block" : "none";
-    document.getElementById('errorAlert').style.display = "none";
-  }
-
-  // Connexion Google OAuth -> Redirection vers index.html
-  async function loginWithGoogle() {
-    const { data, error } = await supabaseClient.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        // Redirige vers l'index au lieu de account.html
-        redirectTo: window.location.origin + '/index.html'
-      }
-    });
-
-    if (error) {
-      showError(error.message);
+    if (menuToggle && navMenu) {
+      menuToggle.addEventListener('click', () => {
+        navMenu.classList.toggle('open');
+        menuToggle.innerHTML = navMenu.classList.contains('open')
+          ? '<i data-lucide="x"></i>'
+          : '<i data-lucide="menu"></i>';
+        lucide.createIcons();
+      });
     }
-  }
 
-  // Soumission Formulaire Email / Password
-  async function handleAuth(e) {
-    e.preventDefault();
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
-    const fullName = document.getElementById('fullName').value.trim();
-    const errorAlert = document.getElementById('errorAlert');
-    errorAlert.style.display = "none";
+    // Supabase Initialisation
+    const { createClient } = window.supabase;
+    const supabaseUrl = "https://kfkifkstatbadtzosxai.supabase.co"; 
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma2lma3N0YXRiYWR0em9zeGFpIiwiaWF0IjoxNzg1NzE2MzEwLCJleHAiOjIxMDEyOTIzMTl9.xPzFtl_OET2asSc5iH3liRHnPyuUYAfbbjZISwfnaA8";
+    const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
-    if (isRegisterMode) {
-      const { data, error } = await supabaseClient.auth.signUp({
-        email: email,
-        password: password,
+    let isRegisterMode = false;
+
+    function switchMode(mode) {
+      isRegisterMode = (mode === 'register');
+      
+      document.getElementById('tabLogin').classList.toggle('active', !isRegisterMode);
+      document.getElementById('tabLogin').setAttribute('aria-selected', !isRegisterMode);
+      document.getElementById('tabRegister').classList.toggle('active', isRegisterMode);
+      document.getElementById('tabRegister').setAttribute('aria-selected', isRegisterMode);
+      
+      document.getElementById('formTitle').textContent = isRegisterMode ? "Créer un compte" : "Connexion";
+      document.getElementById('formSubtitle').textContent = isRegisterMode ? "Inscrivez-vous pour gérer vos voyages." : "Accédez à votre espace personnel TALA Trajet.";
+      
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.innerHTML = isRegisterMode 
+        ? '<i data-lucide="user-plus" style="width:17px;height:17px;"></i> S\'inscrire' 
+        : '<i data-lucide="log-in" style="width:17px;height:17px;"></i> Se connecter';
+      
+      document.getElementById('nameGroup').style.display = isRegisterMode ? "block" : "none";
+      document.getElementById('errorAlert').style.display = "none";
+      lucide.createIcons();
+    }
+
+    // Connexion Google OAuth
+    async function loginWithGoogle() {
+      const { data, error } = await supabaseClient.auth.signInWithOAuth({
+        provider: 'google',
         options: {
-          data: { full_name: fullName }
+          redirectTo: window.location.origin + '/account.html'
         }
       });
 
       if (error) {
         showError(error.message);
-      } else {
-        // Après inscription réussie, on connecte directement ou on redirige vers index.html
-        window.location.href = "index.html";
-      }
-    } else {
-      const { data, error } = await supabaseClient.auth.signInWithPassword({
-        email: email,
-        password: password
-      });
-
-      if (error) {
-        showError("Identifiants incorrects ou compte introuvable.");
-      } else {
-        // Redirection directe vers index.html après connexion réussie
-        window.location.href = "index.html";
       }
     }
-  }
 
-  function showError(message) {
-    const errorAlert = document.getElementById('errorAlert');
-    errorAlert.textContent = message;
-    errorAlert.style.display = "block";
-  }
-</script>
+    // Soumission Formulaire Email / Password
+    async function handleAuth(e) {
+      e.preventDefault();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const fullName = document.getElementById('fullName').value.trim();
+      const errorAlert = document.getElementById('errorAlert');
+      errorAlert.style.display = "none";
 
+      if (isRegisterMode) {
+        const { data, error } = await supabaseClient.auth.signUp({
+          email: email,
+          password: password,
+          options: {
+            data: { full_name: fullName }
+          }
+        });
+
+        if (error) {
+          showError(error.message);
+        } else {
+          alert("Inscription réussie ! Vérifiez vos emails si une confirmation est requise, ou connectez-vous.");
+          switchMode('login');
+        }
+      } else {
+        const { data, error } = await supabaseClient.auth.signInWithPassword({
+          email: email,
+          password: password
+        });
+
+        if (error) {
+          showError("Identifiants incorrects ou compte introuvable.");
+        } else {
+          window.location.href = "account.html";
+        }
+      }
+    }
+
+    function showError(message) {
+      const errorAlert = document.getElementById('errorAlert');
+      errorAlert.textContent = message;
+      errorAlert.style.display = "block";
+    }
+
+    // Initialisation des icônes Lucide
+    lucide.createIcons();
+  </script>
 </body>
 </html>
