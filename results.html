@@ -136,15 +136,21 @@
     summaryEl.textContent = "Affichage de tous les trajets disponibles";
   }
 
+  // Vérification dynamique de l'authentification pour le menu
   async function checkAuthStatus() {
-    const { data: { session } } = await supabaseClient.auth.getSession();
     const accountLink = document.getElementById("userAccountLink");
-    if (session && session.user) {
+    if (!accountLink) return;
+
+    const { data: { session }, error } = await supabaseClient.auth.getSession();
+
+    if (error || !session || !session.user) {
       accountLink.textContent = "Mon Compte";
-      accountLink.href = "dashboard.html"; // Rediriger vers le profil/dashboard si connecté
-    } else {
-      accountLink.textContent = "Se connecter";
       accountLink.href = "auth.html";
+    } else {
+      // Récupération du nom complet depuis les métadonnées ou par défaut le pseudo de l'email
+      const fullName = session.user.user_metadata?.full_name || session.user.email.split('@')[0];
+      accountLink.textContent = fullName;
+      accountLink.href = "dashboard.html"; // Redirige vers le profil ou espace client
     }
   }
 
@@ -178,7 +184,7 @@
     }
 
     container.innerHTML = filtered.map(t => {
-      // Sécurisation de la récupération du nom de l'agence (objet ou tableau)
+      // Sécurisation de l'objet agence (objet ou tableau renvoyé par Supabase)
       const agenceObj = Array.isArray(t.agency) ? t.agency[0] : t.agency;
       const agenceNom = agenceObj?.nom || 'Agence Partenaire';
 
@@ -186,7 +192,7 @@
         <div class="trip-card">
           <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
             <span style="color:var(--primary-2); font-weight:600;">${agenceNom}</span>
-            <strong style="color:var(--text); font-size:1.2rem;">${Number(t.prix).toLocaleString('fr-FR')} FC</strong>
+            <strong style="color:var(--text); font-size:1.2rem;">${Number(t.prix).toLocaleString('fr-FR')} CDF</strong>
           </div>
           <h3 style="margin:0 0 15px 0;">${t.ville_depart} ➔ ${t.ville_arrivee}</h3>
           <div class="trip-meta">
@@ -201,6 +207,7 @@
     }).join('');
   }
 
+  // Exécution des fonctions au chargement
   checkAuthStatus();
   loadResults();
 </script>
