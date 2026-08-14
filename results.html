@@ -6,7 +6,7 @@
   <title>Résultats de recherche — TALA Trajet</title>
   
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css"> <!-- Assurez-vous que votre style.css global est chargé -->
+  <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
@@ -20,7 +20,6 @@
       --muted: #b0bcc9;
     }
 
-    /* Style du bouton avec effet de lueur moderne */
     .btn-primary-glow {
       width: 100%;
       min-height: 50px;
@@ -51,7 +50,6 @@
     
     .trip-meta { background: #0c0f13; border: 1px solid var(--border); padding: 12px 14px; border-radius: 10px; margin: 15px 0; font-size: 0.85rem; color: var(--muted); }
 
-    /* Correction du bouton menu pour qu'il soit identique aux autres pages */
     .menu-btn {
       display: none;
       border: 1px solid var(--border);
@@ -74,7 +72,6 @@
   <div class="container header-inner" style="display: flex; align-items: center; justify-content: space-between; min-height: 72px;">
     <div class="brand">TALA<span>Trajet</span></div>
     
-    <!-- Bouton menu positionné correctement -->
     <button class="menu-btn" id="menuToggle" aria-label="Ouvrir le menu">☰</button>
     
     <nav class="main-nav" id="navMenu">
@@ -118,7 +115,9 @@
 
 <script>
   const { createClient } = window.supabase;
-  const supabaseClient = createClient("https://kfkifkstatbadtzosxai.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma2lma3N0YXRiYWR0em9zeGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3MTYzMTAsImV4cCI6MjEwMTI5MjMxMH0.xPzFtl_OET2asSc5iH3liRHnPyuUYAfbbjZISwfnaA8");
+  const supabaseUrl = "https://kfkifkstatbadtzosxai.supabase.co";
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma2lma3N0YXRiYWR0em9zeGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3MTYzMTAsImV4cCI6MjEwMTI5MjMxMH0.xPzFtl_OET2asSc5iH3liRHnPyuUYAfbbjZISwfnaA8";
+  const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
   // Menu Toggle Mobile
   document.getElementById('menuToggle').addEventListener('click', () => {
@@ -129,11 +128,42 @@
   const departureCity = urlParams.get('departure') || '';
   const arrivalCity = urlParams.get('arrival') || '';
 
+  // Résumé textuel des critères
+  const summaryEl = document.getElementById("searchCriteriaSummary");
+  if (departureCity || arrivalCity) {
+    summaryEl.textContent = `Trajets de "${departureCity || 'Toutes les villes'}" vers "${arrivalCity || 'Toutes les destinations'}"`;
+  } else {
+    summaryEl.textContent = "Affichage de tous les trajets disponibles";
+  }
+
+  async function checkAuthStatus() {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    const accountLink = document.getElementById("userAccountLink");
+    if (session && session.user) {
+      accountLink.textContent = "Mon Compte";
+      accountLink.href = "dashboard.html"; // Rediriger vers le profil/dashboard si connecté
+    } else {
+      accountLink.textContent = "Se connecter";
+      accountLink.href = "auth.html";
+    }
+  }
+
   async function loadResults() {
     const container = document.getElementById("resultsList");
-    const { data, error } = await supabaseClient.from("trips").select(`id, ville_depart, ville_arrivee, date_depart, prix, places_disponibles, agency:agencies ( nom )`);
+    const { data, error } = await supabaseClient.from("trips").select(`
+      id, 
+      ville_depart, 
+      ville_arrivee, 
+      date_depart, 
+      prix, 
+      places_disponibles, 
+      agency:agencies ( nom )
+    `);
 
-    if (error) return;
+    if (error) {
+      container.innerHTML = `<p style="color:var(--danger); text-align:center; grid-column:1/-1;">Erreur lors du chargement des résultats.</p>`;
+      return;
+    }
 
     const filtered = (data || []).filter(t => 
       (!departureCity || t.ville_depart.toLowerCase().includes(departureCity.toLowerCase())) &&
@@ -142,24 +172,36 @@
 
     document.getElementById("resultsCount").textContent = `${filtered.length} trajet(s) trouvé(s)`;
     
-    container.innerHTML = filtered.map(t => `
-      <div class="trip-card">
-        <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
-          <span style="color:var(--primary-2); font-weight:600;">${t.agency?.nom || 'Agence'}</span>
-          <strong style="color:var(--text); font-size:1.2rem;">${Number(t.prix).toLocaleString()} CDF</strong>
+    if (filtered.length === 0) {
+      container.innerHTML = `<p style="text-align:center; color:var(--muted); grid-column:1/-1;">Aucun trajet ne correspond à votre recherche.</p>`;
+      return;
+    }
+
+    container.innerHTML = filtered.map(t => {
+      // Sécurisation de la récupération du nom de l'agence (objet ou tableau)
+      const agenceObj = Array.isArray(t.agency) ? t.agency[0] : t.agency;
+      const agenceNom = agenceObj?.nom || 'Agence Partenaire';
+
+      return `
+        <div class="trip-card">
+          <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+            <span style="color:var(--primary-2); font-weight:600;">${agenceNom}</span>
+            <strong style="color:var(--text); font-size:1.2rem;">${Number(t.prix).toLocaleString('fr-FR')} FC</strong>
+          </div>
+          <h3 style="margin:0 0 15px 0;">${t.ville_depart} ➔ ${t.ville_arrivee}</h3>
+          <div class="trip-meta">
+            📅 ${new Date(t.date_depart).toLocaleDateString()} <br>
+            💺 ${t.places_disponibles} places disponibles
+          </div>
+          <button onclick="window.location.href='booking.html?trip_id=${t.id}'" class="btn-primary-glow">
+            Réserver ce trajet →
+          </button>
         </div>
-        <h3 style="margin:0 0 15px 0;">${t.ville_depart} ➔ ${t.ville_arrivee}</h3>
-        <div class="trip-meta">
-          📅 ${new Date(t.date_depart).toLocaleDateString()} <br>
-          💺 ${t.places_disponibles} places disponibles
-        </div>
-        <button onclick="window.location.href='booking.html?trip_id=${t.id}'" class="btn-primary-glow">
-          Réserver ce trajet →
-        </button>
-      </div>
-    `).join('');
+      `;
+    }).join('');
   }
 
+  checkAuthStatus();
   loadResults();
 </script>
 </body>
